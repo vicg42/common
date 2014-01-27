@@ -35,6 +35,37 @@ G_DBG_PCIE : string:="OFF";
 G_SIM      : string:="OFF"
 );
 port(
+----------------------------------------------------
+----VideoIN
+----------------------------------------------------
+--p_in_vd             : in   std_logic_vector(C_PCFG_VIN_DWIDTH-1 downto 0);
+--p_in_vin_vs         : in   std_logic;--Строб кадровой синхронизации (КСИ)
+--p_in_vin_hs         : in   std_logic;--Строб строчной синхронизации (ССИ)
+--p_in_vin_clk        : in   std_logic;--Пиксельная частота
+--p_in_ext_syn        : in   std_logic;--Внешняя синхронизация записи
+--
+----------------------------------------------------
+----VideoOUT
+----------------------------------------------------
+--p_out_vd            : out  std_logic_vector(C_PCFG_VOUT_DWIDTH-1 downto 0);
+--p_in_vout_vs        : in   std_logic;--Строб кадровой синхронизации (КСИ)
+--p_in_vout_hs        : in   std_logic;--Строб строчной синхронизации (ССИ)
+--p_in_vout_clk       : in   std_logic;--Пиксельная частота
+
+---------------------------------------------------
+----Порт управления модулем + Статусы
+---------------------------------------------------
+----Интерфейс управления модулем
+--p_in_usr_clk        : in    std_logic; --частота тактирования p_in_usr_txd/rxd/tx_wr/rx_rd
+--p_in_usr_tx_wr      : in    std_logic;
+--p_in_usr_rx_rd      : in    std_logic;
+--p_in_usr_txd        : in    std_logic_vector(15 downto 0);--HOST->HDD
+--p_out_usr_rxd       : out   std_logic_vector(15 downto 0);--HOST<-HDD
+--p_out_usr_status    : out   std_logic_vector(7  downto 0);
+--
+----Управление от модуля camemra.v
+--p_in_cam_ctrl       : in    std_logic_vector(15 downto 0);
+
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
@@ -184,12 +215,6 @@ signal i_vctrl_vbufi_empty              : std_logic;
 signal i_vctrl_vbufi_pfull              : std_logic;
 signal i_vctrl_vbufi_full               : std_logic;
 
-signal i_vctrl_vbufi2_do                : std_logic_vector(C_PCFG_VCTRL_VBUFI_OWIDTH - 1 downto 0);
-signal i_vctrl_vbufi2_rd                : std_logic;
-signal i_vctrl_vbufi2_empty             : std_logic;
-signal i_vctrl_vbufi2_pfull             : std_logic;
-signal i_vctrl_vbufi2_full              : std_logic;
-
 signal i_vctrl_hrd_start                : std_logic;
 signal i_vctrl_hrd_done                 : std_logic;
 signal sr_vctrl_hrd_done                : std_logic_vector(1 downto 0);
@@ -224,6 +249,9 @@ signal i_mem_ctrl_status                : TMEMCTRL_status;
 signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
 signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
+signal i_hddwr_mode                     : std_logic;
+signal i_hddrd_mode                     : std_logic;
+
 signal i_prom_rst                       : std_logic;
 
 attribute keep : string;
@@ -236,35 +264,34 @@ signal tst_clr          : std_logic;
 --signal tst_edev_out     : std_logic_vector(31 downto 0);
 --signal tst_prom_out     : std_logic_vector(31 downto 0);
 
-signal i_ccd_vdi                        : std_logic_vector(C_PCFG_CCD_DWIDTH - 1 downto 0);
-signal i_ccd_vs                         : std_logic;
-signal i_ccd_hs                         : std_logic;
-signal i_ccd_vclk                       : std_logic;
-signal i_ccd_vclk_en                    : std_logic;
-signal i_ccd_cfg                        : std_logic_vector(15 downto 0);
-signal i_ccd_vpix                       : std_logic_vector(15 downto 0);
-signal i_ccd_vrow                       : std_logic_vector(15 downto 0);
-signal i_ccd_syn_h                      : std_logic_vector(15 downto 0);
-signal i_ccd_syn_v                      : std_logic_vector(15 downto 0);
-signal i_ccd_d80_d32_clk                : std_logic;
-signal i_ccd_tst_out                    : std_logic_vector(31 downto 0);
-signal i_ccd_fps                        : std_logic_vector(3 downto 0) := (others=>'0');
+signal i_vin_d                          : std_logic_vector(C_PCFG_CCD_DWIDTH - 1 downto 0);
+signal i_vin_vs                         : std_logic;
+signal i_vin_hs                         : std_logic;
+signal i_vin_clk                        : std_logic;
+signal i_vin_clk_en                     : std_logic;
+signal i_vin_cfg                        : std_logic_vector(15 downto 0);
+signal i_vin_pix                        : std_logic_vector(15 downto 0);
+signal i_vin_row                        : std_logic_vector(15 downto 0);
+signal i_vin_syn_h                      : std_logic_vector(15 downto 0);
+signal i_vin_syn_v                      : std_logic_vector(15 downto 0);
+signal i_vin_d80_d32_clk                : std_logic;
+signal i_vin_tst_out                    : std_logic_vector(31 downto 0);
+signal i_vin_fps                        : std_logic_vector(3 downto 0) := (others=>'0');
 
-signal i_vout_d                         : std_logic_vector(C_PCFG_VOUT_DWIDTH - 1 downto 0);
-signal i_vout_vs                        : std_logic;
-signal i_vout_hs                        : std_logic;
+signal i_vout_d,tst_vout_d                          : std_logic_vector(C_PCFG_VOUT_DWIDTH - 1 downto 0);
+signal i_vout_vs,tmp_vout_vs                        : std_logic;
+signal i_vout_hs,tmp_vout_hs                        : std_logic;
 signal i_vout_clk                       : std_logic;
 signal i_vout_clk_en                    : std_logic;
 signal i_video_out_vs                   : std_logic;
-signal sr_vout_vs                       : std_logic_vector(0 to 1);
 
-signal i_ccd2_cfg                       : std_logic_vector(15 downto 0);
-signal i_ccd2_vpix                      : std_logic_vector(15 downto 0);
-signal i_ccd2_vrow                      : std_logic_vector(15 downto 0);
-signal i_ccd2_syn_h                     : std_logic_vector(15 downto 0);
-signal i_ccd2_syn_v                     : std_logic_vector(15 downto 0);
-signal i_ccd2_tst_out                   : std_logic_vector(31 downto 0);
-signal i_ccd2_fps                       : std_logic_vector(3 downto 0) := (others=>'0');
+signal i_vout_cfg                       : std_logic_vector(15 downto 0);
+signal i_vout_pix                       : std_logic_vector(15 downto 0);
+signal i_vout_row                       : std_logic_vector(15 downto 0);
+signal i_vout_syn_h                     : std_logic_vector(15 downto 0);
+signal i_vout_syn_v                     : std_logic_vector(15 downto 0);
+signal i_vout_tst_out                   : std_logic_vector(31 downto 0);
+signal i_vout_fps                       : std_logic_vector(3 downto 0) := (others=>'0');
 
 
 --MAIN
@@ -310,8 +337,8 @@ i_mem_ctrl_sysin.clk <= g_usrclk(1);
 
 i_pciexp_gt_refclk <= g_usrclk(3);
 
-i_ccd_vclk <= g_usrclk(5);--pixclk
-i_ccd_d80_d32_clk <= g_usrclk(0);--частота конвертирования данных 80bit -> 32bit
+i_vin_clk <= g_usrclk(5);--pixclk
+i_vin_d80_d32_clk <= g_usrclk(0);--частота конвертирования данных 80bit -> 32bit
 
 
 --***********************************************************
@@ -453,14 +480,14 @@ p_in_cfg_done             => i_cfg_done_dev(C_CFGDEV_SWT),
 -------------------------------
 --Связь с ImageSensor
 -------------------------------
-p_in_vd                   => i_ccd_vdi,
-p_in_vs                   => i_ccd_vs,
-p_in_hs                   => i_ccd_hs,
-p_in_vclk                 => i_ccd_vclk,
-p_in_vclk_en              => i_ccd_vclk_en,
-p_in_ext_syn              => '0',
+p_in_vd                   => i_vin_d,
+p_in_vs                   => i_vin_vs,
+p_in_hs                   => i_vin_hs,
+p_in_vclk                 => i_vin_clk,
+p_in_vclk_en              => i_vin_clk_en,
+p_in_ext_syn              => i_swt_tst_out(1),--i_en_video !!!
 
-p_in_convert_clk          => i_ccd_d80_d32_clk,
+p_in_convert_clk          => i_vin_d80_d32_clk,
 
 -------------------------------
 --VBUFI
@@ -473,19 +500,9 @@ p_out_vbufi_full          => i_vctrl_vbufi_full,
 p_out_vbufi_pfull         => i_vctrl_vbufi_pfull,
 
 -------------------------------
---VBUFI2
--------------------------------
-p_in_vbufi2_rdclk         => g_usr_highclk,
-p_out_vbufi2_do           => i_vctrl_vbufi2_do,
-p_in_vbufi2_rd            => i_vctrl_vbufi2_rd,
-p_out_vbufi2_empty        => i_vctrl_vbufi2_empty,
-p_out_vbufi2_full         => i_vctrl_vbufi2_full,
-p_out_vbufi2_pfull        => i_vctrl_vbufi2_pfull,
-
--------------------------------
 --Технологический
 -------------------------------
-p_in_tst                  => i_swt_tst_in,
+p_in_tst                  => (others=>'0'),--i_swt_tst_in,
 p_out_tst                 => i_swt_tst_out,
 
 -------------------------------
@@ -494,121 +511,14 @@ p_out_tst                 => i_swt_tst_out,
 p_in_rst => i_swt_rst
 );
 
-i_swt_tst_in(0) <= i_tmr_hirq(C_TMR_ETH);
-i_swt_tst_in(1) <= i_tmr_en(C_TMR_ETH);
-i_swt_tst_in(31 downto 2) <= (others=>'0');
-
 
 --***********************************************************
 --ImageSensor -> PCIE
 --***********************************************************
 i_host_dev_irq(C_HIRQ_VCH0) <= i_vctrl_irq(0);
+i_host_dev_irq(C_HIRQ_VCH1) <= i_vctrl2_irq(0);
 
 m_vctrl : dsn_video_ctrl
-generic map(
-G_USR_OPT => C_PCFG_VCTRL_USR_OPT,
-G_DBGCS => C_PCFG_VCTRL_DBG,
-G_MEM_AWIDTH => C_HREG_MEM_ADR_LAST_BIT,
-G_MEMWR_DWIDTH => C_PCFG_VCTRL_VBUFI_OWIDTH,
-G_MEMRD_DWIDTH => C_HDEV_DWIDTH
-)
-port map(
--------------------------------
---CFG
--------------------------------
-p_in_cfg_clk         => g_host_clk,
-
-p_in_cfg_adr         => i_cfg_radr(7 downto 0),
-p_in_cfg_adr_ld      => i_cfg_radr_ld,
-p_in_cfg_adr_fifo    => i_cfg_radr_fifo,
-
-p_in_cfg_txdata      => i_cfg_txd,
-p_in_cfg_wd          => i_cfg_wr_dev(C_CFGDEV_VCTRL),
-
-p_out_cfg_rxdata     => i_cfg_rxd_dev(C_CFGDEV_VCTRL),
-p_in_cfg_rd          => i_cfg_rd_dev(C_CFGDEV_VCTRL),
-
-p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_VCTRL),
-
--------------------------------
---HOST
--------------------------------
-p_in_hrdchsel        => "0000",
-p_in_hrdstart        => i_vctrl_hrd_start,
-p_in_hrddone         => i_vctrl_hrd_done,
-p_out_hirq           => i_vctrl_irq,
-p_out_hdrdy          => i_vctrl_hrdy,
-p_out_hfrmrk         => i_vctrl_hfrmrk,
-
-p_in_vbufo_rdclk     => g_host_clk,
-p_out_vbufo_do       => i_host_rxd(C_HDEV_VCH),
-p_in_vbufo_rd        => i_host_rd(C_HDEV_VCH),
-p_out_vbufo_empty    => i_host_rxbuf_empty(C_HDEV_VCH),
-
--------------------------------
---VBUFI
--------------------------------
-p_in_vbufi_do        => i_vctrl_vbufi_do,
-p_out_vbufi_rd       => i_vctrl_vbufi_rd,
-p_in_vbufi_empty     => i_vctrl_vbufi_empty,
-p_in_vbufi_full      => i_vctrl_vbufi_full,
-p_in_vbufi_pfull     => i_vctrl_vbufi_pfull,
-
----------------------------------
---MEM
----------------------------------
---CH WRITE
-p_out_memwr          => i_memin_ch(1),  --DEV -> MEM
-p_in_memwr           => i_memout_ch(1), --DEV <- MEM
---CH READ
-p_out_memrd          => i_memin_ch(2),  --DEV -> MEM
-p_in_memrd           => i_memout_ch(2), --DEV <- MEM
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst             => i_vctrl_tst_in,
-p_out_tst            => i_vctrl_tst_out,
-
--------------------------------
---System
--------------------------------
-p_in_clk => g_usr_highclk,
-p_in_rst => i_vctrl_rst
-);
-
-i_vctrl_tst_in(0) <= i_swt_tst_out(0);--Сброс выходного видеобуфера !!!
-i_vctrl_tst_in(31 downto 1) <= (others=>'0');
-
-
---***********************************************************
---ImageSensor/PCIE -> VBUFO
---***********************************************************
-i_host_dev_irq(C_HIRQ_VCH1) <= i_vctrl_irq(1);
-
-process(g_usr_highclk)
-begin
-  if rising_edge(g_usr_highclk) then
-    if i_vout_vs = G_VSYN_ACTIVE then
-      i_video_out_vs <= '1';
-    else
-      i_video_out_vs <= '0';
-    end if;
-
-    sr_vout_vs <= i_vout_vs & sr_vout_vs(0 to 0);
-
---Выдаем видео при записи на HDD
---    if then
-    i_vctrl2_hrd_start <= sr_vout_vs(0) and not sr_vout_vs(1);
---    else
---Выдаем видео при чтении из HDD
---    i_vctrl2_hrd_start <= ;
---    end if;
-
-  end if;
-end process;
-
-m_vctrl2 : dsn_video_ctrl2
 generic map(
 G_VBUF_OWIDTH => C_PCFG_VOUT_DWIDTH,
 G_VSYN_ACTIVE => '1',
@@ -640,12 +550,27 @@ p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_VCTRL),
 -------------------------------
 --HOST
 -------------------------------
-p_in_hrdchsel        => "0001",
-p_in_hrdstart        => i_vctrl2_hrd_start,
-p_in_hrddone         => '1',
-p_out_hirq           => i_vctrl2_irq,
-p_out_hdrdy          => open,
-p_out_hfrmrk         => open,--номер вычитаного кадра
+p_in_hrdchsel        => i_host_vchsel,
+p_in_hrdstart        => i_vctrl_hrd_start,
+p_in_hrddone         => i_vctrl_hrd_done,
+p_out_hirq           => i_vctrl_irq,
+p_out_hdrdy          => i_vctrl_hrdy,
+p_out_hfrmrk         => i_vctrl_hfrmrk,
+p_out_hirq2          => i_vctrl2_irq,
+
+p_in_vbufo_rdclk     => g_host_clk,
+p_out_vbufo_do       => i_host_rxd(C_HDEV_VCH),
+p_in_vbufo_rd        => i_host_rd(C_HDEV_VCH),
+p_out_vbufo_empty    => i_host_rxbuf_empty(C_HDEV_VCH),
+
+-------------------------------
+--VBUFI
+-------------------------------
+p_in_vbufi_do        => i_vctrl_vbufi_do,
+p_out_vbufi_rd       => i_vctrl_vbufi_rd,
+p_in_vbufi_empty     => i_vctrl_vbufi_empty,
+p_in_vbufi_full      => i_vctrl_vbufi_full,
+p_in_vbufi_pfull     => i_vctrl_vbufi_pfull,
 
 -------------------------------
 --VideoOUT
@@ -656,30 +581,24 @@ p_in_hs              => i_vout_hs,
 p_in_vclk            => i_vout_clk,
 p_in_vclk_en         => i_vout_clk_en,
 
--------------------------------
---VBUFI
--------------------------------
-p_in_vbufi_do        => i_vctrl_vbufi2_do,
-p_out_vbufi_rd       => i_vctrl_vbufi2_rd,
-p_in_vbufi_empty     => i_vctrl_vbufi2_empty,
-p_in_vbufi_full      => i_vctrl_vbufi2_full,
-p_in_vbufi_pfull     => i_vctrl_vbufi2_pfull,
-
 ---------------------------------
 --MEM
 ---------------------------------
 --CH WRITE
-p_out_memwr          => i_memin_ch(3),  --DEV -> MEM
-p_in_memwr           => i_memout_ch(3), --DEV <- MEM
+p_out_memwr          => i_memin_ch(1),  --DEV -> MEM
+p_in_memwr           => i_memout_ch(1), --DEV <- MEM
 --CH READ
-p_out_memrd          => i_memin_ch(4),  --DEV -> MEM
-p_in_memrd           => i_memout_ch(4), --DEV <- MEM
+p_out_memrd          => i_memin_ch(2),  --DEV -> MEM
+p_in_memrd           => i_memout_ch(2), --DEV <- MEM
+--CH READ
+p_out_memrd2         => i_memin_ch(3),  --DEV -> MEM
+p_in_memrd2          => i_memout_ch(3), --DEV <- MEM
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst             => i_vctrl2_tst_in,
-p_out_tst            => i_vctrl2_tst_out,
+p_in_tst             => i_vctrl_tst_in,
+p_out_tst            => i_vctrl_tst_out,
 
 -------------------------------
 --System
@@ -688,8 +607,10 @@ p_in_clk => g_usr_highclk,
 p_in_rst => i_vctrl_rst
 );
 
-i_vctrl2_tst_in(0) <= i_swt_tst_out(0);--Сброс выходного видеобуфера !!!
-i_vctrl2_tst_in(31 downto 1) <= (others=>'0');
+i_vctrl_tst_in(0) <= i_swt_tst_out(0);--Сброс выходного видеобуфера !!!
+i_vctrl_tst_in(1) <= i_hddwr_mode;
+i_vctrl_tst_in(2) <= i_hddrd_mode;
+i_vctrl_tst_in(31 downto 3) <= (others=>'0');
 
 
 --***********************************************************
@@ -1030,8 +951,8 @@ p_in_sys        => i_mem_ctrl_sysin
 --DBG
 --#########################################
 pin_out_led(0) <= i_test01_led;
-pin_out_led(1) <= OR_reduce(i_vout_d);
-pin_out_led(2) <= '0';
+pin_out_led(1) <= OR_reduce(tst_vout_d);
+pin_out_led(2) <= i_vctrl_tst_out(9);
 pin_out_led(3) <= '0';
 pin_out_led(4) <= '0';
 pin_out_led(5) <= '0';
@@ -1110,29 +1031,29 @@ p_in_rst         => i_prom_rst
 --#########################################
 --Генератор видеопотока (Записываемого)
 --#########################################
-i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_CCD_DWIDTH/8), i_ccd_vpix'length);
-i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd_vrow'length);
+i_vin_pix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_CCD_DWIDTH/8), i_vin_pix'length);
+i_vin_row <= CONV_STD_LOGIC_VECTOR(1024, i_vin_row'length);
 
 --Управление через рег. C_HREG_TST0
 --3..0 -  --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
 --7..4 -  --0/1/2/    - Test picture: V+H Counter/ V Counter/ H Counter/
-i_ccd_cfg(7 downto 0) <= i_host_tst_out(7 downto 0);
-i_ccd_cfg(i_ccd_cfg'length - 1 downto 8) <= (others=>'0');
-process(i_ccd_vclk)
+i_vin_cfg(7 downto 0) <= i_host_tst_out(7 downto 0);
+i_vin_cfg(i_vin_cfg'length - 1 downto 8) <= (others=>'0');
+process(i_vin_clk)
 begin
-  if rising_edge(i_ccd_vclk) then
-    if i_ccd_vs = '1' then
-      i_ccd_fps <= i_ccd_cfg(3 downto 0);
+  if rising_edge(i_vin_clk) then
+    if i_vin_vs = '1' then
+      i_vin_fps <= i_vin_cfg(3 downto 0);
     end if;
   end if;
 end process;
 
-i_ccd_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(0, i_ccd_fps'length) else
-               CONV_STD_LOGIC_VECTOR( 919, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(1, i_ccd_fps'length) else
-               CONV_STD_LOGIC_VECTOR( 394, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(2, i_ccd_fps'length) else
-               CONV_STD_LOGIC_VECTOR( 132, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(3, i_ccd_fps'length) else
-               CONV_STD_LOGIC_VECTOR( 5, i_ccd_syn_h'length);-- when i_ccd_fps = CONV_STD_LOGIC_VECTOR(4, i_ccd_fps'length) else
-i_ccd_syn_v <= i_ccd_syn_h;
+i_vin_syn_h <= CONV_STD_LOGIC_VECTOR(1968, i_vin_syn_h'length) when i_vin_fps = CONV_STD_LOGIC_VECTOR(0, i_vin_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 920, i_vin_syn_h'length) when i_vin_fps = CONV_STD_LOGIC_VECTOR(1, i_vin_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 396, i_vin_syn_h'length) when i_vin_fps = CONV_STD_LOGIC_VECTOR(2, i_vin_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 134, i_vin_syn_h'length) when i_vin_fps = CONV_STD_LOGIC_VECTOR(3, i_vin_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 3, i_vin_syn_h'length);-- when i_vin_fps = CONV_STD_LOGIC_VECTOR(4, i_vin_fps'length) else
+i_vin_syn_v <= i_vin_syn_h;
 
 m_gen_video_in : vfr_gen
 generic map(
@@ -1141,25 +1062,25 @@ G_VSYN_ACTIVE => '1'
 )
 port map(
 --CFG
-p_in_cfg      => i_ccd_cfg,
-p_in_vpix     => i_ccd_vpix,
-p_in_vrow     => i_ccd_vrow,
-p_in_syn_h    => i_ccd_syn_h,
-p_in_syn_v    => i_ccd_syn_v,
+p_in_cfg      => i_vin_cfg,
+p_in_vpix     => i_vin_pix,
+p_in_vrow     => i_vin_row,
+p_in_syn_h    => i_vin_syn_h,
+p_in_syn_v    => i_vin_syn_v,
 
 --Test Video
-p_out_vd      => i_ccd_vdi,
-p_out_vs      => i_ccd_vs,
-p_out_hs      => i_ccd_hs,
+p_out_vd      => i_vin_d,
+p_out_vs      => i_vin_vs,
+p_out_hs      => i_vin_hs,
 p_out_vclk    => open,
-p_out_vclk_en => i_ccd_vclk_en,
+p_out_vclk_en => i_vin_clk_en,
 
 --Технологический
 p_in_tst      => (others=>'0'),
-p_out_tst     => i_ccd_tst_out,
+p_out_tst     => i_vin_tst_out,
 
 --System
-p_in_clk      => i_ccd_vclk,
+p_in_clk      => i_vin_clk,
 p_in_rst      => i_swt_rst
 );
 
@@ -1170,29 +1091,29 @@ pin_out_TP(0) <= OR_reduce(i_tmr_hirq) or OR_reduce(i_tmr_en);
 --#########################################
 --Генератор видеопотока (Вычитываемого)
 --#########################################
-i_ccd2_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_CCD_DWIDTH/8), i_ccd2_vpix'length);
-i_ccd2_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd2_vrow'length);
+i_vout_pix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_CCD_DWIDTH/8), i_vout_pix'length);
+i_vout_row <= CONV_STD_LOGIC_VECTOR(1024, i_vout_row'length);
 
 --Управление через рег. C_HREG_TST0
 --3..0 -  --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
 --7..4 -  --0/1/2/    - Test picture: V+H Counter/ V Counter/ H Counter/
-i_ccd2_cfg(7 downto 0) <= i_host_tst_out(15 downto 8);
-i_ccd2_cfg(i_ccd2_cfg'length - 1 downto 8) <= (others=>'0');
+i_vout_cfg(7 downto 0) <= i_host_tst_out(15 downto 8);
+i_vout_cfg(i_vout_cfg'length - 1 downto 8) <= (others=>'0');
 process(i_vout_clk)
 begin
   if rising_edge(i_vout_clk) then
     if i_vout_vs = '1' then
-      i_ccd2_fps <= i_ccd2_cfg(3 downto 0);
+      i_vout_fps <= i_vout_cfg(3 downto 0);
     end if;
   end if;
 end process;
 
-i_ccd2_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd2_syn_h'length) when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(0, i_ccd2_fps'length) else
-                CONV_STD_LOGIC_VECTOR( 919, i_ccd2_syn_h'length) when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(1, i_ccd2_fps'length) else
-                CONV_STD_LOGIC_VECTOR( 394, i_ccd2_syn_h'length) when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(2, i_ccd2_fps'length) else
-                CONV_STD_LOGIC_VECTOR( 132, i_ccd2_syn_h'length) when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(3, i_ccd2_fps'length) else
-                CONV_STD_LOGIC_VECTOR( 5, i_ccd2_syn_h'length);-- when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(4, i_ccd2_fps'length) else
-i_ccd2_syn_v <= i_ccd2_syn_h;
+i_vout_syn_h <= CONV_STD_LOGIC_VECTOR(1968, i_vout_syn_h'length) when i_vout_fps = CONV_STD_LOGIC_VECTOR(0, i_vout_fps'length) else
+                CONV_STD_LOGIC_VECTOR( 920, i_vout_syn_h'length) when i_vout_fps = CONV_STD_LOGIC_VECTOR(1, i_vout_fps'length) else
+                CONV_STD_LOGIC_VECTOR( 396, i_vout_syn_h'length) when i_vout_fps = CONV_STD_LOGIC_VECTOR(2, i_vout_fps'length) else
+                CONV_STD_LOGIC_VECTOR( 134, i_vout_syn_h'length) when i_vout_fps = CONV_STD_LOGIC_VECTOR(3, i_vout_fps'length) else
+                CONV_STD_LOGIC_VECTOR( 3, i_vout_syn_h'length);-- when i_vout_fps = CONV_STD_LOGIC_VECTOR(4, i_vout_fps'length) else
+i_vout_syn_v <= i_vout_syn_h;
 
 m_gen_video_out : vfr_gen
 generic map(
@@ -1201,28 +1122,41 @@ G_VSYN_ACTIVE => '1'
 )
 port map(
 --CFG
-p_in_cfg      => i_ccd2_cfg,
-p_in_vpix     => i_ccd2_vpix,
-p_in_vrow     => i_ccd2_vrow,
-p_in_syn_h    => i_ccd2_syn_h,
-p_in_syn_v    => i_ccd2_syn_v,
+p_in_cfg      => i_vout_cfg,
+p_in_vpix     => i_vout_pix,
+p_in_vrow     => i_vout_row,
+p_in_syn_h    => i_vout_syn_h,
+p_in_syn_v    => i_vout_syn_v,
 
 --Test Video
 p_out_vd      => open,
-p_out_vs      => i_vout_vs,
-p_out_hs      => i_vout_hs,
+p_out_vs      => tmp_vout_vs,
+p_out_hs      => tmp_vout_hs,
 p_out_vclk    => open,
 p_out_vclk_en => i_vout_clk_en,
 
 --Технологический
 p_in_tst      => (others=>'0'),
-p_out_tst     => i_ccd2_tst_out,
+p_out_tst     => i_vout_tst_out,
 
 --System
 p_in_clk      => i_vout_clk,
 p_in_rst      => i_swt_rst
 );
 
-i_vout_clk <= i_ccd_vclk;
+i_vout_clk <= i_vin_clk;
+
+i_vout_vs <= tmp_vout_vs and i_host_tst_out(16);
+i_vout_hs <= tmp_vout_hs and i_host_tst_out(16);
+
+process(i_vout_clk)
+begin
+  if rising_edge(i_vout_clk) then
+    tst_vout_d <= i_vout_d;
+  end if;
+end process;
+
+i_hddwr_mode <= i_swt_tst_out(1);--i_en_video !!!
+i_hddrd_mode <= i_host_tst_out(17);
 
 end architecture;

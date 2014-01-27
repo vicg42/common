@@ -38,6 +38,7 @@ p_in_vbufo_wr    : in   std_logic;
 p_in_vbufo_wrclk : in   std_logic;
 p_out_vbufo_full : out  std_logic;
 p_out_vbufo_empty: out  std_logic;
+p_in_vbufo_en    : in   std_logic;
 
 --Технологический
 p_in_tst         : in   std_logic_vector(31 downto 0);
@@ -92,71 +93,52 @@ signal i_buf_dout         : std_logic_vector(p_out_vd'range);
 signal i_buf_din          : std_logic_vector(G_VBUF_IWIDTH - 1 downto 0);
 signal i_buf_wr           : std_logic;
 signal i_buf_rd           : std_logic;
-signal i_buf_rd_en        : std_logic;
 signal i_buf_empty        : std_logic;
 signal i_bufo_full        : std_logic;
 signal i_pix_en           : std_logic;
-
-signal sr_vs              : std_logic_vector(0 to 1):=(others=>'0');
-signal i_vs               : std_logic;
-signal i_vs_edge          : std_logic;
-signal i_hd_mrk_cnt       : std_logic_vector(2 downto 0);
-signal i_hd_vden          : std_logic;
-
-signal i_out_vs           : std_logic;
-signal i_out_hs           : std_logic;
+signal tst_vbufo_full     : std_logic;
+signal tst_buf_empty      : std_logic;
+signal tst_bufo_empty, i_bufo_empty     : std_logic;
 
 --MAIN
 begin
 
 --Технологические сигналы
-p_out_tst(0) <= '0';
-p_out_tst(1) <= i_buf_rd_en;
-p_out_tst(2) <= i_vs_edge;
-p_out_tst(3) <= i_hd_vden;
-p_out_tst(4) <= not sr_vs(0) and sr_vs(1);
+p_out_tst(0) <= tst_vbufo_full or tst_buf_empty or tst_bufo_empty;
+p_out_tst(1) <= '0';
+p_out_tst(2) <= '0';
+p_out_tst(3) <= '0';
+p_out_tst(4) <= '0';
 p_out_tst(31 downto 5) <= (others=>'0');
 
---Синхронизация чтения буфера
-process(p_in_vclk)
+process(p_in_vbufo_wr)
 begin
-  if rising_edge(p_in_vclk) then
-    if p_in_rst = '1' then
-      i_buf_rd_en <= '0';
-    else
-      if p_in_vclk_en = '1' then
-        if p_in_vs = G_VSYN_ACTIVE and i_buf_empty = '0' then
-          i_buf_rd_en <= '1';
-        end if;
-      end if;
-    end if;
+  if rising_edge(p_in_vbufo_wr) then
+    tst_buf_empty <= i_buf_empty;
+    tst_bufo_empty <= i_bufo_empty;
   end if;
 end process;
 
---Управление буфером
-i_pix_en <= '1' when p_in_hs /= G_VSYN_ACTIVE and p_in_vs /= G_VSYN_ACTIVE else '0';
-i_buf_rd <= p_in_vclk_en and i_pix_en and i_buf_rd_en and i_hd_vden;
 
-i_buf_wr <= p_in_vbufo_di_wr;
-i_buf_din(64 + (64 * 0) - 1 downto 48 + (64 * 0)) <= p_in_vbufo_di(48 + (64 * 0) - 1 downto 32 + (64 * 0));--(15 downto  0)
-i_buf_din(48 + (64 * 0) - 1 downto 32 + (64 * 0)) <= p_in_vbufo_di(64 + (64 * 0) - 1 downto 48 + (64 * 0));--(31 downto 16)
-i_buf_din(32 + (64 * 0) - 1 downto 16 + (64 * 0)) <= p_in_vbufo_di(16 + (64 * 0) - 1 downto  0 + (64 * 0));--(47 downto 32)
-i_buf_din(16 + (64 * 0) - 1 downto  0 + (64 * 0)) <= p_in_vbufo_di(32 + (64 * 0) - 1 downto 16 + (64 * 0));--(63 downto 48)
-
---i_buf_din(64 + (64 * 1) - 1 downto 48 + (64 * 1)) <= p_in_vbufo_di(48 + (64 * 1) - 1 downto 32 + (64 * 1));--(15 downto  0)
---i_buf_din(48 + (64 * 1) - 1 downto 32 + (64 * 1)) <= p_in_vbufo_di(64 + (64 * 1) - 1 downto 48 + (64 * 1));--(31 downto 16)
---i_buf_din(32 + (64 * 1) - 1 downto 16 + (64 * 1)) <= p_in_vbufo_di(16 + (64 * 1) - 1 downto  0 + (64 * 1));--(47 downto 32)
---i_buf_din(16 + (64 * 1) - 1 downto  0 + (64 * 1)) <= p_in_vbufo_di(32 + (64 * 1) - 1 downto 16 + (64 * 1));--(63 downto 48)
+--128bit
+i_buf_din((16 * 8) - 1 downto (16 * 7)) <= p_in_vbufo_di((16 * 7) - 1 downto (16 * 6));
+i_buf_din((16 * 7) - 1 downto (16 * 6)) <= p_in_vbufo_di((16 * 8) - 1 downto (16 * 7));
+i_buf_din((16 * 6) - 1 downto (16 * 5)) <= p_in_vbufo_di((16 * 5) - 1 downto (16 * 4));
+i_buf_din((16 * 5) - 1 downto (16 * 4)) <= p_in_vbufo_di((16 * 6) - 1 downto (16 * 5));
+i_buf_din((16 * 4) - 1 downto (16 * 3)) <= p_in_vbufo_di((16 * 3) - 1 downto (16 * 2));
+i_buf_din((16 * 3) - 1 downto (16 * 2)) <= p_in_vbufo_di((16 * 4) - 1 downto (16 * 3));
+i_buf_din((16 * 2) - 1 downto (16 * 1)) <= p_in_vbufo_di((16 * 1) - 1 downto (16 * 0));
+i_buf_din((16 * 1) - 1 downto (16 * 0)) <= p_in_vbufo_di((16 * 2) - 1 downto (16 * 1));
 
 m_bufi : vout_bufi
 port map(
 din    => i_buf_din,
-wr_en  => i_buf_wr,
+wr_en  => p_in_vbufo_wr,
 
 dout   => i_bufi_dout,
 rd_en  => i_bufi_rd,
 
-full      => open,
+full      => tst_vbufo_full,
 empty     => i_buf_empty,
 prog_full => p_out_vbufo_full,
 
@@ -177,49 +159,17 @@ rd_en  => i_buf_rd,
 rd_clk => p_in_vclk,
 
 full   => i_bufo_full,
-empty  => open,
+empty  => i_bufo_empty,
 
 rst    => p_in_rst
 );
 
+i_pix_en <= '1' when p_in_hs /= G_VSYN_ACTIVE and p_in_vs /= G_VSYN_ACTIVE else '0';
+i_buf_rd <= p_in_vclk_en and i_pix_en and p_in_vbufo_en;
+
 p_out_vbufo_empty <= i_buf_empty;
 
-p_out_vd <= (EXT(i_hd_mrk_cnt,8) & EXT(i_hd_mrk_cnt,8)) when i_hd_vden = '0' else i_buf_dout;
-
-i_vs <= '1' when p_in_vs = G_VSYN_ACTIVE else '0';
-i_vs_edge <= sr_vs(0) and not sr_vs(1);
-
-process(p_in_vclk)
-begin
-  if rising_edge(p_in_vclk) then
-    if p_in_vclk_en = '1' then
-      sr_vs <= i_vs & sr_vs(0 to 0);
-    end if;
-  end if;
-end process;
-
-process(p_in_vclk)
-begin
-  if rising_edge(p_in_vclk) then
-    if p_in_rst = '1' then
-      i_hd_mrk_cnt <= (others=>'0');
-      i_hd_vden <= '0';
-    else
-      if p_in_vclk_en = '1' then
-        if i_hd_vden = '0' then
-          if i_vs_edge = '1' then
-            if i_hd_mrk_cnt = CONV_STD_LOGIC_VECTOR(4, i_hd_mrk_cnt'length) then
-              i_hd_vden <= '1';--Разрешение выдачи записаного видео
-              i_hd_mrk_cnt <= (others=>'0');
-            else
-              i_hd_mrk_cnt <= i_hd_mrk_cnt + 1;
-            end if;
-          end if;
-        end if;
-      end if;
-    end if;
-  end if;
-end process;
+p_out_vd <= i_buf_dout;
 
 
 --END MAIN

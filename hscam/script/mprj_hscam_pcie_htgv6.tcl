@@ -27,8 +27,7 @@ set _projects [ list \
       [ list "../../../common/lib/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
-      [ list "../../../common/mirror/vmirx_main.vhd" $_VHDMod ] \
-      [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/dsn_video_ctrl.vhd" $_VHDMod ] \
       [ list "../src/pcie/video_reader.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
@@ -57,15 +56,16 @@ set _projects [ list \
       [ list "../src/pcie/video_writer.vhd" $_VHDMod ] \
       [ list "../src/pcie/vfr_gen.vhd" $_VHDMod ] \
       [ list "../src/pcie/vin.vhd" $_VHDMod ] \
+      [ list "../src/pcie/vout.vhd" $_VHDMod ] \
       [ list "../src/pcie/dsn_switch.vhd" $_VHDMod ] \
-      [ list "../src/pcie/test_hscam_pcie_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/pcie/test_hscam_pcie_main.vhd" $_VHDMod ] \
+      [ list "../src/pcie/hscam_pcie_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/hscam_pcie_main.vhd" $_VHDMod ] \
       [ list "../src/pcie/prj_def.vhd" $_VHDPkg ] \
       [ list "../src/pcie/v6/htgv6/prj_cfg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/v6/htgv6/clocks.vhd" $_VHDMod ] \
       [ list "../src/pcie/v6/htgv6/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/v6/htgv6/mem_ctrl_axi_pkg.vhd" $_VHDPkg ] \
-      [ list "../../ucf/hscam_pcie_htgv6.ucf" "test_hscam_pcie_main" ] \
+      [ list "../../ucf/hscam_pcie_htgv6.ucf" "hscam_pcie_main" ] \
       [ list "../../../htg_v6/ise/src/mem_arb.vhd" $_VHDMod ] \
       [ list "../../../htg_v6/ise/src/mem_ctrl_axi.vhd" $_VHDMod ] \
       [ list "../../../htg_v6/ise/src/mem_core/rtl/axi/ddr_carry_latch_or.v" $_VMod ] \
@@ -177,14 +177,15 @@ set _projects [ list \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/cfgdev_fifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/bram_dma_params.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/v6/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/host_vbuf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/pcie2mem_fifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/prom_buf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/vin_bufi.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/vin_bufo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/vin_bufc.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/v6/mem_achcount3_synth.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/v6/mem_achcount4_synth.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/v6/vout_bufi.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/v6/vout_bufo.vhd" $_VHDMod ] \
     ] \
   ] \
 ]

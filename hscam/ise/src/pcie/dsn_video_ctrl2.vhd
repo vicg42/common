@@ -123,6 +123,7 @@ p_out_vd         : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 p_in_vs          : in   std_logic;
 p_in_hs          : in   std_logic;
 p_in_vclk        : in   std_logic;
+p_in_vclk_en     : in   std_logic;
 
 --¬х. видеопоток
 p_in_vbufo_di    : in   std_logic_vector(G_VBUF_IWIDTH - 1 downto 0);
@@ -315,6 +316,10 @@ signal i_vreader_dout_en                 : std_logic;
 
 signal i_vbufo_full                      : std_logic;
 signal i_vbufout_rst                     : std_logic;
+
+signal i_vs                              : std_logic;
+signal sr_vs                             : std_logic_vector(0 to 1);
+signal i_hrdstart                        : std_logic;
 
 signal tst_vwriter_out                   : std_logic_vector(31 downto 0);
 signal tst_vreader_out                   : std_logic_vector(31 downto 0);
@@ -856,7 +861,7 @@ p_in_cfg_prm_vch      => i_rdprm_vch,
 p_in_cfg_set_idle_vch => vclk_set_idle_vch,
 
 p_in_hrd_chsel        => p_in_hrdchsel,
-p_in_hrd_start        => p_in_hrdstart,
+p_in_hrd_start        => i_hrdstart,
 p_in_hrd_done         => p_in_hrddone,
 
 p_in_vfr_buf          => i_vbuf_rd,
@@ -952,8 +957,24 @@ i_vbufout_rst <= p_in_rst or p_in_tst(0);
 
 p_out_hirq <= i_vrd_irq_width;
 p_out_hdrdy <= i_vbuf_hold;
-p_out_hfrmrk <= i_vfrmrk_out;
+p_out_hfrmrk <= (others=>'0');--i_vfrmrk_out;
 
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    if p_in_vs = G_VSYN_ACTIVE then
+      i_vs <= '1';
+    else
+      i_vs <= '0';
+    end if;
+
+    sr_vs <= i_vs & sr_vs(0 to 0);
+
+  end if;
+end process;
+
+i_hrdstart <= p_in_hrdstart or (sr_vs(0) and not sr_vs(1));
 
 --END MAIN
 end behavioral;

@@ -115,10 +115,10 @@ signal i_mem_dlen_rq                 : std_logic_vector(15 downto 0);
 signal i_mem_start                   : std_logic;
 signal i_mem_dir                     : std_logic;
 signal i_mem_done                    : std_logic;
-
+signal i_upp_data_wd                 : std_logic;
 signal tst_mem_wr_out                : std_logic_vector(31 downto 0);
-signal tst_fsmstate,tst_fsm_cs_dly                  : std_logic_vector(3 downto 0);
-signal tst_dbg                       : std_logic;
+signal tst_fsmstate,tst_fsm_cs_dly,tst_fsm_memwr   : std_logic_vector(3 downto 0);
+signal tst_dbg,tst_upp_buf_full                       : std_logic;
 
 
 --MAIN
@@ -131,16 +131,18 @@ i_data_null <= (others=>'0');
 --Технологические сигналы
 ------------------------------------
 --p_out_tst(31 downto 0) <= (others=>'0');
-p_out_tst(5 downto 0) <= tst_mem_wr_out(5 downto 0);
+p_out_tst(5 downto 0) <= (others=>'0');--tst_mem_wr_out(5 downto 0);
 p_out_tst(7 downto 6) <= (others=>'0');
 p_out_tst(10 downto 8) <= tst_fsm_cs_dly(2 downto 0);
-p_out_tst(11) <= '0';
+p_out_tst(11) <= OR_reduce(tst_fsm_memwr) or tst_upp_buf_full;
 p_out_tst(31 downto 12) <= (others=>'0');
 
 
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
+    tst_fsm_memwr <= tst_mem_wr_out(5 downto 2);
+    tst_upp_buf_full <= p_in_upp_buf_full;
     tst_fsm_cs_dly <= tst_fsmstate;
   end if;
 end process;
@@ -201,17 +203,17 @@ begin
       --------------------------------------
       when S_MEM_START =>
 
-          i_mem_adr(i_mem_adr'high downto G_MEM_VCH_M_BIT + 1) <= (others=>'0');
-          i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= p_in_hrd_chsel(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
-          i_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= p_in_vfr_buf(0);
+        i_mem_adr(i_mem_adr'high downto G_MEM_VCH_M_BIT + 1) <= (others=>'0');
+        i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= p_in_hrd_chsel(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
+        i_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= p_in_vfr_buf(0);
 
-          i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto log2(G_MEM_DWIDTH/8)), i_mem_dlen_rq'length)
-                           + OR_reduce(i_pix_count_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
-          i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
-          i_mem_dir <= C_MEMWR_READ;
-          i_mem_start <= '1';
+        i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto log2(G_MEM_DWIDTH/8)), i_mem_dlen_rq'length)
+                         + OR_reduce(i_pix_count_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
+        i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
+        i_mem_dir <= C_MEMWR_READ;
+        i_mem_start <= '1';
 
-          fsm_state_cs <= S_MEM_RD;
+        fsm_state_cs <= S_MEM_RD;
 
       ------------------------------------------------
       --Чтение данных

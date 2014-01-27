@@ -2,7 +2,7 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 05.06.2012 10:17:52
+-- Create Date : 21.01.2014 16:16:45
 -- Module Name : dsn_video_ctrl
 --
 -- Назначение/Описание :
@@ -31,6 +31,9 @@ G_ROTATE : string:="OFF";
 G_ROTATE_BUF_COUNT: integer:=16;
 G_SIMPLE : string:="OFF"; --ON/OFF - из обработки видео отавлено только отзеркаливание/ включен полный функционал видеообработки
 G_SIM    : string:="OFF";
+
+G_VBUF_OWIDTH: integer:=16;
+G_VSYN_ACTIVE : std_logic:='1';
 
 G_MEM_AWIDTH : integer:=32;
 G_MEMWR_DWIDTH : integer:=32;
@@ -63,11 +66,21 @@ p_in_hrddone          : in    std_logic;                      --Подтверждение вы
 p_out_hirq            : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Готовность кадра соответствующего видеоканала
 p_out_hdrdy           : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Прерываение соответствующего видеоканала(Кадр готов)
 p_out_hfrmrk          : out   std_logic_vector(31 downto 0);
+p_out_hirq2           : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 
 p_in_vbufo_rdclk      : in    std_logic;
 p_out_vbufo_do        : out   std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);--Видео данные для ХОСТА
 p_in_vbufo_rd         : in    std_logic;
 p_out_vbufo_empty     : out   std_logic;
+
+-------------------------------
+--VideoOUT
+-------------------------------
+p_out_vd              : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
+p_in_vs               : in   std_logic;
+p_in_hs               : in   std_logic;
+p_in_vclk             : in   std_logic;
+p_in_vclk_en          : in   std_logic;
 
 -------------------------------
 --VBUFI
@@ -87,6 +100,9 @@ p_in_memwr            : in    TMemOUT;
 --CH READ
 p_out_memrd           : out   TMemIN;
 p_in_memrd            : in    TMemOUT;
+--CH READ
+p_out_memrd2          : out   TMemIN;
+p_in_memrd2           : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -103,6 +119,37 @@ p_in_rst              : in    std_logic
 end dsn_video_ctrl;
 
 architecture behavioral of dsn_video_ctrl is
+
+component vout
+generic(
+G_VBUF_IWIDTH : integer:=32;
+G_VBUF_OWIDTH : integer:=32;
+G_VSYN_ACTIVE : std_logic:='1'
+);
+port(
+--Вых. видеопоток
+p_out_vd         : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
+p_in_vs          : in   std_logic;
+p_in_hs          : in   std_logic;
+p_in_vclk        : in   std_logic;
+p_in_vclk_en     : in   std_logic;
+
+--Вх. видеопоток
+p_in_vbufo_di    : in   std_logic_vector(G_VBUF_IWIDTH - 1 downto 0);
+p_in_vbufo_wr    : in   std_logic;
+p_in_vbufo_wrclk : in   std_logic;
+p_out_vbufo_full : out  std_logic;
+p_out_vbufo_empty: out  std_logic;
+p_in_vbufo_en    : in   std_logic;
+
+--Технологический
+p_in_tst         : in   std_logic_vector(31 downto 0);
+p_out_tst        : out  std_logic_vector(31 downto 0);
+
+--System
+p_in_rst         : in   std_logic
+);
+end component;
 
 component host_vbuf
 port(
@@ -295,16 +342,36 @@ signal i_vreader_vch                     : std_logic_vector(3 downto 0);
 signal i_vreader_dout                    : std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
 signal i_vreader_dout_en                 : std_logic;
 
-signal i_vmir_rdy_n                      : std_logic;
-signal i_vmir_dout                       : std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
-signal i_vmir_dout_en                    : std_logic;
-
 signal i_vbufo_full                      : std_logic;
 signal i_vbufout_rst                     : std_logic;
+
+signal i_vs                              : std_logic;
+signal sr_vs                             : std_logic_vector(0 to 1);
+signal i_hrd_start2                      : std_logic;
+signal i_v2buf_rd                        : TVfrBufs;
+signal i_v2buf_rd_incr                   : std_logic;
+signal i_v2rd_irq_width_cnt              : TArrayCntWidth;
+signal i_v2rd_irq_width                  : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+signal i_v2rd_irq                        : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+signal i_v2reader_rd_done                : std_logic;
+signal i_v2reader_vch                    : std_logic_vector(3 downto 0);
+signal i_v2reader_dout                   : std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
+signal i_v2reader_dout_en                : std_logic;
+signal i_v2bufo_full                     : std_logic;
+signal tst_v2reader_out                  : std_logic_vector(31 downto 0);
+signal i_v2bufo_en                       : std_logic;
+
+signal i_hddwr_mode                      : std_logic;
+signal i_hddrd_mode                      : std_logic;
+signal sr_hdd_mode                       : std_logic_vector(0 to 1);
+signal i_v2bufout_rst                    : std_logic_vector(0 to 1);
 
 signal tst_vwriter_out                   : std_logic_vector(31 downto 0);
 signal tst_vreader_out                   : std_logic_vector(31 downto 0);
 signal tst_ctrl                          : std_logic_vector(31 downto 0);
+signal tst_v2bufo_out                    : std_logic_vector(31 downto 0);
+signal tst_v2bufo_full                   : std_logic;
+signal tst_v2bufo_empty                  : std_logic;
 
 type TVfrSkip is array (0 to C_VCTRL_VCH_COUNT - 1)
   of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
@@ -332,10 +399,10 @@ p_out_tst(31 downto 26) <= tst_vwriter_out(31 downto 26);
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-p_out_tst(0) <= OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out);
+p_out_tst(0) <= OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out) or OR_reduce(tst_v2reader_out) or tst_v2bufo_full;
 p_out_tst(4 downto 1) <= tst_vwriter_out(3 downto 0);
 p_out_tst(8 downto 5) <= tst_vreader_out(3 downto 0);
-p_out_tst(9)          <= tst_vwriter_out(4);
+p_out_tst(9)          <= tst_v2bufo_empty;
 p_out_tst(10)         <= tst_vreader_out(4);
 p_out_tst(25 downto 11) <= (others=>'0');
 p_out_tst(31 downto 26) <= tst_vwriter_out(31 downto 26);
@@ -574,8 +641,8 @@ end process;
 
 
 tst_ctrl <= EXT(h_reg_tst0, tst_ctrl'length);
---tst_dbg_pictire<=tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
---tst_dbg_rd_hold<=tst_ctrl(C_VCTRL_REG_TST0_DBG_RDHOLD_BIT);
+i_hddwr_mode <=  p_in_tst(1);--tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
+i_hddrd_mode <=  p_in_tst(2);--tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 
 
 --Пересинхронизация
@@ -678,6 +745,9 @@ if rising_edge(p_in_clk) then
     i_vrd_irq_width_cnt(ch) <= (others=>'0');
     i_vrd_irq_width(ch) <= '0';
 
+    i_v2rd_irq_width_cnt(ch) <= (others=>'0');
+    i_v2rd_irq_width(ch) <= '0';
+
   else
 
       if i_vrd_irq(ch) = '1' then
@@ -690,6 +760,18 @@ if rising_edge(p_in_clk) then
         i_vrd_irq_width_cnt(ch) <= (others=>'0');
       else
         i_vrd_irq_width_cnt(ch) <= i_vrd_irq_width_cnt(ch) + 1;
+      end if;
+
+      if i_v2rd_irq(ch) = '1' then
+        i_v2rd_irq_width(ch) <= '1';
+      elsif i_v2rd_irq_width_cnt(ch)(i_v2rd_irq_width_cnt(ch)'high) = '1' then
+        i_v2rd_irq_width(ch) <= '0';
+      end if;
+
+      if i_v2rd_irq_width(ch) = '0' then
+        i_v2rd_irq_width_cnt(ch) <= (others=>'0');
+      else
+        i_v2rd_irq_width_cnt(ch) <= i_v2rd_irq_width_cnt(ch) + 1;
       end if;
 
   end if;
@@ -721,6 +803,7 @@ if rising_edge(p_in_clk) then
             else
               i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
             end if;
+
         end if;
 
         --Защелкиваем маркер текущего кадра для выдачи ХОСТУ
@@ -758,7 +841,7 @@ if rising_edge(p_in_clk) then
 end if;
 end process;
 
---Чтение Видео
+--Чтение Видео (MEM -> PCIE)
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
@@ -768,8 +851,15 @@ if rising_edge(p_in_clk) then
     i_vbuf_hold(ch) <= '0';
     i_vrd_irq(ch) <= '0';
 
+    i_v2buf_rd(ch) <= (others=>'0');
+    i_v2rd_irq(ch) <= '0';
+    i_v2buf_rd_incr <= '0'; i_v2bufo_en <= '0';
+
   else
 
+        --##############################
+        --(MEM -> PCIE)
+        --##############################
         --Выбираем видеобуфер для чтения
         if vclk_set_idle_vch(ch) = '1' then
           i_vbuf_rd(ch) <= (others=>'0');
@@ -795,12 +885,50 @@ if rising_edge(p_in_clk) then
           i_vbuf_hold(ch) <= '0';
         end if;
 
-        --Прерываение - Можно вычитывать кадр
+        --Прерывание - Можно вычитывать кадр
         if i_vfrskip(ch) = (i_vfrskip(ch)'range => '0') then
           i_vrd_irq(ch) <= i_vwrite_vfr_rdy(ch) and not i_vbuf_hold(ch);
 
         elsif i_vreader_vch = ch then
           i_vrd_irq(ch) <= i_vreader_rd_done;
+
+        end if;
+
+
+        --##############################
+        --(MEM -> VOUT)
+        --##############################
+        --Выдача видео при записи данных на HDD
+        if i_hddwr_mode = '1' or i_hddrd_mode = '1' then
+          if i_hrd_start2 = '1' then
+            i_v2bufo_en <= '1';
+          end if;
+        else
+          i_v2bufo_en <= '0';
+        end if;
+
+        --Выбираем видеобуфер для чтения
+        if vclk_set_idle_vch(ch) = '1' then
+          i_v2buf_rd(ch) <= (others=>'0');
+          i_v2buf_rd_incr <= '0';
+
+        --Выдача видео при записи данных на HDD
+        elsif i_hrd_start2 = '1' and i_hddwr_mode = '1' then
+          i_v2buf_rd(ch) <= i_vbuf_wr(ch);
+
+        --Выдача видео при чтении данных из HDD
+        elsif i_hrd_start2 = '1' and i_hddrd_mode = '1' then
+          if i_v2buf_rd_incr = '0' then
+            i_v2buf_rd_incr <= '1';
+          else
+            i_v2buf_rd(ch) <= i_v2buf_rd(ch) + 1;
+          end if;
+
+        end if;
+
+        --Прерывание - вычетка кадра (MEM -> VOUT)
+        if i_hddwr_mode = '0' then
+          i_v2rd_irq(ch) <= i_v2reader_rd_done;
 
         end if;
 
@@ -813,7 +941,10 @@ end generate gen_vch;
 -------------------------------
 --Модуль чтение видео информации из ОЗУ
 -------------------------------
-m_video_reader : video_reader
+--#####################################
+--MEM -> PCIE
+--#####################################
+m_video_reader_pcie : video_reader
 generic map(
 G_USR_OPT         => G_USR_OPT(7 downto 4),
 G_DBGCS           => G_DBGCS,
@@ -882,12 +1013,84 @@ p_in_clk              => p_in_clk,
 p_in_rst              => p_in_rst
 );
 
+--#####################################
+--MEM -> VOUT
+--#####################################
+m_video_reader_vout : video_reader
+generic map(
+G_USR_OPT         => G_USR_OPT(7 downto 4),
+G_DBGCS           => G_DBGCS,
+G_ROTATE          => G_ROTATE,
+G_ROTATE_BUF_COUNT=> G_ROTATE_BUF_COUNT,
+G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
+
+G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
+G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
+G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
+G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
+G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
+
+G_MEM_AWIDTH      => G_MEM_AWIDTH,
+G_MEM_DWIDTH      => G_MEMRD_DWIDTH
+)
+port map(
+-------------------------------
+-- Конфигурирование
+-------------------------------
+p_in_cfg_mem_trn_len  => i_vprm.mem_rd_trn_len,
+p_in_cfg_prm_vch      => i_rdprm_vch,
+p_in_cfg_set_idle_vch => vclk_set_idle_vch,
+
+p_in_hrd_chsel        => p_in_hrdchsel,
+p_in_hrd_start        => i_hrd_start2,
+p_in_hrd_done         => '1',
+
+p_in_vfr_buf          => i_v2buf_rd,
+p_in_vfr_nrow         => '0',
+
+--Статусы
+p_out_vch_fr_new      => open,
+p_out_vch_rd_done     => i_v2reader_rd_done,
+p_out_vch             => i_v2reader_vch,
+p_out_vch_active_pix  => open,
+p_out_vch_active_row  => open,
+p_out_vch_mirx        => open,
+
+----------------------------
+--Upstream Port
+----------------------------
+p_out_upp_data        => i_v2reader_dout,
+p_out_upp_data_wd     => i_v2reader_dout_en,
+p_in_upp_buf_empty    => '0',
+p_in_upp_buf_full     => i_v2bufo_full,
+
+---------------------------------
+-- Связь с mem_ctrl.vhd
+---------------------------------
+p_out_mem             => p_out_memrd2,
+p_in_mem              => p_in_memrd2,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst              => (others=>'0'),
+p_out_tst             => tst_v2reader_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk              => p_in_clk,
+p_in_rst              => p_in_rst
+);
+
 
 ----------------------------------------------------
---Связь с HOST
-----------------------------------------------------
 --Выходной видеобуфер
-m_vbufo : host_vbuf
+----------------------------------------------------
+--MEM -> PCIE
+m_vbufo_pcie : host_vbuf
 port map(
 din         => i_vreader_dout,
 wr_en       => i_vreader_dout_en,
@@ -904,7 +1107,40 @@ prog_full   => i_vbufo_full,
 rst         => i_vbufout_rst
 );
 
-i_vbufout_rst <= p_in_rst or p_in_tst(0);
+i_vbufout_rst <= p_in_rst or p_in_tst(0) or vclk_set_idle_vch(0);
+
+--MEM -> VOUT
+m_vbufo_vout : vout
+generic map(
+G_VBUF_IWIDTH => G_MEMRD_DWIDTH,
+G_VBUF_OWIDTH => G_VBUF_OWIDTH,
+G_VSYN_ACTIVE => G_VSYN_ACTIVE
+)
+port map(
+--Вых. видеопоток
+p_out_vd         => p_out_vd,
+p_in_vs          => p_in_vs,
+p_in_hs          => p_in_hs,
+p_in_vclk        => p_in_vclk,
+p_in_vclk_en     => p_in_vclk_en,
+
+--Вх. видеопоток
+p_in_vbufo_di    => i_v2reader_dout,
+p_in_vbufo_wr    => i_v2reader_dout_en,
+p_in_vbufo_wrclk => p_in_clk,
+p_out_vbufo_full => i_v2bufo_full,
+p_out_vbufo_empty=> tst_v2bufo_empty,
+p_in_vbufo_en    => i_v2bufo_en,
+
+--Технологический
+p_in_tst         => (others=>'0'),
+p_out_tst        => tst_v2bufo_out,
+
+--System
+p_in_rst         => i_v2bufout_rst(0)
+);
+
+i_v2bufout_rst(0) <= p_in_rst or i_v2bufout_rst(1);
 
 --маркер вычитываемого кадра:
 process(p_in_clk)
@@ -924,9 +1160,34 @@ begin
   end if;
 end process;
 
+p_out_hirq2 <= i_v2rd_irq_width;
 p_out_hirq <= i_vrd_irq_width;
 p_out_hdrdy <= i_vbuf_hold;
 p_out_hfrmrk <= i_vfrmrk_out;
+
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    if p_in_vs = G_VSYN_ACTIVE then
+      i_vs <= '1';
+    else
+      i_vs <= '0';
+    end if;
+
+    sr_vs <= i_vs & sr_vs(0 to 0);
+
+    i_hrd_start2 <= (sr_vs(0) and not sr_vs(1)) and (i_hddwr_mode or i_hddrd_mode);
+
+    --Сброс буфера VOUT перед началом работы в новом режиме
+    i_v2bufout_rst(1) <= sr_hdd_mode(0) and not sr_hdd_mode(1);
+    sr_hdd_mode <= (i_hddwr_mode or i_hddrd_mode) & sr_hdd_mode(0 to 0);
+
+    tst_v2bufo_full <= tst_v2bufo_out(0);
+  end if;
+end process;
+
+
 
 
 --END MAIN
