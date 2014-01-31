@@ -17,6 +17,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+use ieee.std_logic_misc.all;
 
 library work;
 use work.vicg_common_pkg.all;
@@ -144,6 +145,24 @@ din         : IN  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
 
+dout        : OUT std_logic_vector(31 downto 0);
+rd_en       : IN  std_logic;
+rd_clk      : IN  std_logic;
+
+empty       : OUT std_logic;
+full        : OUT std_logic;
+prog_full   : OUT std_logic;
+
+rst         : IN  std_logic
+);
+end component;
+
+component vbufi
+port(
+din         : IN  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
+wr_en       : IN  std_logic;
+wr_clk      : IN  std_logic;
+
 dout        : OUT std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
 rd_en       : IN  std_logic;
 rd_clk      : IN  std_logic;
@@ -229,13 +248,37 @@ signal hclk_eth_rxd_rdy              : std_logic;
 signal i_vbufi_fltr_dout             : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 signal i_vbufi_fltr_dout_swap        : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 signal i_vbufi_fltr_den              : std_logic;
-signal i_vbufi_pfull                 : std_logic;
 signal i_vbufi_rdclk                 : std_logic;
+signal i_vbufi_empty                 : std_logic;
+signal i_vbufi_full                  : std_logic;
+signal i_vbufi_do                    : std_logic_vector(31 downto 0);
+signal i_vbufi_rd                    : std_logic;
+signal i_vbufi_rd_en                 : std_logic;
+signal i_vbufi_rd_skip               : std_logic;
 
 signal hclk_tmr_en,i_tmr_en          : std_logic;
 signal hclk_eth_tx_start             : std_logic;
 signal sr_eth_tx_start               : std_logic_vector(0 to 2):=(others=>'0');
 signal i_eth_txbuf_empty_en          : std_logic;
+
+signal i_bus_dwcnt                   : std_logic_vector(log2(G_HOST_DWIDTH / 32) - 1 downto 0);
+signal i_vpkt_cnt                    : std_logic_vector(15 downto 0);
+signal i_vpkt_size_byte              : std_logic_vector(15 downto 0);
+signal i_vpkt_size                   : std_logic_vector(15 downto 0);
+signal i_vbufi2_di                   : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+signal i_vbufi2_wr                   : std_logic;
+signal i_vbufi2_full                 : std_logic;
+signal i_vctrl_frr_en                : std_logic_vector(C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT) - 1 downto 0);
+
+
+type TFsm is (
+S_IDLE,
+S_VBUF2_WR,
+S_SKIP
+);
+signal fsm_state_cs                  : TFsm;
+
+signal tst_vbufi_empty               : std_logic;
 
 
 --MAIN
@@ -245,7 +288,7 @@ begin
 --“ехнологические сигналы
 ------------------------------------
 p_out_tst(0) <= b_rst_vctrl_bufs;
-p_out_tst(1) <= '0';
+p_out_tst(1) <= tst_vbufi_empty;
 p_out_tst(31 downto 2) <= (others=>'0');
 
 
@@ -523,7 +566,7 @@ p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 
 p_out_eth(0).rxbuf_empty <= i_eth_rxbuf_empty;
-p_out_eth(0).rxbuf_full <= i_vbufi_pfull;
+p_out_eth(0).rxbuf_full <= '0';
 
 --‘ормируем прерываение ETH_RXBUF
 process(p_in_eth_clk)
@@ -621,26 +664,151 @@ din         => i_vbufi_fltr_dout_swap,
 wr_en       => i_vbufi_fltr_den,
 wr_clk      => p_in_eth_clk,
 
-dout        => p_out_vbufi_do,
-rd_en       => p_in_vbufi_rd,
+dout        => i_vbufi_do,
+rd_en       => i_vbufi_rd,
 rd_clk      => i_vbufi_rdclk,
 
-empty       => p_out_vbufi_empty,
-full        => p_out_vbufi_full,
-prog_full   => i_vbufi_pfull,
+empty       => i_vbufi_empty,
+full        => i_vbufi_full,
+prog_full   => open,
 
 rst         => b_rst_vctrl_bufs
 );
 
-p_out_vbufi_pfull <= i_vbufi_pfull;
+i_vbufi_rd <= (not i_vbufi_empty and i_vbufi_rd_en) or i_vbufi_rd_skip;
 
-gen_clk_sel0 : if strcmp(C_PCFG_BOARD,"DINIK7") generate
+i_vpkt_size <= EXT(i_vpkt_size_byte(i_vpkt_size_byte'high downto log2(G_HOST_DWIDTH / 8))
+                                                                      , i_vpkt_size'length)
+                 + OR_reduce(i_vpkt_size_byte(log2(G_HOST_DWIDTH / 8) - 1 downto 0));
+
+gen_vctrl_frr_en : for i in 0 to (i_vctrl_frr_en'length - 1) generate
+i_vctrl_frr_en(i) <= '1' when syn_eth_vctrl_frr(i) /= (syn_eth_vctrl_frr(i)'range => '0') else '0';
+end generate; --gen_vctrl_frr_en
+
+process(i_vbufi_rdclk)
+begin
+if rising_edge(i_vbufi_rdclk) then
+  if p_in_rst = '1' then
+
+    fsm_state_cs <= S_IDLE;
+    i_bus_dwcnt <= (others=>'0');
+    i_vpkt_cnt  <= (others=>'0');
+    i_vpkt_size_byte <= (others=>'0');
+    i_vbufi_rd_skip <= '0';
+    i_vbufi2_wr <= '0';
+    i_vbufi2_di <= (others=>'0'); tst_vbufi_empty <= '0';
+
+  else
+    tst_vbufi_empty <= i_vbufi_empty;
+
+    case fsm_state_cs is
+
+      --------------------------------------
+      --
+      --------------------------------------
+      when S_IDLE =>
+
+        i_vbufi2_wr <= '0';
+
+        if i_vbufi_empty = '0' and OR_reduce(i_vctrl_frr_en) = '1' then
+
+            if i_vbufi_do(15 downto 0) /= CONV_STD_LOGIC_VECTOR(0, 16) then
+
+                --кол-во байт пакета + кол-во байт пол€ length
+                i_vpkt_size_byte <= i_vbufi_do(15 downto 0) + 2;
+
+                i_bus_dwcnt <= CONV_STD_LOGIC_VECTOR((i_vbufi2_di'length
+                                                        / i_vbufi_do'length) - 1, i_bus_dwcnt'length);
+
+                for i in 0 to ((i_vbufi2_di'length / i_vbufi_do'length) - 1) loop
+                  i_vbufi2_di((i_vbufi_do'length * (i + 1)) - 1
+                                  downto (i_vbufi_do'length * i)) <= i_vbufi_do;
+                end loop;
+
+                i_vbufi_rd_en <= '1';
+                fsm_state_cs <= S_VBUF2_WR;
+
+            else
+
+              i_vbufi_rd_skip <= '1';
+              fsm_state_cs <= S_SKIP;
+
+            end if;
+        end if;
+
+      --------------------------------------
+      --
+      --------------------------------------
+      when S_VBUF2_WR =>
+
+        if i_vbufi_empty = '0' then
+
+            for i in 0 to ((i_vbufi2_di'length / i_vbufi_do'length) - 1) loop
+              if i_bus_dwcnt = i then
+                i_vbufi2_di((i_vbufi_do'length * (i + 1)) - 1
+                                downto (i_vbufi_do'length * i)) <= i_vbufi_do;
+              end if;
+            end loop;
+
+            i_bus_dwcnt <= i_bus_dwcnt + 1;
+
+            if i_vpkt_cnt = (i_vpkt_size - 1) then
+              i_vbufi_rd_en <= '0';
+              i_vpkt_cnt <= (others=>'0');
+              i_vbufi2_wr <= '1';
+              fsm_state_cs <= S_IDLE;
+            else
+              i_vpkt_cnt <= i_vpkt_cnt + 1;
+              i_vbufi2_wr <= OR_reduce(i_bus_dwcnt);
+            end if;
+
+        else
+
+          i_vbufi2_wr <= '0';
+
+        end if;
+
+      --------------------------------------
+      --
+      --------------------------------------
+      when S_SKIP =>
+
+        i_vbufi_rd_skip <= '0';
+        fsm_state_cs <= S_IDLE;
+
+    end case;
+
+  end if;
+end if;
+end process;
+
+
+m_vbufi2 : vbufi
+port map(
+din         => i_vbufi2_di,
+wr_en       => i_vbufi2_wr,
+wr_clk      => i_vbufi_rdclk,
+
+dout        => p_out_vbufi_do,
+rd_en       => p_in_vbufi_rd,
+rd_clk      => p_in_vbufi_rdclk,
+
+empty       => p_out_vbufi_empty,
+full        => i_vbufi2_full,
+prog_full   => p_out_vbufi_pfull,
+
+rst         => b_rst_vctrl_bufs
+);
+
+p_out_vbufi_full <= i_vbufi2_full;
+
+--gen_clk_sel0 : if strcmp(C_PCFG_BOARD,"DINIK7") generate
 i_vbufi_rdclk <= p_in_tst(0);
-end generate gen_clk_sel0;
-
-gen_clk_sel1 : if (not strcmp(C_PCFG_BOARD,"DINIK7")) generate
-i_vbufi_rdclk <= p_in_vbufi_rdclk;
-end generate gen_clk_sel1;
+--end generate gen_clk_sel0;
+--
+--gen_clk_sel1 : if (not strcmp(C_PCFG_BOARD,"DINIK7")) generate
+--i_vbufi_rdclk <= p_in_vbufi_rdclk;
+--end generate gen_clk_sel1;
 
 --END MAIN
 end behavioral;
