@@ -92,8 +92,11 @@ end video_writer;
 
 architecture behavioral of video_writer is
 
-constant CI_BOARD_DINIK7 : std_logic := strcmp2(C_PCFG_BOARD,"DINIK7");
-constant CI_VIDEO_PKT_HEADER_SIZE : integer := 6;--WDORD for bus=64bit
+constant CI_VIDEO_PKT_HEADER_SIZE : integer :=
+selval(8, selval(8, selval(6, 5, G_MEM_DWIDTH = 64), G_MEM_DWIDTH = 128), G_MEM_DWIDTH = 256);
+
+constant CI_VPKT_HEADER_SIZE_COUNT : integer :=
+selval(1, selval(2, selval(3, 5, G_MEM_DWIDTH = 64), G_MEM_DWIDTH = 128), G_MEM_DWIDTH = 256);
 
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;
@@ -287,8 +290,7 @@ if rising_edge(p_in_clk) then
 
             i_vpkt_header_rd <= '1';
             --Загружаем в счетчик размер Заголовка пакета видео данных (в DWORD)
-            i_vpkt_cnt <= CONV_STD_LOGIC_VECTOR(((CI_VIDEO_PKT_HEADER_SIZE * 4)
-                                                  / (G_MEM_DWIDTH / 8)) - 1, i_vpkt_cnt'length);
+            i_vpkt_cnt <= CONV_STD_LOGIC_VECTOR(CI_VPKT_HEADER_SIZE_COUNT - 1, i_vpkt_cnt'length);
 
             i_pkt_type_err <= (others=>'0');
             fsm_state_cs <= S_PKT_HEADER_READ;
@@ -348,10 +350,16 @@ if rising_edge(p_in_clk) then
           --Чтение заголовка:
           ---------------------------
             --Header DWORD-0:
-            if i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(((CI_VIDEO_PKT_HEADER_SIZE * 4)
-                                                    / (G_MEM_DWIDTH / 8)) - 1, i_vpkt_cnt'length) then
+            if i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(CI_VPKT_HEADER_SIZE_COUNT - 1, i_vpkt_cnt'length) then
 
-              i_pkt_size_byte <= p_in_upp_data(15 downto 0) + 2;--кол-во байт пакета + кол-во байт поля length
+              --bus=32b - incr(byte): 2 + (0 * 4) = 2 (кол-во байт поля length + кол-во добавленых DW)
+              --bus=64b - incr(byte): 2 + (1 * 4) = 6
+              --bus=128b - incr(byte): 2 + (3 * 4) = 14
+              --bus=256b - incr(byte): 2 + (3 * 4) = 14
+
+              i_pkt_size_byte <=
+                p_in_upp_data(15 downto 0)
+                  + selval(14, selval(14, selval(6, 2, G_MEM_DWIDTH = 64), G_MEM_DWIDTH = 128), G_MEM_DWIDTH = 256);
 
               if p_in_upp_data(19 downto 16) = "0001"
                 and p_in_upp_data(27 downto 24) = "0011"
@@ -379,8 +387,7 @@ if rising_edge(p_in_clk) then
               end if;
 
             --Header DWORD - 1:
-            elsif i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(((CI_VIDEO_PKT_HEADER_SIZE * 4)
-                                                       / (G_MEM_DWIDTH / 8)) - 2, i_vpkt_cnt'length) then
+            elsif i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(CI_VPKT_HEADER_SIZE_COUNT - 2, i_vpkt_cnt'length) then
               for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
                 if i_vch_num = i then
                   if i_vfr_num(i) /= p_in_upp_data(3 downto 0) then
