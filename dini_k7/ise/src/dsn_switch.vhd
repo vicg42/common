@@ -253,6 +253,7 @@ signal i_vbufi_fltr_den              : std_logic;
 signal i_vbufi_rdclk                 : std_logic;
 signal i_vbufi_empty                 : std_logic;
 signal i_vbufi_full                  : std_logic;
+signal i_vbufi_pfull                 : std_logic;
 signal i_vbufi_do                    : std_logic_vector(CI_VBUFI_DO_WIDTH - 1 downto 0);
 signal i_vbufi_rd                    : std_logic;
 signal i_vbufi_rd_en                 : std_logic;
@@ -263,7 +264,8 @@ signal hclk_eth_tx_start             : std_logic;
 signal sr_eth_tx_start               : std_logic_vector(0 to 2):=(others=>'0');
 signal i_eth_txbuf_empty_en          : std_logic;
 
-signal i_bus_dwcnt                   : std_logic_vector(log2(G_HOST_DWIDTH / 32) - 1 downto 0);
+signal i_bus_dwcnt                   : std_logic_vector(selval(log2(G_HOST_DWIDTH / 32)
+                                                                , 1, G_HOST_DWIDTH > 32) - 1 downto 0);
 signal i_vpkt_cnt                    : std_logic_vector(15 downto 0);
 signal i_vpkt_size_byte              : std_logic_vector(15 downto 0);
 signal i_vpkt_size                   : std_logic_vector(15 downto 0);
@@ -271,7 +273,6 @@ signal i_vbufi2_di                   : std_logic_vector(G_HOST_DWIDTH - 1 downto
 signal i_vbufi2_wr                   : std_logic;
 signal i_vbufi2_full                 : std_logic;
 signal i_vctrl_frr_en                : std_logic_vector(C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT) - 1 downto 0);
-
 
 type TFsm is (
 S_IDLE,
@@ -672,10 +673,27 @@ rd_clk      => i_vbufi_rdclk,
 
 empty       => i_vbufi_empty,
 full        => i_vbufi_full,
-prog_full   => open,
+prog_full   => i_vbufi_pfull,
 
 rst         => b_rst_vctrl_bufs
 );
+
+gen_host_bus0 : if G_HOST_DWIDTH = 32 generate
+
+p_out_vbufi_do <= i_vbufi_do;
+i_vbufi_rd <= p_in_vbufi_rd;
+i_vbufi_rdclk <= p_in_vbufi_rdclk;
+
+p_out_vbufi_empty <= i_vbufi_empty;
+p_out_vbufi_full <= i_vbufi_full;
+p_out_vbufi_pfull <= i_vbufi_pfull;
+
+end generate gen_host_bus0;
+
+
+gen_host_bus1 : if G_HOST_DWIDTH > 32 generate
+
+i_vbufi_rdclk <= p_in_tst(0);
 
 i_vbufi_rd <= (not i_vbufi_empty and i_vbufi_rd_en) or i_vbufi_rd_skip;
 
@@ -686,6 +704,17 @@ end generate; --gen_vctrl_frr_en
 i_vpkt_size <= EXT(i_vpkt_size_byte(i_vpkt_size_byte'high downto log2(CI_VBUFI_DO_WIDTH / 8))
                                                                       , i_vpkt_size'length)
                  + OR_reduce(i_vpkt_size_byte(log2(CI_VBUFI_DO_WIDTH / 8) - 1 downto 0));
+
+--Размножаю первый DWORD видеопакета для того чтоб выровнять данные с шиной mem_ctrl
+--mem_ctrl: bus 32b:   H0 H1 H2 H3 H4 D0 D1 D3 ...
+
+--mem_ctrl: bus 64b:   H0 H2 H4 D1 D3 ...
+--                     H0 H1 H3 D0 D2 ...
+
+--mem_ctrl: bus 128b:  H0 H4 D3 D7 ...
+--                     H0 H3 D2 D6 ...
+--                     H0 H4 D1 D5 ...
+--                     H0 H1 D0 D4 ...
 
 process(i_vbufi_rdclk)
 begin
@@ -700,8 +729,7 @@ if rising_edge(i_vbufi_rdclk) then
     i_vbufi2_wr <= '0';
     i_vbufi2_di <= (others=>'0'); tst_vbufi_empty <= '0';
 
-  else
-    tst_vbufi_empty <= i_vbufi_empty;
+  else  tst_vbufi_empty <= i_vbufi_empty;
 
     case fsm_state_cs is
 
@@ -804,13 +832,7 @@ rst         => b_rst_vctrl_bufs
 
 p_out_vbufi_full <= i_vbufi2_full;
 
---gen_clk_sel0 : if strcmp(C_PCFG_BOARD,"DINIK7") generate
-i_vbufi_rdclk <= p_in_tst(0);
---end generate gen_clk_sel0;
---
---gen_clk_sel1 : if (not strcmp(C_PCFG_BOARD,"DINIK7")) generate
---i_vbufi_rdclk <= p_in_vbufi_rdclk;
---end generate gen_clk_sel1;
+end generate gen_host_bus1;
 
 --END MAIN
 end behavioral;

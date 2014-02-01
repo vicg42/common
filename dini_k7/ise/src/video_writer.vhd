@@ -105,6 +105,7 @@ type fsm_state is (
 S_IDLE,
 S_PKT_HEADER_READ,
 S_MEM_START,
+S_MEM_START2,
 S_MEM_WR,
 S_PKT_SKIP,
 S_PKT_SKIP1,
@@ -135,6 +136,7 @@ signal i_mem_start                 : std_logic;
 signal i_mem_dir                   : std_logic;
 signal i_mem_done                  : std_logic;
 
+signal i_upp_data                  : std_logic_vector(255 downto 0);
 signal i_upp_data_rd               : std_logic;
 signal i_upp_hd_data_rd_out        : std_logic;
 
@@ -201,6 +203,7 @@ tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmstate'length) when fsm_stat
                 CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmstate'length) when fsm_state_cs = S_MEM_WR          else
                 CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmstate'length) when fsm_state_cs = S_PKT_SKIP        else
                 CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmstate'length) when fsm_state_cs = S_PKT_SKIP2       else
+                CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmstate'length) when fsm_state_cs = S_MEM_START2      else
                 CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmstate'length); --fsm_state_cs = S_IDLE              else
 end generate gen_dbgcs_on;
 
@@ -227,6 +230,8 @@ i_upp_pkt_skip_rd_out <= (i_vpkt_skip_rd  and not p_in_upp_buf_empty);
 ------------------------------------------------
 --Автомат записи видео информации
 ------------------------------------------------
+i_upp_data <= EXT(p_in_upp_data, i_upp_data'length);
+
 process(p_in_clk)
 Type TTimestump_test is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(31 downto 0);
 variable timestump_cnt : TTimestump_test;
@@ -285,12 +290,22 @@ if rising_edge(p_in_clk) then
         --Ждем когда появятся данные в буфере
         if p_in_upp_buf_empty = '0' then
 
-          if p_in_upp_data(15 downto 0) /= CONV_STD_LOGIC_VECTOR(0, 16) then
+          if i_upp_data(15 downto 0) /= CONV_STD_LOGIC_VECTOR(0, 16) then
           --PktLen /= 0
 
             i_vpkt_header_rd <= '1';
-            --Загружаем в счетчик размер Заголовка пакета видео данных (в DWORD)
+
+            --Загружаем счетчик заголовка видео пакета (в DWORD)
             i_vpkt_cnt <= CONV_STD_LOGIC_VECTOR(CI_VPKT_HEADER_SIZE_COUNT - 1, i_vpkt_cnt'length);
+
+            --bus=32b - incr(byte): 2 + (0 * 4) = 2 (кол-во байт поля length + кол-во добавленых DW)
+            --bus=64b - incr(byte): 2 + (1 * 4) = 6
+            --bus=128b - incr(byte): 2 + (3 * 4) = 14
+            --bus=256b - incr(byte): 2 + (3 * 4) = 14
+
+            i_pkt_size_byte <=
+              i_upp_data(15 downto 0)
+                + selval(14, selval(14, selval(6, 2, G_MEM_DWIDTH = 64), G_MEM_DWIDTH = 128), G_MEM_DWIDTH = 256);
 
             i_pkt_type_err <= (others=>'0');
             fsm_state_cs <= S_PKT_HEADER_READ;
@@ -319,97 +334,113 @@ if rising_edge(p_in_clk) then
 
             i_vpkt_header_rd <= '0';
 
-            --адрес ОЗУ:
-            for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
-              if i_vch_num = i then
-                i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= p_in_vfr_buf(i);
-              end if;
-            end loop;
-
-            i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT
-                                                                            - G_MEM_VCH_L_BIT downto 0);
-            i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_row((G_MEM_VLINE_M_BIT
-                                                                                  - G_MEM_VLINE_L_BIT) + 0 downto 0);
-            i_mem_ptr(G_MEM_VLINE_L_BIT - 1 downto 0) <= p_in_upp_data(G_MEM_VLINE_L_BIT - 1 downto 0);
-
-            --Номер начального пикселя в строке
-            i_pix_num(15 downto 0) <= p_in_upp_data(15 downto 0);
-
-            --Сохраняем маркер строки
-            i_vfr_row_mrk(15 downto 0) <= p_in_upp_data(31 downto 16);--(младшая часть)
-            i_vfr_row_mrk(31 downto 16)<= p_in_upp_data((15 + 32) downto (0 + 32));--(старшая часть)
-
             --вычисляем кол-во пикселей которое надо записать в ОЗУ
             i_pix_count_byte <= i_pkt_size_byte
-                                - CONV_STD_LOGIC_VECTOR((CI_VIDEO_PKT_HEADER_SIZE * 4), i_pix_count_byte'length);
+                                - CONV_STD_LOGIC_VECTOR((CI_VIDEO_PKT_HEADER_SIZE * 4)
+                                      , i_pix_count_byte'length);
 
-            fsm_state_cs <= S_MEM_START;
+            if G_MEM_DWIDTH = 64 then
+                --номер начального пикселя в строке
+                i_pix_num(15 downto 0) <= i_upp_data(15 downto 0);
+
+                --маркер строки
+                i_vfr_row_mrk(15 downto 0) <= i_upp_data(31 downto 16);
+                i_vfr_row_mrk(31 downto 16)<= i_upp_data((15 + 32) downto (0 + 32));
+
+            elsif G_MEM_DWIDTH = 128 then
+
+                --номер начального пикселя в строке
+                i_pix_num(15 downto 0) <= i_upp_data(15 downto 0);
+
+                --маркер строки
+                i_vfr_row_mrk(15 downto 0) <= i_upp_data(31 downto 16);
+                i_vfr_row_mrk(31 downto 16)<= i_upp_data((15 + 32) downto (0 + 32));
+
+                for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
+                  if i_vch_num = i then
+                    if i_vfr_num(i) /= i_upp_data((3 + 64) downto (0 + 64)) then
+                      --Обнаружил начало нового кадра!!!!!!!!!
+                      --Перезагрузка параметров канала
+                      i_mem_wrbase <= p_in_cfg_prm_vch(i).mem_adr;
+                    end if;
+
+                    --Сохраняем номер текущего кадра:
+                    i_vfr_num(i) <= i_upp_data((3 + 64) downto (0 + 64));
+
+                   end if;
+                end loop;
+
+                --размер кадра: кол-во пикселей
+                i_vfr_pix_count <= i_upp_data((31 + 64) downto (16 + 64));
+
+                --размер кадра: кол-во строк
+                i_vfr_row_count <= i_upp_data((15 + 32 + 64) downto (0 + 32 + 64));
+
+                --номер текущей строки:
+                i_vfr_row <= i_upp_data((31 + 32 + 64) downto (16 + 32 + 64));
+              end if;
+
+              fsm_state_cs <= S_MEM_START;
 
           else
           ---------------------------
           --Чтение заголовка:
           ---------------------------
             --Header DWORD-0:
-            if i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(CI_VPKT_HEADER_SIZE_COUNT - 1, i_vpkt_cnt'length) then
+            if i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(CI_VPKT_HEADER_SIZE_COUNT - 1, i_vpkt_cnt'length)
+              and (G_MEM_DWIDTH < 256) then
 
-              --bus=32b - incr(byte): 2 + (0 * 4) = 2 (кол-во байт поля length + кол-во добавленых DW)
-              --bus=64b - incr(byte): 2 + (1 * 4) = 6
-              --bus=128b - incr(byte): 2 + (3 * 4) = 14
-              --bus=256b - incr(byte): 2 + (3 * 4) = 14
+                if i_upp_data(19 downto 16) = "0001"
+                  and i_upp_data(27 downto 24) = "0011"
+                    and i_upp_data(23 downto 20) < CONV_STD_LOGIC_VECTOR(C_VCTRL_VCH_COUNT, 4) then
+                --тип пакета - Видео Данные + проверка намера источника пакета
 
-              i_pkt_size_byte <=
-                p_in_upp_data(15 downto 0)
-                  + selval(14, selval(14, selval(6, 2, G_MEM_DWIDTH = 64), G_MEM_DWIDTH = 128), G_MEM_DWIDTH = 256);
+                  --номер текущего видео канала:
+                  i_vch_num <= i_upp_data(23 downto 20);
+                else
+                  --Не наш пакет
+                  i_vpkt_header_rd <= '0';
+                  i_vpkt_skip_rd <= '1';
 
-              if p_in_upp_data(19 downto 16) = "0001"
-                and p_in_upp_data(27 downto 24) = "0011"
-                  and p_in_upp_data(23 downto 20) < CONV_STD_LOGIC_VECTOR(C_VCTRL_VCH_COUNT, 4) then
-              --Тип пакета - Видео Данные + проверка намера источника пакета
-
-                --Сохраняем номер текущего видео канала:
-                i_vch_num <= p_in_upp_data(23 downto 20);
-              else
-                --Не наш пакет
-                i_vpkt_header_rd <= '0';
-                i_vpkt_skip_rd <= '1';
-
-                if p_in_upp_data(19 downto 16) /= "0001" then
-                  i_pkt_type_err(0) <= '1';--pkt_type
-                end if;
-                if p_in_upp_data(23 downto 20) > CONV_STD_LOGIC_VECTOR(C_VCTRL_VCH_COUNT - 1, 4) then
-                  i_pkt_type_err(1) <= '1';--vch
-                end if;
-                if p_in_upp_data(27 downto 24) /= "0011" then
-                  i_pkt_type_err(2) <= '1';--src video
-                end if;
-
-                fsm_state_cs <= S_PKT_SKIP;
-              end if;
-
-            --Header DWORD - 1:
-            elsif i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(CI_VPKT_HEADER_SIZE_COUNT - 2, i_vpkt_cnt'length) then
-              for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
-                if i_vch_num = i then
-                  if i_vfr_num(i) /= p_in_upp_data(3 downto 0) then
-                    --Обнаружил начало нового кадра!!!!!!!!!
-                    --Перезагрузка параметров канала
-                    i_mem_wrbase <= p_in_cfg_prm_vch(i).mem_adr;
+                  if i_upp_data(19 downto 16) /= "0001" then
+                    i_pkt_type_err(0) <= '1';--pkt_type
+                  end if;
+                  if i_upp_data(23 downto 20) > CONV_STD_LOGIC_VECTOR(C_VCTRL_VCH_COUNT - 1, 4) then
+                    i_pkt_type_err(1) <= '1';--vch
+                  end if;
+                  if i_upp_data(27 downto 24) /= "0011" then
+                    i_pkt_type_err(2) <= '1';--src video
                   end if;
 
-                  --Сохраняем номер текущего кадра:
-                  i_vfr_num(i) <= p_in_upp_data(3 downto 0);
+                  fsm_state_cs <= S_PKT_SKIP;
+                end if;
 
-                 end if;
-              end loop;
+            --Header DWORD - 1:
+            elsif i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(CI_VPKT_HEADER_SIZE_COUNT - 2, i_vpkt_cnt'length)
+              and (G_MEM_DWIDTH < 128) then
 
-              --Сохраняем размер кадра: кол-во пикселей
-              i_vfr_pix_count <= p_in_upp_data(31 downto 16);
+                for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
+                  if i_vch_num = i then
+                    if i_vfr_num(i) /= i_upp_data(3 downto 0) then
+                      --Обнаружил начало нового кадра!!!!!!!!!
+                      --Перезагрузка параметров канала
+                      i_mem_wrbase <= p_in_cfg_prm_vch(i).mem_adr;
+                    end if;
 
-              --Сохраняем размер кадра: кол-во строк
-              i_vfr_row_count <= p_in_upp_data((15 + 32) downto (0 + 32));
+                    --номер текущего кадра:
+                    i_vfr_num(i) <= i_upp_data(3 downto 0);
 
-              --Сохраняем номер текущей строки:
-              i_vfr_row <= p_in_upp_data((31 + 32) downto (16 + 32));
+                   end if;
+                end loop;
+
+                --размер кадра: кол-во пикселей
+                i_vfr_pix_count <= i_upp_data(31 downto 16);
+
+                --размер кадра: кол-во строк
+                i_vfr_row_count <= i_upp_data((15 + 32) downto (0 + 32));
+
+                --номер текущей строки:
+                i_vfr_row <= i_upp_data((31 + 32) downto (16 + 32));
 
             end if;
 
@@ -419,11 +450,29 @@ if rising_edge(p_in_clk) then
 
         end if;
 
+      --------------------------------------
+      --
+      --------------------------------------
+      when S_MEM_START =>
+
+        for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
+          if i_vch_num = i then
+            i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= p_in_vfr_buf(i);
+          end if;
+        end loop;
+
+        i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT
+                                                                        - G_MEM_VCH_L_BIT downto 0);
+        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_row((G_MEM_VLINE_M_BIT
+                                                                              - G_MEM_VLINE_L_BIT) + 0 downto 0);
+        i_mem_ptr(G_MEM_VLINE_L_BIT - 1 downto 0) <= i_pix_num(G_MEM_VLINE_L_BIT - 1 downto 0);
+
+        fsm_state_cs <= S_MEM_START2;
 
       --------------------------------------
       --Запускаем операцию записи ОЗУ
       --------------------------------------
-      when S_MEM_START =>
+      when S_MEM_START2 =>
 
         i_vpkt_payload_rd <= '1';
         i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high - 1 downto log2(G_MEM_DWIDTH/8))
