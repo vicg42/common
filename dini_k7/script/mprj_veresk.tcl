@@ -82,6 +82,7 @@ set _projects [ list \
       [ list "../src/core_gen/host_vbuf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../src/core_gen/prom_buf.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vbufi.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gt_rx_valid_filter_7x.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gt_top.vhd" $_VHDMod ] \
