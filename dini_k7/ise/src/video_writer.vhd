@@ -188,7 +188,7 @@ begin
     tst_err_det <= OR_reduce(i_pkt_type_err) or tst_upp_buf_full;
 
     tst_upp_data <= p_in_upp_data;
-    tst_upp_data_rd <= i_upp_data_rd;
+    tst_upp_data_rd <= i_upp_hd_data_rd_out or (i_vpkt_payload_rd and i_upp_data_rd) or i_upp_pkt_skip_rd_out;
 
   end if;
 end process;
@@ -317,13 +317,18 @@ if rising_edge(p_in_clk) then
 
             i_vpkt_header_rd <= '0';
 
-            --Установка параметров для текущего кадра видеоканала:
+            --адрес ОЗУ:
             for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
               if i_vch_num = i then
-                --адрес ОЗУ:
                 i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= p_in_vfr_buf(i);
               end if;
             end loop;
+
+            i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT
+                                                                            - G_MEM_VCH_L_BIT downto 0);
+            i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_row((G_MEM_VLINE_M_BIT
+                                                                                  - G_MEM_VLINE_L_BIT) + 0 downto 0);
+            i_mem_ptr(G_MEM_VLINE_L_BIT - 1 downto 0) <= p_in_upp_data(G_MEM_VLINE_L_BIT - 1 downto 0);
 
             --Номер начального пикселя в строке
             i_pix_num(15 downto 0) <= p_in_upp_data(15 downto 0);
@@ -331,14 +336,6 @@ if rising_edge(p_in_clk) then
             --Сохраняем маркер строки
             i_vfr_row_mrk(15 downto 0) <= p_in_upp_data(31 downto 16);--(младшая часть)
             i_vfr_row_mrk(31 downto 16)<= p_in_upp_data((15 + 32) downto (0 + 32));--(старшая часть)
-
-
-            --адрес ОЗУ:
-            i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT
-                                                                            - G_MEM_VCH_L_BIT downto 0);
-            i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_row((G_MEM_VLINE_M_BIT
-                                                                                  - G_MEM_VLINE_L_BIT) + 0 downto 0);
-            i_mem_ptr(G_MEM_VLINE_L_BIT - 1 downto 0) <= i_pix_num(G_MEM_VLINE_L_BIT - 1 downto 0);
 
             --вычисляем кол-во пикселей которое надо записать в ОЗУ
             i_pix_count_byte <= i_pkt_size_byte
