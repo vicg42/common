@@ -139,13 +139,15 @@ rst         : IN  std_logic
 );
 end component;
 
+constant CI_VBUFI_DO_WIDTH : integer := 32;
+
 component ethg_vctrl_rxfifo
 port(
 din         : IN  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
 
-dout        : OUT std_logic_vector(31 downto 0);
+dout        : OUT std_logic_vector(CI_VBUFI_DO_WIDTH - 1 downto 0);
 rd_en       : IN  std_logic;
 rd_clk      : IN  std_logic;
 
@@ -251,7 +253,7 @@ signal i_vbufi_fltr_den              : std_logic;
 signal i_vbufi_rdclk                 : std_logic;
 signal i_vbufi_empty                 : std_logic;
 signal i_vbufi_full                  : std_logic;
-signal i_vbufi_do                    : std_logic_vector(31 downto 0);
+signal i_vbufi_do                    : std_logic_vector(CI_VBUFI_DO_WIDTH - 1 downto 0);
 signal i_vbufi_rd                    : std_logic;
 signal i_vbufi_rd_en                 : std_logic;
 signal i_vbufi_rd_skip               : std_logic;
@@ -677,13 +679,13 @@ rst         => b_rst_vctrl_bufs
 
 i_vbufi_rd <= (not i_vbufi_empty and i_vbufi_rd_en) or i_vbufi_rd_skip;
 
-i_vpkt_size <= EXT(i_vpkt_size_byte(i_vpkt_size_byte'high downto log2(G_HOST_DWIDTH / 8))
-                                                                      , i_vpkt_size'length)
-                 + OR_reduce(i_vpkt_size_byte(log2(G_HOST_DWIDTH / 8) - 1 downto 0));
-
 gen_vctrl_frr_en : for i in 0 to (i_vctrl_frr_en'length - 1) generate
 i_vctrl_frr_en(i) <= '1' when syn_eth_vctrl_frr(i) /= (syn_eth_vctrl_frr(i)'range => '0') else '0';
 end generate; --gen_vctrl_frr_en
+
+i_vpkt_size <= EXT(i_vpkt_size_byte(i_vpkt_size_byte'high downto log2(CI_VBUFI_DO_WIDTH / 8))
+                                                                      , i_vpkt_size'length)
+                 + OR_reduce(i_vpkt_size_byte(log2(CI_VBUFI_DO_WIDTH / 8) - 1 downto 0));
 
 process(i_vbufi_rdclk)
 begin
@@ -753,13 +755,13 @@ if rising_edge(i_vbufi_rdclk) then
             i_bus_dwcnt <= i_bus_dwcnt + 1;
 
             if i_vpkt_cnt = (i_vpkt_size - 1) then
-              i_vbufi_rd_en <= '0';
               i_vpkt_cnt <= (others=>'0');
+              i_vbufi_rd_en <= '0';
               i_vbufi2_wr <= '1';
               fsm_state_cs <= S_IDLE;
             else
               i_vpkt_cnt <= i_vpkt_cnt + 1;
-              i_vbufi2_wr <= OR_reduce(i_bus_dwcnt);
+              i_vbufi2_wr <= AND_reduce(i_bus_dwcnt);
             end if;
 
         else
