@@ -66,7 +66,7 @@ NET "pin_out_refclk_scl<0>"  LOC = "B9"  | IOSTANDARD = LVCMOS25;
 ##NET "pin_out_refclk_scl<0>"  LOC = "A9"  | IOSTANDARD = LVCMOS25;
 
 NET "g_usrclk<0>" TNM_NET = TNM_PLL_REF_CLK;
-NET "g_usrclk<1>" TNM_NET = TNM_PLL_MEM_CLK;
+NET "g_usrclk<4>" TNM_NET = TNM_PLL_MEM_CLK;
 NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
 NET "g_host_clk"  TNM_NET = TNM_HOST_CLK;
 NET "i_ethphy_out_clk"  TNM_NET = TNM_ETH_CLK;
