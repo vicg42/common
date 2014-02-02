@@ -148,7 +148,7 @@ p_out_usr_rxbuf_din <= p_in_mem.axir.data(p_out_usr_rxbuf_din'range);
 --------------------------------------------------
 --Связь с контроллером памяти
 --------------------------------------------------
-p_out_mem.clk        <=p_in_clk;
+p_out_mem.clk        <= p_in_clk;
 --WAddr Port(usr_buf->mem)
 p_out_mem.axiw.aid    <= CONV_STD_LOGIC_VECTOR(G_MEM_IDW_NUM, p_out_mem.axiw.aid'length);
 p_out_mem.axiw.adr    <= EXT(i_mem_adr, p_out_mem.axiw.adr'length);
@@ -182,7 +182,7 @@ p_out_mem.axir.prot   <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.prot'length);
 p_out_mem.axir.qos    <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.qos'length);
 p_out_mem.axir.avalid <= i_axir_avalid;
 --RData Port
-p_out_mem.axir.rready <= i_mem_trn_work and not p_in_usr_rxbuf_full when i_mem_dir = C_MEMWR_READ else '0';
+p_out_mem.axir.rready <= i_mem_trn_work when i_mem_dir = C_MEMWR_READ else '0';
 
 
 process(p_in_clk)
@@ -209,7 +209,7 @@ end process;
 p_out_cfg_mem_done <= i_mem_done;
 
 --Стробы записи/чтения ОЗУ
-i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and not p_in_usr_rxbuf_full  when i_mem_dir = C_MEMWR_READ  else '0';
+i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid when i_mem_dir = C_MEMWR_READ  else '0';
 i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty when i_mem_dir = C_MEMWR_WRITE else '0';
 
 --Логика работы автомата
@@ -217,7 +217,7 @@ process(p_in_clk)
   variable update_addr: std_logic_vector(i_mem_trn_len'length + log2(G_MEM_DWIDTH/8) - 1 downto 0);
 begin
 if rising_edge(p_in_clk) then
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
 
     fsm_state_cs <= S_IDLE;
       update_addr := (others=>'0');
@@ -278,7 +278,11 @@ if rising_edge(p_in_clk) then
           i_axi_trnlen <= i_mem_dlen_remain(i_axi_trnlen'range) - 1;
         end if;
 
+        if ((i_mem_dir = C_MEMWR_READ) and p_in_usr_rxbuf_full = '0')
+          or ((i_mem_dir = C_MEMWR_WRITE) and p_in_usr_txbuf_empty = '0') then
+
         fsm_state_cs <= S_MEM_SET_RQ;
+        end if;
 
       --------------------------------------
       --Сигнализируем что адрес установлен
