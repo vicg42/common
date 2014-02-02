@@ -234,9 +234,11 @@ signal syn_eth_rxd_eof               : std_logic;
 signal syn_eth_host_frr              : TEthFRR;
 signal syn_eth_vctrl_frr             : TEthFRR;
 
+signal i_eth_htxbuf_di               : std_logic_vector(p_in_eth_htxbuf_di'range);
 signal i_eth_txbuf_full              : std_logic;
 signal i_eth_txbuf_empty             : std_logic;
 
+signal i_eth_hrxbuf_do               : std_logic_vector(p_out_eth_hrxbuf_do'range);
 signal i_eth_rxbuf_full              : std_logic;
 signal i_eth_rxbuf_empty             : std_logic;
 signal i_eth_rxd_rdy_dly             : std_logic_vector(2 downto 0);
@@ -487,9 +489,15 @@ begin
   end if;
 end process;
 
+gen_swap_ethtx : for i in 0 to (p_in_eth_htxbuf_di'length / 64) - 1 generate
+i_eth_htxbuf_di((i_eth_htxbuf_di'length - (64 * i)) - 1 downto
+                              (i_eth_htxbuf_di'length - (64 * (i + 1)) ))
+                          <= p_in_eth_htxbuf_di((64 * (i + 1)) - 1 downto (64 * i));
+end generate;-- gen_swap_ethtx;
+
 m_eth_txbuf : host_ethg_txfifo
 port map(
-din     => p_in_eth_htxbuf_di,
+din     => i_eth_htxbuf_di,
 wr_en   => p_in_eth_htxbuf_wr,
 wr_clk  => p_in_hclk,
 
@@ -554,7 +562,7 @@ din     => i_eth_rxbuf_fltr_dout,
 wr_en   => i_eth_rxbuf_fltr_den,
 wr_clk  => p_in_eth_clk,
 
-dout    => p_out_eth_hrxbuf_do,
+dout    => i_eth_hrxbuf_do,
 rd_en   => p_in_eth_hrxbuf_rd,
 rd_clk  => p_in_hclk,
 
@@ -564,6 +572,12 @@ prog_full => i_eth_rxbuf_full,
 
 rst     => b_rst_eth_bufs
 );
+
+gen_swap_ethrx : for i in 0 to (p_out_eth_hrxbuf_do'length / 64) - 1 generate
+p_out_eth_hrxbuf_do((p_out_eth_hrxbuf_do'length - (64 * i)) - 1 downto
+                              (p_out_eth_hrxbuf_do'length - (64 * (i + 1)) ))
+                          <= i_eth_hrxbuf_do((64 * (i + 1)) - 1 downto (64 * i));
+end generate;-- gen_swap_ethrx;
 
 p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
@@ -655,11 +669,11 @@ p_in_clk        => p_in_eth_clk,
 p_in_rst        => b_rst_vctrl_bufs
 );
 
-gen_swap_d : for i in 0 to (i_vbufi_fltr_dout'length / 32) - 1 generate
+gen_swap_vctrl : for i in 0 to (i_vbufi_fltr_dout'length / 32) - 1 generate
 i_vbufi_fltr_dout_swap((i_vbufi_fltr_dout_swap'length - (32 * i)) - 1 downto
                               (i_vbufi_fltr_dout_swap'length - (32 * (i + 1)) ))
                           <= i_vbufi_fltr_dout((32 * (i + 1)) - 1 downto (32 * i));
-end generate;-- gen_swap_d;
+end generate;-- gen_swap_vctrl;
 
 m_vbufi : ethg_vctrl_rxfifo
 port map(
