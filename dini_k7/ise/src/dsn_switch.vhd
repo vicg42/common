@@ -234,9 +234,11 @@ signal syn_eth_rxd_eof               : std_logic;
 signal syn_eth_host_frr              : TEthFRR;
 signal syn_eth_vctrl_frr             : TEthFRR;
 
+signal i_eth_txbuf_di                : std_logic_vector(p_in_eth_htxbuf_di'range);
 signal i_eth_txbuf_full              : std_logic;
 signal i_eth_txbuf_empty             : std_logic;
 
+signal i_eth_rxbuf_do                : std_logic_vector(p_out_eth_hrxbuf_do'range);
 signal i_eth_rxbuf_full              : std_logic;
 signal i_eth_rxbuf_empty             : std_logic;
 signal i_eth_rxd_rdy_dly             : std_logic_vector(2 downto 0);
@@ -283,6 +285,12 @@ signal fsm_state_cs                  : TFsm;
 
 signal tst_vbufi_empty               : std_logic;
 
+signal i_eth_hrxbuf_do_tmp           : std_logic_vector(127 downto 0);
+signal tst_txbuf_di                  : std_logic_vector(127 downto 0);
+signal tst_rxbuf_do                  : std_logic_vector(127 downto 0);
+signal tst_rxbuf_do_rd               : std_logic;
+signal tst_eth_txbuf_empty           : std_logic;
+signal tst_eth_rxbuf_empty           : std_logic;
 
 --MAIN
 begin
@@ -292,8 +300,20 @@ begin
 ------------------------------------
 p_out_tst(0) <= b_rst_vctrl_bufs;
 p_out_tst(1) <= tst_vbufi_empty;
-p_out_tst(31 downto 2) <= (others=>'0');
+p_out_tst(2) <= OR_reduce(tst_txbuf_di) or OR_reduce(tst_rxbuf_do) or tst_rxbuf_do_rd or tst_eth_txbuf_empty or tst_eth_rxbuf_empty;
+p_out_tst(31 downto 3) <= (others=>'0');
 
+process(p_in_hclk)
+begin
+  if rising_edge(p_in_hclk) then
+  tst_txbuf_di <= p_in_eth_htxbuf_di;
+  tst_rxbuf_do <= i_eth_hrxbuf_do_tmp;
+  tst_rxbuf_do_rd <= p_in_eth_hrxbuf_rd;
+  tst_eth_txbuf_empty <= i_eth_txbuf_empty;
+  tst_eth_rxbuf_empty <= i_eth_rxbuf_empty;
+
+  end if;
+end process;
 
 
 ----------------------------------------------------
@@ -487,9 +507,15 @@ begin
   end if;
 end process;
 
+gen_ethtx_swap_d : for i in 0 to (p_in_eth_htxbuf_di'length / G_ETH_DWIDTH) - 1 generate
+i_eth_txbuf_di((i_eth_txbuf_di'length - (G_ETH_DWIDTH * i)) - 1 downto
+                              (i_eth_txbuf_di'length - (G_ETH_DWIDTH * (i + 1)) ))
+                          <= p_in_eth_htxbuf_di((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i));
+end generate;-- gen_ethtx_swap_d;
+
 m_eth_txbuf : host_ethg_txfifo
 port map(
-din     => p_in_eth_htxbuf_di,
+din     => i_eth_txbuf_di,
 wr_en   => p_in_eth_htxbuf_wr,
 wr_clk  => p_in_hclk,
 
@@ -554,7 +580,7 @@ din     => i_eth_rxbuf_fltr_dout,
 wr_en   => i_eth_rxbuf_fltr_den,
 wr_clk  => p_in_eth_clk,
 
-dout    => p_out_eth_hrxbuf_do,
+dout    => i_eth_rxbuf_do,
 rd_en   => p_in_eth_hrxbuf_rd,
 rd_clk  => p_in_hclk,
 
@@ -565,6 +591,12 @@ prog_full => i_eth_rxbuf_full,
 rst     => b_rst_eth_bufs
 );
 
+gen_ethrx_swap_d : for i in 0 to (p_out_eth_hrxbuf_do'length / G_ETH_DWIDTH) - 1 generate
+i_eth_hrxbuf_do_tmp((p_out_eth_hrxbuf_do'length - (G_ETH_DWIDTH * i)) - 1 downto
+                              (p_out_eth_hrxbuf_do'length - (G_ETH_DWIDTH * (i + 1)) ))
+                          <= i_eth_rxbuf_do((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i));
+end generate;-- gen_ethrx_swap_d;
+p_out_eth_hrxbuf_do <= i_eth_hrxbuf_do_tmp;
 p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 
