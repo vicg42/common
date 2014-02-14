@@ -2,16 +2,13 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 02.02.2014 14:49:20
+-- Create Date : 01.05.2011 16:43:52
 -- Module Name : eth_mac_tx
 --
 -- Назначение/Описание :
 -- Реализация для шины данных 64bit!!!!
 --
 -- Revision:
--- Revision 1.00 - Передача MAC FRAME. Модуль вычитывает данных из пользовательского буфера, определяет
---                 размер передоваемого пакета (fst WORD пользовательских данных) + вставляет
---                 mac адреса (DST/SRC) в выходной MAC FRAME и пользовательские данных
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -77,19 +74,20 @@ S_TX_MAC_A00,
 S_TX_MAC_A000,
 S_TX_MAC_A1,
 S_TX_MAC_D,
-S_TX_END
+S_TX_END,
+S_TX_END2
 );
 signal fsm_eth_tx_cs: TEth_fsm_tx;
 
-signal i_usrpkt_len_byte,i_usrpkt_len2_byte      : std_logic_vector(15 downto 0);
-signal i_usrpkt_len       : std_logic_vector(15 downto 0);
+signal i_usrpkt_len_byte      : std_logic_vector(15 downto 0);
+signal i_usrpkt_len_2dw       : std_logic_vector(15 downto 0);
 
 signal i_mac_dlen_byte        : std_logic_vector(15 downto 0);
 signal i_remain_byte          : std_logic_vector(15 downto 0);
 signal i_dcnt                 : std_logic_vector(15 downto 0);
 
-signal sr_txbuf_dout          : std_logic_vector(p_in_txbuf_dout'range);
-signal i_bus_dcnt             : std_logic_vector(0 downto 0);
+signal sr_txbuf_dout          : std_logic_vector(63 downto 0);
+signal i_txbuf_rd             : std_logic;
 signal i_ll_data              : std_logic_vector(p_out_txll_data'range);
 signal i_ll_sof_n             : std_logic;
 signal i_ll_eof_n             : std_logic;
@@ -101,11 +99,10 @@ signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range) := (others => '0');
 signal tst_txbuf_empty        : std_logic := '0';
 signal tst_ll_dst_rdy_n       : std_logic := '0';
---signal tst_txbuf_d            : std_logic_vector(p_in_txbuf_dout'range) := (others => '1');
+signal tst_txbuf_d            : std_logic_vector(p_in_txbuf_dout'range) := (others => '1');
 signal tst_txbuf_rd           : std_logic := '0';
 signal tst_tx_start           : std_logic := '0';
-
-signal i_remain_usrpkt_len_byte : std_logic_vector(log2(p_out_txll_data'length / 8) - 1 downto 0);
+signal tst_pkt_cnt            : std_logic_vector(7 downto 0);
 
 --MAIN
 begin
@@ -122,12 +119,12 @@ ltstout:process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
 
---    tst_txbuf_d <= p_in_txbuf_dout;
-    tst_txbuf_rd <= not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n;
+    tst_txbuf_d <= p_in_txbuf_dout;
+    tst_txbuf_rd <= (not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n) or (i_txbuf_rd and not p_in_txbuf_empty);
 
     tst_txbuf_empty <= p_in_txbuf_empty; tst_ll_dst_rdy_n <= p_in_txll_dst_rdy_n;
     tst_fms_cs_dly <= tst_fms_cs;
-    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty or tst_ll_dst_rdy_n or tst_txbuf_rd or OR_reduce(i_remain_byte);
+    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty or tst_ll_dst_rdy_n or tst_txbuf_rd or OR_reduce(tst_pkt_cnt) or OR_reduce(tst_txbuf_d);
     p_out_tst(1) <= tst_tx_start;
 
     if fsm_eth_tx_cs = S_TX_MAC_A0 then
@@ -144,18 +141,15 @@ tst_fms_cs <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_tx_c
               CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_tx_cs = S_TX_MAC_A1  else
               CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_eth_tx_cs = S_TX_MAC_D   else
               CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_eth_tx_cs = S_TX_END     else
+              CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_eth_tx_cs = S_TX_END2     else
               CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_eth_tx_cs = S_IDLE     else
 
 end generate gen_dbg_on;
 
-i_usrpkt_len_byte <= i_mac_dlen_byte + 6;--2 + 4 is Len byte count
-i_usrpkt_len <= EXT(i_usrpkt_len_byte(i_usrpkt_len_byte'high
-                          downto log2(p_out_txll_data'length / 8)), i_usrpkt_len_byte'length)
-                  + OR_reduce(i_usrpkt_len_byte(log2(p_out_txll_data'length / 8) - 1 downto 0));
-
-i_remain_usrpkt_len_byte <= i_usrpkt_len_byte(log2(p_out_txll_data'length / 8) - 1 downto 0);
-
---i_usrpkt_len2_byte <= i_mac_dlen_byte + 2;--2 + 4 is Len byte count
+i_usrpkt_len_byte <= i_mac_dlen_byte + 2;--2 is Len byte count
+i_usrpkt_len_2dw <= EXT(i_usrpkt_len_byte(i_usrpkt_len_byte'high
+                          downto log2(p_in_txbuf_dout'length / 8)), i_usrpkt_len_byte'length)
+                  + OR_reduce(i_usrpkt_len_byte(log2(p_in_txbuf_dout'length / 8) - 1 downto 0));
 
 i_remain_byte <= (i_dcnt(i_dcnt'high - 3 downto 0) & "000") - i_usrpkt_len_byte;
 
@@ -177,8 +171,8 @@ if rising_edge(p_in_clk) then
 
     sr_txbuf_dout <= (others=>'0');
     i_mac_dlen_byte <= (others=>'0');
-    i_dcnt <= (others=>'0');
-    i_bus_dcnt <= (others=>'0');
+    i_dcnt <= (others=>'0'); tst_pkt_cnt <= (others=>'0');
+    i_txbuf_rd <= '0';
 
   else
 
@@ -193,13 +187,14 @@ if rising_edge(p_in_clk) then
 
 --        if p_in_txll_dst_rdy_n = '0' then
 --          i_ll_sof_n <= '1';
+          i_txbuf_rd <= '0';
           i_ll_eof_n <= '1';
           i_ll_src_rdy_n <= '1';
           i_ll_rem <= (others=>'1');
           i_ll_dlast <= '0';
           i_dcnt <= (others=>'0');
 
-          if p_in_txbuf_empty = '0' then
+          if p_in_txbuf_empty = '0' then tst_pkt_cnt <= tst_pkt_cnt + 1;
 
             i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_cfg.mac.src(1);
             i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_cfg.mac.src(0);
@@ -243,9 +238,7 @@ if rising_edge(p_in_clk) then
 
         when S_TX_MAC_A000 =>
 
---            i_dcnt <= (others=>'0');--
             i_dcnt <= CONV_STD_LOGIC_VECTOR(1, i_dcnt'length);
---            i_bus_dcnt <= CONV_STD_LOGIC_VECTOR(1, i_bus_dcnt'length);
             i_ll_src_rdy_n <= '0';
             i_ll_sof_n <= '0';
             fsm_eth_tx_cs <= S_TX_MAC_A1;
@@ -254,6 +247,7 @@ if rising_edge(p_in_clk) then
 
           if p_in_txll_dst_rdy_n = '0' then
 
+            sr_txbuf_dout((8 * 4) - 1 downto 8 * 0) <= p_in_txbuf_dout((8 * 8) - 1 downto 8 * 4);
 
             if G_ETH.mac_length_swap = 0 then
             --Отправка: первый ст. байт
@@ -277,17 +271,14 @@ if rising_edge(p_in_clk) then
 
             if i_mac_dlen_byte > CONV_STD_LOGIC_VECTOR(2, i_mac_dlen_byte'length) then
 
-                if i_dcnt = i_usrpkt_len then
+                i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+
+                if i_dcnt = i_usrpkt_len_2dw then
                     i_ll_dlast <= '1';
                     fsm_eth_tx_cs <= S_TX_END;
                 else
                     i_dcnt <= i_dcnt + 1;
-                    i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
-                    i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
-
-                    sr_txbuf_dout <= p_in_txbuf_dout;
-                    i_bus_dcnt <= i_bus_dcnt + 1;
-
                     i_ll_eof_n <= '1';
                     fsm_eth_tx_cs <= S_TX_MAC_D;
                 end if;
@@ -317,7 +308,7 @@ if rising_edge(p_in_clk) then
 
                 i_ll_dlast <= '1';
                 i_ll_eof_n <= '0';
-                fsm_eth_tx_cs <= S_IDLE;
+                fsm_eth_tx_cs <= S_TX_END2;
 
             end if;
           end if;
@@ -330,131 +321,146 @@ if rising_edge(p_in_clk) then
           if p_in_txll_dst_rdy_n = '0' then
           if p_in_txbuf_empty = '0' then
 
---              if ((i_dcnt = i_usrpkt_len) and (i_remain_usrpkt_len_byte(3) = '1' or i_remain_usrpkt_len_byte = "0000"))
---                 or ( i_dcnt = (i_usrpkt_len - 1) and i_remain_usrpkt_len_byte(3) = '0') then
-              if i_dcnt = i_usrpkt_len then
---              if i_dcnt = (i_usrpkt_len - 1) then
+              sr_txbuf_dout((8 * 4) - 1 downto 8 * 0) <= p_in_txbuf_dout((8 * 8) - 1 downto 8 * 4);
+              sr_txbuf_dout((8 * 8) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 0);
+
+              if i_dcnt = i_usrpkt_len_2dw then
 
                   i_ll_dlast <= '1';
-                  i_ll_src_rdy_n <= '0';
-                  i_bus_dcnt <= (others=>'1');
+                  i_ll_src_rdy_n <= '1';
 
-                  fsm_eth_tx_cs <= S_TX_END;
+                  if i_remain_byte < CONV_STD_LOGIC_VECTOR(4, i_remain_byte'length) then
+
+                      i_ll_data((8 * 8) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 0);--MSB
+                      i_ll_data((8 * 4) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 4) - 1 downto 8 * 0);--LSB
+                      i_ll_rem <= (others=>'1');
+
+                      fsm_eth_tx_cs <= S_TX_END;
+
+                  else
+
+                      --MSB
+                      i_ll_data((8 * 8) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 0);
+
+                      case i_remain_byte(1 downto 0) is
+                      when "00" => i_ll_rem(7 downto 4) <= "1111";
+                      when "01" => i_ll_rem(7 downto 4) <= "0111";
+                      when "10" => i_ll_rem(7 downto 4) <= "0011";
+                      when "11" => i_ll_rem(7 downto 4) <= "0001";
+                      when others => null;
+                      end case;
+
+                      case i_remain_byte(1 downto 0) is
+                      when "00" =>
+                          i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                          i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+                          i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
+                          i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
+
+                      when "01" =>
+                          i_ll_data((8 * 8) - 1 downto 8 * 7) <= (others=>'0');--p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                          i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+                          i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
+                          i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
+
+                      when "10" =>
+                          i_ll_data((8 * 8) - 1 downto 8 * 7) <= (others=>'0');--p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                          i_ll_data((8 * 7) - 1 downto 8 * 6) <= (others=>'0');--p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+                          i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
+                          i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
+
+                      when "11" =>
+                          i_ll_data((8 * 8) - 1 downto 8 * 7) <= (others=>'0');--p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                          i_ll_data((8 * 7) - 1 downto 8 * 6) <= (others=>'0');--p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+                          i_ll_data((8 * 6) - 1 downto 8 * 5) <= (others=>'0');--p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
+                          i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
+
+                      when others => null;
+                      end case;
+
+                      --LSB
+                      i_ll_data((8 * 4) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 4) - 1 downto 8 * 0);
+                      i_ll_rem(3 downto 0) <= (others=>'1');
+
+                      i_ll_eof_n <= '0';
+                      fsm_eth_tx_cs <= S_TX_END2;
+
+                  end if;
+
               else
 
-                i_dcnt <= i_dcnt + 1;
-              i_bus_dcnt <= i_bus_dcnt + 1;
+                  i_ll_data((8 * 8) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 0);--MSB
+                  i_ll_data((8 * 4) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 4) - 1 downto 8 * 0);--LSB
+                  i_ll_rem <= (others=>'1');
 
-              end if;--if i_dcnt = i_usrpkt_len then
+                  i_dcnt <= i_dcnt + 1;
 
---              i_bus_dcnt <= i_bus_dcnt + 1;
-
-              if AND_reduce(i_bus_dcnt) = '1' then
-                sr_txbuf_dout <= p_in_txbuf_dout;
-              end if;
-
-              if i_dcnt = CONV_STD_LOGIC_VECTOR(2, i_dcnt'length) then
-
-                i_ll_data((8 * 8) - 1 downto 8 * 7) <= sr_txbuf_dout((8 * 12) - 1 downto 8 * 11);
-                i_ll_data((8 * 7) - 1 downto 8 * 6) <= sr_txbuf_dout((8 * 11) - 1 downto 8 * 10);
-                i_ll_data((8 * 6) - 1 downto 8 * 5) <= sr_txbuf_dout((8 * 10) - 1 downto 8 *  9);
-                i_ll_data((8 * 5) - 1 downto 8 * 4) <= sr_txbuf_dout((8 *  9) - 1 downto 8 *  8);
-                i_ll_data((8 * 4) - 1 downto 8 * 3) <= sr_txbuf_dout((8 *  8) - 1 downto 8 *  7);
-                i_ll_data((8 * 3) - 1 downto 8 * 2) <= sr_txbuf_dout((8 *  7) - 1 downto 8 *  6);
-                i_ll_data((8 * 2) - 1 downto 8 * 1) <= sr_txbuf_dout((8 *  6) - 1 downto 8 *  5);
-                i_ll_data((8 * 1) - 1 downto 8 * 0) <= sr_txbuf_dout((8 *  5) - 1 downto 8 *  4);
-
-              elsif i_dcnt = CONV_STD_LOGIC_VECTOR(3, i_dcnt'length) then
-
-                i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
-                i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
-                i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
-                i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
-
-                i_ll_data((8 * 4) - 1 downto 8 * 3) <= sr_txbuf_dout((8 * 16) - 1 downto 8 * 15);
-                i_ll_data((8 * 3) - 1 downto 8 * 2) <= sr_txbuf_dout((8 * 15) - 1 downto 8 * 14);
-                i_ll_data((8 * 2) - 1 downto 8 * 1) <= sr_txbuf_dout((8 * 14) - 1 downto 8 * 13);
-                i_ll_data((8 * 1) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 13) - 1 downto 8 * 12);
-
-              elsif i_dcnt >= CONV_STD_LOGIC_VECTOR(4, i_dcnt'length) then
-
-                if i_dcnt(0) = '0' then
-
-                  i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 12) - 1 downto 8 * 11);
-                  i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 11) - 1 downto 8 * 10);
-                  i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 10) - 1 downto 8 *  9);
-                  i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 *  9) - 1 downto 8 *  8);
-                  i_ll_data((8 * 4) - 1 downto 8 * 3) <= p_in_txbuf_dout((8 *  8) - 1 downto 8 *  7);
-                  i_ll_data((8 * 3) - 1 downto 8 * 2) <= p_in_txbuf_dout((8 *  7) - 1 downto 8 *  6);
-                  i_ll_data((8 * 2) - 1 downto 8 * 1) <= p_in_txbuf_dout((8 *  6) - 1 downto 8 *  5);
-                  i_ll_data((8 * 1) - 1 downto 8 * 0) <= p_in_txbuf_dout((8 *  5) - 1 downto 8 *  4);
-
-                else --if i_dcnt = CONV_STD_LOGIC_VECTOR(4, i_dcnt'length) then
-
-                  i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
-                  i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
-                  i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
-                  i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
-
-                  i_ll_data((8 * 4) - 1 downto 8 * 3) <= sr_txbuf_dout((8 * 16) - 1 downto 8 * 15);
-                  i_ll_data((8 * 3) - 1 downto 8 * 2) <= sr_txbuf_dout((8 * 15) - 1 downto 8 * 14);
-                  i_ll_data((8 * 2) - 1 downto 8 * 1) <= sr_txbuf_dout((8 * 14) - 1 downto 8 * 13);
-                  i_ll_data((8 * 1) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 13) - 1 downto 8 * 12);
-                end if;
-
-              end if;
-
-
---              case i_remain_byte(2 downto 0) is
---              when "0000" =>
---                  i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
---                  i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
---                  i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
---                  i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
---
---              when "01" =>
---                  i_ll_data((8 * 8) - 1 downto 8 * 7) <= (others=>'0');--p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
---                  i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
---                  i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
---                  i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
---
---              when "10" =>
---                  i_ll_data((8 * 8) - 1 downto 8 * 7) <= (others=>'0');--p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
---                  i_ll_data((8 * 7) - 1 downto 8 * 6) <= (others=>'0');--p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
---                  i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
---                  i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
---
---              when "11" =>
---                  i_ll_data((8 * 8) - 1 downto 8 * 7) <= (others=>'0');--p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
---                  i_ll_data((8 * 7) - 1 downto 8 * 6) <= (others=>'0');--p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
---                  i_ll_data((8 * 6) - 1 downto 8 * 5) <= (others=>'0');--p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
---                  i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
---
---              when others => null;
---              end case;
-
+              end if;--if i_dcnt = i_usrpkt_len_2dw then
 
           end if;--if p_in_txbuf_empty = '0' then
           end if;
 
         when S_TX_END =>
 
-            i_ll_src_rdy_n <= '1';
+            --MSB
+            i_ll_data((8 * 8) - 1 downto 8 * 4) <= (others=>'0');
+            i_ll_rem(7 downto 4) <= "0000";
 
-            i_bus_dcnt <= (others=>'0');
+            --LSB
+            i_ll_data((8 * 4) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 4) - 1 downto 8 * 0);
 
-            i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
-            i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
-            i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
-            i_ll_data((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
+            case i_remain_byte(1 downto 0) is
+            when "00" => i_ll_rem(3 downto 0) <= "1111";
+            when "01" => i_ll_rem(3 downto 0) <= "0111";
+            when "10" => i_ll_rem(3 downto 0) <= "0011";
+            when "11" => i_ll_rem(3 downto 0) <= "0001";
+            when others => null;
+            end case;
 
-            i_ll_data((8 * 4) - 1 downto 8 * 3) <= sr_txbuf_dout((8 * 16) - 1 downto 8 * 15);
-            i_ll_data((8 * 3) - 1 downto 8 * 2) <= sr_txbuf_dout((8 * 15) - 1 downto 8 * 14);
-            i_ll_data((8 * 2) - 1 downto 8 * 1) <= sr_txbuf_dout((8 * 14) - 1 downto 8 * 13);
-            i_ll_data((8 * 1) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 13) - 1 downto 8 * 12);
+            case i_remain_byte(1 downto 0) is
+            when "00" =>
+                i_ll_data((8 * 4) - 1 downto 8 * 3) <= sr_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                i_ll_data((8 * 3) - 1 downto 8 * 2) <= sr_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+                i_ll_data((8 * 2) - 1 downto 8 * 1) <= sr_txbuf_dout((8 * 2) - 1 downto 8 * 1);
+                i_ll_data((8 * 1) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 1) - 1 downto 8 * 0);
+
+            when "01" =>
+                i_ll_data((8 * 4) - 1 downto 8 * 3) <= (others=>'0');--sr_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                i_ll_data((8 * 3) - 1 downto 8 * 2) <= sr_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+                i_ll_data((8 * 2) - 1 downto 8 * 1) <= sr_txbuf_dout((8 * 2) - 1 downto 8 * 1);
+                i_ll_data((8 * 1) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 1) - 1 downto 8 * 0);
+
+            when "10" =>
+                i_ll_data((8 * 4) - 1 downto 8 * 3) <= (others=>'0');--sr_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                i_ll_data((8 * 3) - 1 downto 8 * 2) <= (others=>'0');--sr_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+                i_ll_data((8 * 2) - 1 downto 8 * 1) <= sr_txbuf_dout((8 * 2) - 1 downto 8 * 1);
+                i_ll_data((8 * 1) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 1) - 1 downto 8 * 0);
+
+            when "11" =>
+                i_ll_data((8 * 4) - 1 downto 8 * 3) <= (others=>'0');--sr_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                i_ll_data((8 * 3) - 1 downto 8 * 2) <= (others=>'0');--sr_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+                i_ll_data((8 * 2) - 1 downto 8 * 1) <= (others=>'0');--sr_txbuf_dout((8 * 2) - 1 downto 8 * 1);
+                i_ll_data((8 * 1) - 1 downto 8 * 0) <= sr_txbuf_dout((8 * 1) - 1 downto 8 * 0);
+
+            when others => null;
+            end case;
 
             i_ll_eof_n <= '0';
+            fsm_eth_tx_cs <= S_TX_END2;
+
+        when S_TX_END2 =>
+
+          i_ll_eof_n <= '1';
+          i_ll_src_rdy_n <= '1';
+          i_ll_rem <= (others=>'1');
+          i_ll_dlast <= '0';
+          i_dcnt <= (others=>'0');
+
+          i_txbuf_rd <= not p_in_txbuf_empty;
+
+          if p_in_txbuf_empty = '1' then
             fsm_eth_tx_cs <= S_IDLE;
+          end if;
 
       end case;
 
@@ -463,7 +469,7 @@ if rising_edge(p_in_clk) then
 end if;
 end process;
 
-p_out_txbuf_rd <= not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n and AND_reduce(i_bus_dcnt);
+p_out_txbuf_rd <= (not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n) or (i_txbuf_rd and not p_in_txbuf_empty);
 
 p_out_txll_data <= i_ll_data;
 p_out_txll_sof_n <= i_ll_sof_n;
@@ -471,25 +477,6 @@ p_out_txll_eof_n <= i_ll_eof_n;
 p_out_txll_src_rdy_n <= ((i_ll_sof_n and i_ll_src_rdy_n) or p_in_txbuf_empty) and not i_ll_dlast;
 p_out_txll_rem <= i_ll_rem;
 
-
-
-
---                    sr_txbuf_dout((8 * 16) - 1 downto 8 * 15) <= p_in_txbuf_dout((8 * 16) - 1 downto 8 * 15);
---                    sr_txbuf_dout((8 * 15) - 1 downto 8 * 14) <= p_in_txbuf_dout((8 * 15) - 1 downto 8 * 14);
---                    sr_txbuf_dout((8 * 14) - 1 downto 8 * 13) <= p_in_txbuf_dout((8 * 14) - 1 downto 8 * 13);
---                    sr_txbuf_dout((8 * 13) - 1 downto 8 * 12) <= p_in_txbuf_dout((8 * 13) - 1 downto 8 * 12);
---                    sr_txbuf_dout((8 * 12) - 1 downto 8 * 11) <= p_in_txbuf_dout((8 * 12) - 1 downto 8 * 11);
---                    sr_txbuf_dout((8 * 11) - 1 downto 8 * 10) <= p_in_txbuf_dout((8 * 11) - 1 downto 8 * 10);
---                    sr_txbuf_dout((8 * 10) - 1 downto 8 * 9)  <= p_in_txbuf_dout((8 * 10) - 1 downto 8 * 9) ;
---                    sr_txbuf_dout((8 * 9) - 1  downto 8 * 8)  <= p_in_txbuf_dout((8 * 9) - 1  downto 8 * 8) ;
---                    sr_txbuf_dout((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 8) - 1 downto 8 * 7);
---                    sr_txbuf_dout((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 7) - 1 downto 8 * 6);
---                    sr_txbuf_dout((8 * 6) - 1 downto 8 * 5) <= p_in_txbuf_dout((8 * 6) - 1 downto 8 * 5);
---                    sr_txbuf_dout((8 * 5) - 1 downto 8 * 4) <= p_in_txbuf_dout((8 * 5) - 1 downto 8 * 4);
---                    sr_txbuf_dout((8 * 4) - 1 downto 8 * 3) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
---                    sr_txbuf_dout((8 * 3) - 1 downto 8 * 2) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
---                    sr_txbuf_dout((8 * 2) - 1 downto 8 * 1) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 1);
---                    sr_txbuf_dout((8 * 1) - 1 downto 8 * 0) <= p_in_txbuf_dout((8 * 1) - 1 downto 8 * 0);
 
 --END MAIN
 end behavioral;
