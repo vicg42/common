@@ -349,35 +349,36 @@ if rising_edge(p_in_clk) then
 
             elsif G_MEM_DWIDTH = 128 then
 
-                --номер начального пикселя в строке
-                i_pix_num(15 downto 0) <= i_upp_data(15 downto 0);
-
-                --маркер строки
-                i_vfr_row_mrk(15 downto 0) <= i_upp_data(31 downto 16);
-                i_vfr_row_mrk(31 downto 16)<= i_upp_data((15 + 32) downto (0 + 32));
-
                 for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
                   if i_vch_num = i then
-                    if i_vfr_num(i) /= i_upp_data((3 + 64) downto (0 + 64)) then
+                    if i_vfr_num(i) /= i_upp_data(3 downto 0) then
                       --Обнаружил начало нового кадра!!!!!!!!!
                       --Перезагрузка параметров канала
                       i_mem_wrbase <= p_in_cfg_prm_vch(i).mem_adr;
                     end if;
 
                     --Сохраняем номер текущего кадра:
-                    i_vfr_num(i) <= i_upp_data((3 + 64) downto (0 + 64));
+                    i_vfr_num(i) <= i_upp_data(3 downto 0);
 
                    end if;
                 end loop;
 
                 --размер кадра: кол-во пикселей
-                i_vfr_pix_count <= i_upp_data((31 + 64) downto (16 + 64));
+                i_vfr_pix_count <= i_upp_data((31 + 0) downto (16 + 0));
 
                 --размер кадра: кол-во строк
-                i_vfr_row_count <= i_upp_data((15 + 32 + 64) downto (0 + 32 + 64));
+                i_vfr_row_count <= i_upp_data((15 + 32) downto (0 + 32));
 
                 --номер текущей строки:
-                i_vfr_row <= i_upp_data((31 + 32 + 64) downto (16 + 32 + 64));
+                i_vfr_row <= i_upp_data((31 + 32) downto (16 + 32));
+
+                --номер начального пикселя в строке
+                i_pix_num(15 downto 0) <= i_upp_data((15 + 64) downto (0 + 64));
+
+                --маркер строки
+                i_vfr_row_mrk(15 downto 0) <= i_upp_data((31 + 64) downto (16 + 64));
+                i_vfr_row_mrk(31 downto 16)<= i_upp_data((15 + 96) downto (0 + 96));
+
               end if;
 
               fsm_state_cs <= S_MEM_START;
