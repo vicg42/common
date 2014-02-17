@@ -742,10 +742,6 @@ if rising_edge(clk) then
 
                 end if;
 
-            else --if i_usr_rxbuf_rd /= '1' then
-
-                i_trn_tsrc_rdy_n <= '1';
-
             end if;
         --end S_TX_MWR_QWN :
 
