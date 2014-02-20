@@ -234,10 +234,12 @@ signal syn_eth_rxd_eof               : std_logic;
 signal syn_eth_host_frr              : TEthFRR;
 signal syn_eth_vctrl_frr             : TEthFRR;
 
-signal i_eth_txbuf_di                : std_logic_vector(p_in_eth_htxbuf_di'range);signal i_eth_txbuf_full              : std_logic;
+signal i_eth_txbuf_di                : std_logic_vector(p_in_eth_htxbuf_di'range);
+signal i_eth_txbuf_full              : std_logic;
 signal i_eth_txbuf_empty             : std_logic;
 
-signal i_eth_rxbuf_do                : std_logic_vector(p_out_eth_hrxbuf_do'range);signal i_eth_rxbuf_full              : std_logic;
+signal i_eth_rxbuf_do                : std_logic_vector(p_out_eth_hrxbuf_do'range);
+signal i_eth_rxbuf_full              : std_logic;
 signal i_eth_rxbuf_empty             : std_logic;
 signal i_eth_rxd_rdy_dly             : std_logic_vector(2 downto 0);
 signal i_eth_rxbuf_fltr_dout         : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
@@ -576,7 +578,8 @@ din     => i_eth_rxbuf_fltr_dout,
 wr_en   => i_eth_rxbuf_fltr_den,
 wr_clk  => p_in_eth_clk,
 
-dout    => i_eth_rxbuf_do,rd_en   => p_in_eth_hrxbuf_rd,
+dout    => i_eth_rxbuf_do,
+rd_en   => p_in_eth_hrxbuf_rd,
 rd_clk  => p_in_hclk,
 
 empty   => i_eth_rxbuf_empty,
@@ -591,7 +594,8 @@ i_eth_hrxbuf_do_tmp((p_out_eth_hrxbuf_do'length - (G_ETH_DWIDTH * i)) - 1 downto
                               (p_out_eth_hrxbuf_do'length - (G_ETH_DWIDTH * (i + 1)) ))
                           <= i_eth_rxbuf_do((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i));
 end generate;-- gen_ethrx_swap_d;
-p_out_eth_hrxbuf_do <= i_eth_hrxbuf_do_tmp;p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
+p_out_eth_hrxbuf_do <= i_eth_hrxbuf_do_tmp;
+p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 
 p_out_eth(0).rxbuf_empty <= i_eth_rxbuf_empty;
