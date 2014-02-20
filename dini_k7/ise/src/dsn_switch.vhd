@@ -283,14 +283,6 @@ S_SKIP
 );
 signal fsm_state_cs                  : TFsm;
 
-signal tst_vbufi_empty               : std_logic;
-
-signal i_eth_hrxbuf_do_tmp           : std_logic_vector(127 downto 0);
-signal tst_txbuf_di                  : std_logic_vector(127 downto 0);
-signal tst_rxbuf_do                  : std_logic_vector(127 downto 0);
-signal tst_rxbuf_do_rd               : std_logic;
-signal tst_eth_txbuf_empty           : std_logic;
-signal tst_eth_rxbuf_empty           : std_logic;
 
 --MAIN
 begin
@@ -299,21 +291,9 @@ begin
 --Технологические сигналы
 ------------------------------------
 p_out_tst(0) <= b_rst_vctrl_bufs;
-p_out_tst(1) <= tst_vbufi_empty;
-p_out_tst(2) <= OR_reduce(tst_txbuf_di) or OR_reduce(tst_rxbuf_do) or tst_rxbuf_do_rd or tst_eth_txbuf_empty or tst_eth_rxbuf_empty;
+p_out_tst(1) <= '0';
+p_out_tst(2) <= '0';
 p_out_tst(31 downto 3) <= (others=>'0');
-
-process(p_in_hclk)
-begin
-  if rising_edge(p_in_hclk) then
-  tst_txbuf_di <= p_in_eth_htxbuf_di;
-  tst_rxbuf_do <= i_eth_hrxbuf_do_tmp;
-  tst_rxbuf_do_rd <= p_in_eth_hrxbuf_rd;
-  tst_eth_txbuf_empty <= i_eth_txbuf_empty;
-  tst_eth_rxbuf_empty <= i_eth_rxbuf_empty;
-
-  end if;
-end process;
 
 
 ----------------------------------------------------
