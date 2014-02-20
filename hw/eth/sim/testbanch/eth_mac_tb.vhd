@@ -30,7 +30,7 @@ use work.prj_cfg.all;
 
 entity eth_mac_tb is
 generic(
-G_USR_DBUS: integer:=128;
+G_USR_DBUS: integer:=64;
 G_ETH_CORE_DBUS: integer:=64;
 G_ETH_CORE_DBUS_SWP: integer:=1; --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
 G_DBG : string:="ON";
@@ -50,8 +50,10 @@ p_out_eth_hrxbuf_do : out std_logic_vector(127 downto 0);
 ----p_in_txll_dst_rdy_n  : in    std_logic;
 --p_out_txll_rem       : out   std_logic_vector(0 downto 0)
 tttt: OUT std_logic_vector(31 downto 0);
-p_out_rxbuf_din       : out   std_logic_vector(G_USR_DBUS-1 downto 0);
-p_out_rxbuf_wr        : out   std_logic;
+--p_out_rxbuf_din       : out   std_logic_vector(G_USR_DBUS-1 downto 0);
+--p_out_rxbuf_wr        : out   std_logic;
+i_dout_out       : out   std_logic_vector(127 downto 0);
+i_dout_out_rd    : out   std_logic;
 --p_in_rxbuf_full       : in    std_logic;
 p_out_rxd_sof         : out   std_logic;
 p_out_rxd_eof         : out   std_logic
@@ -63,7 +65,7 @@ architecture behavior of eth_mac_tb is
 constant C_ETH_GT_REFCLK_PERIOD : TIME := 6.6 ns; --150MHz
 constant C_ETH_GT_DRPCLK_PERIOD : TIME := 6.6*8 ns;
 constant C_CFG_PERIOD           : TIME := 6.6*5 ns;
-constant C_CFG_PERIOD2           : TIME := 4.6*5 ns;
+constant C_CFG_PERIOD2           : TIME := 8.6*5 ns;
 
 signal ttt_rd, ttt_empty : std_logic;
 
@@ -248,7 +250,7 @@ signal i_txbuf_dout               : std_logic_vector(G_USR_DBUS-1 downto 0);
 signal i_txbuf_rd                 : std_logic;
 signal i_txbuf_empty              : std_logic;
 
-signal i_data                     : std_logic_vector(G_USR_DBUS-1 downto 0);
+signal i_data                     : std_logic_vector(127 downto 0);--(G_USR_DBUS-1 downto 0);
 signal i_data_wr                  : std_logic;
 
 signal p_out_txll_data            : std_logic_vector(G_ETH_CORE_DBUS-1 downto 0);
@@ -257,6 +259,13 @@ signal p_out_txll_eof_n           : std_logic;
 signal p_out_txll_src_rdy_n       : std_logic;
 signal p_in_txll_dst_rdy_n        : std_logic;
 signal p_out_txll_rem             : std_logic_vector((G_ETH_CORE_DBUS / 8) - 1 downto 0);
+
+signal i_out_txll_data      : std_logic_vector(G_ETH_CORE_DBUS-1 downto 0);
+signal i_out_txll_sof_n     : std_logic;
+signal i_out_txll_eof_n     : std_logic;
+signal i_out_txll_src_rdy_n : std_logic;
+signal i_in_txll_dst_rdy_n  : std_logic := '0';
+signal i_out_txll_rem       : std_logic_vector((G_ETH_CORE_DBUS / 8) - 1 downto 0);
 
 signal p_in_rxbuf_full            : std_logic:='0';
 signal i_rxbuf_full               : std_logic:='0';
@@ -278,6 +287,18 @@ signal i_eth_rxbuf_fltr_dout : std_logic_vector(63 downto 0);
 signal i_eth_rxbuf_fltr_dout_wr : Std_logic;
 signal i_eth_rxbuf_rd : std_logic;
 signal i_eth_rxbuf_empty : std_logic;
+
+
+signal i_data_tmp : std_logic_vector(127 downto 0);
+signal i_data_tmp2 : std_logic_vector(127 downto 0);
+signal i_tx_rd : std_logic;
+signal i_tx_empty : std_logic;
+
+signal p_out_rxbuf_din : std_logic_vector(G_USR_DBUS-1 downto 0);
+signal p_out_rxbuf_wr  : std_logic;
+
+signal i_rx_len : std_logic_vector(15 downto 0);
+
 
 --MAIN
 begin
@@ -311,13 +332,13 @@ p_out_rxd_eof         => p_out_rxd_eof  ,
 --------------------------------------
 --Связь с Local link RxFIFO
 --------------------------------------
-p_in_rxll_data        => p_out_txll_data     ,
-p_in_rxll_sof_n       => p_out_txll_sof_n    ,
-p_in_rxll_eof_n       => p_out_txll_eof_n    ,
-p_in_rxll_src_rdy_n   => p_out_txll_src_rdy_n,
-p_out_rxll_dst_rdy_n  => p_in_txll_dst_rdy_n ,
-p_in_rxll_fifo_status => (others=>'0')       ,
-p_in_rxll_rem         => p_out_txll_rem      ,
+p_in_rxll_data        => p_out_txll_data     ,--i_out_txll_data     ,--
+p_in_rxll_sof_n       => p_out_txll_sof_n    ,--i_out_txll_sof_n    ,--
+p_in_rxll_eof_n       => p_out_txll_eof_n    ,--i_out_txll_eof_n    ,--
+p_in_rxll_src_rdy_n   => p_out_txll_src_rdy_n,--i_out_txll_src_rdy_n,--
+p_out_rxll_dst_rdy_n  => p_in_txll_dst_rdy_n ,--i_in_txll_dst_rdy_n ,--
+p_in_rxll_fifo_status => (others=>'0')       ,--(others=>'0')       ,--
+p_in_rxll_rem         => p_out_txll_rem      ,--i_out_txll_rem      ,--
 
 --------------------------------------
 --Управление передачей PAUSE Control Frame
@@ -422,7 +443,13 @@ end process;
 
 i_rst<='1','0' after 1 us;
 
-
+gen_clk2 : process
+begin
+  i_clk2<='0';
+  wait for C_CFG_PERIOD2/2;
+  i_clk2<='1';
+  wait for C_CFG_PERIOD2/2;
+end process;
 
 ----########################################
 ----Main Ctrl (G_USR_DBUS - 32bit)
@@ -699,7 +726,8 @@ i_rst<='1','0' after 1 us;
 --
 --m_buf : host_vbuf
 --generic map(
---G_DWIDTH => G_USR_DBUS
+--G_DI_WIDTH => G_USR_DBUS,
+--G_DO_WIDTH => G_USR_DBUS
 --)
 --port map(
 --din => i_data,
@@ -718,7 +746,6 @@ i_rst<='1','0' after 1 us;
 
 
 
-
 --########################################
 --Main Ctrl (G_USR_DBUS - 128bit)
 --########################################
@@ -726,7 +753,7 @@ gen_mac_a : for i in 0 to i_eth_tx_cfg.mac.dst'length - 1 generate
 i_eth_tx_cfg.mac.dst(i) <= CONV_STD_LOGIC_VECTOR(i + 16#E0#, i_eth_tx_cfg.mac.dst(i)'length) ;
 i_eth_tx_cfg.mac.src(i) <= CONV_STD_LOGIC_VECTOR(i + 16#F0#, i_eth_tx_cfg.mac.src(i)'length) ;
 end generate gen_mac_a;
-i_eth_tx_cfg.mac.lentype <= CONV_STD_LOGIC_VECTOR(16#29#, i_eth_tx_cfg.mac.lentype'length);
+i_eth_tx_cfg.mac.lentype <= CONV_STD_LOGIC_VECTOR(16#35#, i_eth_tx_cfg.mac.lentype'length);
 i_eth_tx_cfg.usrctrl <= (others=>'0');
 
 i_eth_rx_cfg.mac.dst <= i_eth_tx_cfg.mac.src;
@@ -741,48 +768,41 @@ begin
 
   wait for 2 us;
 
-  wait until i_clk'event and i_clk = '1';
+  wait until i_clk2'event and i_clk2 = '1';
   i_data_wr <= '1';
   i_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#0201#, 16) & i_eth_tx_cfg.mac.lentype;
   i_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#0605#, 16) & CONV_STD_LOGIC_VECTOR(16#0403#, 16);
   i_data(32*3 - 1 downto 32*2) <= CONV_STD_LOGIC_VECTOR(16#0A09#, 16) & CONV_STD_LOGIC_VECTOR(16#0807#, 16);
   i_data(32*4 - 1 downto 32*3) <= CONV_STD_LOGIC_VECTOR(16#0E0D#, 16) & CONV_STD_LOGIC_VECTOR(16#0C0B#, 16);
 
---  wait until i_clk'event and i_clk = '1';
---  i_data_wr <= '0';
---
---  wait for 200 ns;
+  wait until i_clk2'event and i_clk2 = '1';
+  i_data_wr <= '0';
 
-  wait until i_clk'event and i_clk = '1';
+  wait for 200 ns;
+
+  wait until i_clk2'event and i_clk2 = '1';
   i_data_wr <= '1';
   i_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#1211#, 16) & CONV_STD_LOGIC_VECTOR(16#100F#, 16);
   i_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#1615#, 16) & CONV_STD_LOGIC_VECTOR(16#1413#, 16);
   i_data(32*3 - 1 downto 32*2) <= CONV_STD_LOGIC_VECTOR(16#1A19#, 16) & CONV_STD_LOGIC_VECTOR(16#1817#, 16);
   i_data(32*4 - 1 downto 32*3) <= CONV_STD_LOGIC_VECTOR(16#1E1D#, 16) & CONV_STD_LOGIC_VECTOR(16#1C1B#, 16);
 
-  wait until i_clk'event and i_clk = '1';
+  wait until i_clk2'event and i_clk2 = '1';
   i_data_wr <= '1';
   i_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#2221#, 16) & CONV_STD_LOGIC_VECTOR(16#201F#, 16);
   i_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#2625#, 16) & CONV_STD_LOGIC_VECTOR(16#2423#, 16);
   i_data(32*3 - 1 downto 32*2) <= CONV_STD_LOGIC_VECTOR(16#2A29#, 16) & CONV_STD_LOGIC_VECTOR(16#2827#, 16);
   i_data(32*4 - 1 downto 32*3) <= CONV_STD_LOGIC_VECTOR(16#2E2D#, 16) & CONV_STD_LOGIC_VECTOR(16#2C2B#, 16);
 
---  wait until i_clk'event and i_clk = '1';
---  i_data_wr <= '1';
---  i_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#2827#, 16) & CONV_STD_LOGIC_VECTOR(16#100F#, 16);
---  i_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#2A29#, 16) & CONV_STD_LOGIC_VECTOR(16#1413#, 16);
---  i_data(32*3 - 1 downto 32*2) <= CONV_STD_LOGIC_VECTOR(16#2C2B#, 16) & CONV_STD_LOGIC_VECTOR(16#1817#, 16);
---  i_data(32*4 - 1 downto 32*3) <= CONV_STD_LOGIC_VECTOR(16#2E2D#, 16) & CONV_STD_LOGIC_VECTOR(16#1C1B#, 16);
+  wait until i_clk2'event and i_clk2 = '1';
+  i_data_wr <= '1';
+  i_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#3231#, 16) & CONV_STD_LOGIC_VECTOR(16#302F#, 16);
+  i_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#3635#, 16) & CONV_STD_LOGIC_VECTOR(16#3433#, 16);
+  i_data(32*3 - 1 downto 32*2) <= CONV_STD_LOGIC_VECTOR(16#3A39#, 16) & CONV_STD_LOGIC_VECTOR(16#3837#, 16);
+  i_data(32*4 - 1 downto 32*3) <= CONV_STD_LOGIC_VECTOR(16#3E3D#, 16) & CONV_STD_LOGIC_VECTOR(16#3C3B#, 16);
 
---
---  wait for 200 ns;
---
---  wait until i_clk'event and i_clk = '1';
---  i_data_wr <= '1';
---  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#2A29#, 16) & CONV_STD_LOGIC_VECTOR(16#2827#, 16);
---  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#2E2D#, 16) & CONV_STD_LOGIC_VECTOR(16#2C2B#, 16);
 
-  wait until i_clk'event and i_clk = '1';
+  wait until i_clk2'event and i_clk2 = '1';
   i_data_wr <= '0';
 
   wait;
@@ -793,7 +813,7 @@ i_rxbuf_full <= '0';--, '1' after 2950000 ps, '0' after 3000000 ps;
 
 process(i_clk)
 begin
-  if rising_edge(i_clk) then
+  if rising_edge(i_clk2) then
     p_in_rxbuf_full <= i_rxbuf_full;
   end if;
 end process;
@@ -801,25 +821,25 @@ end process;
 
 
 
-m_buf : host_vbuf
-generic map(
-G_DI_WIDTH => G_USR_DBUS,
-G_DO_WIDTH => G_USR_DBUS
-)
-port map(
-din => i_data,
-wr_en => i_data_wr,
-wr_clk => i_clk,
-
-dout => i_txbuf_dout,
-rd_en => i_txbuf_rd,
-rd_clk => i_clk,
-
-full => open,
-empty => i_txbuf_empty,
-prog_full => open,
-rst => i_rst
-);
+--m_buf : host_vbuf
+--generic map(
+--G_DI_WIDTH => G_USR_DBUS,
+--G_DO_WIDTH => G_USR_DBUS
+--)
+--port map(
+--din => i_data,
+--wr_en => i_data_wr,
+--wr_clk => i_clk,
+--
+--dout => i_txbuf_dout,
+--rd_en => i_txbuf_rd,
+--rd_clk => i_clk,
+--
+--full => open,
+--empty => i_txbuf_empty,
+--prog_full => open,
+--rst => i_rst
+--);
 
 
 --mm : ethg_vctrl_rxfifo
@@ -841,14 +861,134 @@ rst => i_rst
 --
 --ttt_rd <= not ttt_empty;
 
+gen_ethtx_swap_d : for i in 0 to (i_data_tmp'length / 64) - 1 generate
+i_data_tmp((i_data_tmp'length - (64 * i)) - 1 downto
+                              (i_data_tmp'length - (64 * (i + 1)) ))
+                          <= i_data((64 * (i + 1)) - 1 downto (64 * i));
+end generate;-- gen_ethtx_swap_d;
+
+tx : host_ethg_txfifo
+port map(
+din         => i_data_tmp,
+wr_en       => i_data_wr,
+wr_clk      => i_clk2,
+
+dout        => i_txbuf_dout,
+rd_en       => i_txbuf_rd,
+rd_clk      => i_clk,
+
+empty       => i_txbuf_empty,
+full        => open,
+prog_full   => open,
+
+rst         => i_rst
+);
+
+rx : host_ethg_rxfifo
+port map(
+din         => p_out_rxbuf_din,
+wr_en       => p_out_rxbuf_wr,
+wr_clk      => i_clk,
+
+dout        => i_data_tmp2,
+rd_en       => i_tx_rd,
+rd_clk      => i_clk2,
+
+empty       => i_tx_empty,
+full        => open,
+prog_full   => open,
+
+rst         => i_rst
+);
+
+gen_ethrx_swap_d : for i in 0 to (i_dout_out'length / 64) - 1 generate
+i_dout_out((i_dout_out'length - (64 * i)) - 1 downto
+                              (i_dout_out'length - (64 * (i + 1)) ))
+                          <= i_data_tmp2((64 * (i + 1)) - 1 downto (64 * i));
+end generate;-- gen_ethrx_swap_d;
+
+i_dout_out_rd <= i_tx_rd;
+
+i_tx_rd <= not i_tx_empty;
 
 
 
 
-
-
-
-
+--i_rx_len <= CONV_STD_LOGIC_VECTOR(16#26#, 16);
+--
+--process
+--begin
+--  i_out_txll_data      <= (others=>'0');
+--  i_out_txll_sof_n     <= '1';
+--  i_out_txll_eof_n     <= '1';
+--  i_out_txll_src_rdy_n <= '1';
+--  i_out_txll_rem       <= (others=>'0');
+--
+--  wait for 2 us;
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_out_txll_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#E3E2#, 16) & CONV_STD_LOGIC_VECTOR(16#E1E0#, 16);
+--  i_out_txll_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#F1F0#, 16) & CONV_STD_LOGIC_VECTOR(16#E5E4#, 16);
+--  i_out_txll_sof_n     <= '0';
+--  i_out_txll_eof_n     <= '1';
+--  i_out_txll_src_rdy_n <= '0';
+--  i_out_txll_rem       <= (others=>'0');
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_out_txll_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#F5F4#, 16) & CONV_STD_LOGIC_VECTOR(16#F3F2#, 16);
+--  i_out_txll_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#0201#, 16) & i_rx_len;
+--  i_out_txll_sof_n     <= '1';
+--  i_out_txll_eof_n     <= '1';
+--  i_out_txll_src_rdy_n <= '0';
+--  i_out_txll_rem       <= (others=>'0');
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_out_txll_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#0605#, 16) & CONV_STD_LOGIC_VECTOR(16#0403#, 16);
+--  i_out_txll_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#0A09#, 16) & CONV_STD_LOGIC_VECTOR(16#0807#, 16);
+--  i_out_txll_sof_n     <= '1';
+--  i_out_txll_eof_n     <= '1';
+--  i_out_txll_src_rdy_n <= '0';
+--  i_out_txll_rem       <= (others=>'0');
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_out_txll_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#0E0D#, 16) & CONV_STD_LOGIC_VECTOR(16#0C0B#, 16);
+--  i_out_txll_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#1211#, 16) & CONV_STD_LOGIC_VECTOR(16#100F#, 16);
+--  i_out_txll_sof_n     <= '1';
+--  i_out_txll_eof_n     <= '1';
+--  i_out_txll_src_rdy_n <= '0';
+--  i_out_txll_rem       <= (others=>'0');
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_out_txll_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#1615#, 16) & CONV_STD_LOGIC_VECTOR(16#1413#, 16);
+--  i_out_txll_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#1A19#, 16) & CONV_STD_LOGIC_VECTOR(16#1817#, 16);
+--  i_out_txll_sof_n     <= '1';
+--  i_out_txll_eof_n     <= '1';
+--  i_out_txll_src_rdy_n <= '0';
+--  i_out_txll_rem       <= (others=>'0');
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_out_txll_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#1E1D#, 16) & CONV_STD_LOGIC_VECTOR(16#1C1B#, 16);
+--  i_out_txll_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#2221#, 16) & CONV_STD_LOGIC_VECTOR(16#201E#, 16);
+--  i_out_txll_sof_n     <= '1';
+--  i_out_txll_eof_n     <= '1';
+--  i_out_txll_src_rdy_n <= '0';
+--  i_out_txll_rem       <= (others=>'0');
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_out_txll_data(32*1 - 1 downto 32*0) <= CONV_STD_LOGIC_VECTOR(16#2625#, 16) & CONV_STD_LOGIC_VECTOR(16#2423#, 16);
+--  i_out_txll_data(32*2 - 1 downto 32*1) <= CONV_STD_LOGIC_VECTOR(16#2A29#, 16) & CONV_STD_LOGIC_VECTOR(16#2827#, 16);
+--  i_out_txll_sof_n     <= '1';
+--  i_out_txll_eof_n     <= '0';
+--  i_out_txll_src_rdy_n <= '0';
+--  i_out_txll_rem       <= (others=>'0');
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_out_txll_sof_n     <= '1';
+--  i_out_txll_eof_n     <= '1';
+--  i_out_txll_src_rdy_n <= '1';
+--
+--  wait;
+--end process;
 
 
 
@@ -1003,6 +1143,44 @@ rst => i_rst
 --                              (p_out_eth_hrxbuf_do'length - (64 * (i + 1)) ))
 --                          <= i_eth_hrxbuf_do((64 * (i + 1)) - 1 downto (64 * i));
 --end generate;-- gen_ethrx_swap_d;
+
+
+
+--tx : host_ethg_rxfifo
+--port map(
+--din         => i_data,
+--wr_en       => i_data_wr,
+--wr_clk      => i_clk,
+--
+--dout        => i_data_tmp,
+--rd_en       => i_tx_rd,
+--rd_clk      => i_clk,
+--
+--empty       => i_tx_empty,
+--full        => open,
+--prog_full   => open,
+--
+--rst         => i_rst
+--);
+--
+--i_tx_rd <= not i_tx_empty;
+--
+--rx : host_ethg_txfifo
+--port map(
+--din         => i_data_tmp,
+--wr_en       => i_tx_rd,
+--wr_clk      => i_clk,
+--
+--dout        => i_txbuf_dout,
+--rd_en       => i_txbuf_rd,
+--rd_clk      => i_clk,
+--
+--empty       => i_txbuf_empty,
+--full        => open,
+--prog_full   => open,
+--
+--rst         => i_rst
+--);
 
 --END MAIN
 end;

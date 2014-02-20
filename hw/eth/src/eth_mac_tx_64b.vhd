@@ -269,13 +269,14 @@ if rising_edge(p_in_clk) then
 
             if i_mac_dlen_byte > CONV_STD_LOGIC_VECTOR(2, i_mac_dlen_byte'length) then
 
+                i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
+                i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
+
                 if i_dcnt = i_usrpkt_len_2dw then
                     i_ll_dlast <= '1';
                     fsm_eth_tx_cs <= S_TX_END;
                 else
                     i_dcnt <= i_dcnt + 1;
-                    i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_txbuf_dout((8 * 4) - 1 downto 8 * 3);
-                    i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_txbuf_dout((8 * 3) - 1 downto 8 * 2);
                     i_ll_eof_n <= '1';
                     fsm_eth_tx_cs <= S_TX_MAC_D;
                 end if;

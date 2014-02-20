@@ -2,11 +2,13 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 02.02.2014 14:49:38
+-- Create Date : 08.08.2013 18:22:48
 -- Module Name : eth_rx
 --
 -- Назначение/Описание :
--- Реализация для шины данных 64bit!!!!
+-- Реализация для шины данных 64bit,
+-- НО если не обходимо то генерим дополнительное данное (b4bit)
+-- чтоб кол-во данных записываемых в RXBUF было кратно 128bit
 --
 -- Revision:
 --
@@ -81,7 +83,9 @@ S_IDLE,
 S_RX_MAC_A,
 S_RX_MAC_D,
 S_RX_END,
-S_RX_WAIT_EOF
+S_RX_WAIT_EOF,
+S_RX_END2,
+S_RX_END3
 );
 signal fsm_eth_rx_cs: TEth_fsm_rx;
 
@@ -106,14 +110,20 @@ signal i_usr_rxd_sof_en       : std_logic;
 signal i_rxll_eof_det         : std_logic;
 signal i_ll_dst_rdy           : std_logic;
 signal sr_rxll_data           : std_logic_vector(31 downto 0);
-
+signal i_ll_dst_rdy2          : std_logic;
 signal i_rxbuf_din            : std_logic_vector(p_out_rxbuf_din'range);
 signal i_rxbuf_wr             : std_logic;
 signal i_rxd_sof              : std_logic;
 signal i_rxd_eof              : std_logic;
+signal i_rxbuf_dcnt           : std_logic_vector(15 downto 0);
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range) := (others => '0');
+
+--signal i_rxbuf_din_tmp        : std_logic_vector(p_out_rxbuf_din'range);
+--signal i_rxbuf_wr_tmp         : std_logic;
+--signal i_rxd_sof_tmp          : std_logic;
+--signal i_rxd_eof_tmp          : std_logic;
 
 
 --MAIN
@@ -132,7 +142,7 @@ begin
   if rising_edge(p_in_clk) then
     tst_fms_cs_dly <= tst_fms_cs;
 
-    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly);
+    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly);-- or OR_reduce(i_rxbuf_dcnt) or OR_reduce(i_rxbuf_din_tmp) or i_rxbuf_wr_tmp or i_rxd_sof_tmp or i_rxd_eof_tmp;
 
   end if;
 end process ltstout;
@@ -141,6 +151,8 @@ tst_fms_cs <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_rx_c
               CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_MAC_D  else
               CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_END    else
               CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_WAIT_EOF    else
+              CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_END2    else
+              CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_END3    else
               CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_eth_rx_cs = S_IDLE     else
 
 end generate gen_dbg_on;
@@ -188,7 +200,7 @@ if rising_edge(p_in_clk) then
     end loop;
     i_mac_dlen_byte <= (others=>'0');
 
-    i_ll_dst_rdy <= '0';
+    i_ll_dst_rdy <= '0'; i_ll_dst_rdy2 <= '0';
 
     i_usr_rxd_sof_en <= '0';
     i_usr_rxd_sof <= '0';
@@ -198,6 +210,7 @@ if rising_edge(p_in_clk) then
     i_rxll_eof_det <= '0';
 
     i_dcnt <= (others=>'0');
+    i_rxbuf_dcnt <= ( others=>'0');
 
     sr_rxll_data <= (others=>'0');
 
@@ -218,6 +231,7 @@ if rising_edge(p_in_clk) then
           i_usr_rxd_eof <= '0';
           i_usr_wr <= '0';
           i_dcnt <= (others=>'0');
+          i_rxbuf_dcnt <= ( others=>'0');
           i_rxll_eof_det <= '0';
 
           if p_in_rxll_src_rdy_n = '0' and p_in_rxll_sof_n = '0' then
@@ -295,7 +309,8 @@ if rising_edge(p_in_clk) then
                   i_ll_dst_rdy <= '1';
 
                   if p_in_rxll_eof_n = '0' then
-                  fsm_eth_rx_cs <= S_IDLE;
+                  i_rxbuf_dcnt(0) <= '1';
+                  fsm_eth_rx_cs <= S_RX_END2;
                   else
                   fsm_eth_rx_cs <= S_RX_WAIT_EOF;
                   end if;
@@ -314,6 +329,7 @@ if rising_edge(p_in_clk) then
 
           if p_in_rxll_src_rdy_n = '0' then
 
+              i_rxbuf_dcnt <= i_rxbuf_dcnt + 1;
               sr_rxll_data <= p_in_rxll_data((8 * 8) - 1 downto 8 * 4); --rxdata(63..32)
 
               i_usr_wr <= '1';
@@ -367,7 +383,8 @@ if rising_edge(p_in_clk) then
                       i_usr_rxd_eof <= '1';
 
                       if p_in_rxll_eof_n = '0' then
-                      fsm_eth_rx_cs <= S_IDLE;
+                      i_ll_dst_rdy2 <= '1';
+                      fsm_eth_rx_cs <= S_RX_END2;
                       else
                       fsm_eth_rx_cs <= S_RX_WAIT_EOF;
                       end if;
@@ -401,49 +418,47 @@ if rising_edge(p_in_clk) then
 
         when S_RX_END =>
 
-          if p_in_rxbuf_full = '0' then
+          i_rxbuf_dcnt <= i_rxbuf_dcnt + 1;
 
-              --USRDATA:MSB
-              i_usr_rxd((8 * 8) - 1 downto 8 * 4) <= (others=>'0');
+          --USRDATA:MSB
+          i_usr_rxd((8 * 8) - 1 downto 8 * 4) <= (others=>'0');
 
-              --USRDATA:LSB
-              case i_remain_byte(1 downto 0) is
-              when "00" =>
-                i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= sr_rxll_data((8 * 4) - 1 downto 8 * 3);
-                i_usr_rxd((8 * 3) - 1 downto 8 * 2) <= sr_rxll_data((8 * 3) - 1 downto 8 * 2);
-                i_usr_rxd((8 * 2) - 1 downto 8 * 1) <= sr_rxll_data((8 * 2) - 1 downto 8 * 1);
-                i_usr_rxd((8 * 1) - 1 downto 8 * 0) <= sr_rxll_data((8 * 1) - 1 downto 8 * 0);
+          --USRDATA:LSB
+          case i_remain_byte(1 downto 0) is
+          when "00" =>
+            i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= sr_rxll_data((8 * 4) - 1 downto 8 * 3);
+            i_usr_rxd((8 * 3) - 1 downto 8 * 2) <= sr_rxll_data((8 * 3) - 1 downto 8 * 2);
+            i_usr_rxd((8 * 2) - 1 downto 8 * 1) <= sr_rxll_data((8 * 2) - 1 downto 8 * 1);
+            i_usr_rxd((8 * 1) - 1 downto 8 * 0) <= sr_rxll_data((8 * 1) - 1 downto 8 * 0);
 
-              when "01" =>
-                i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= (others=>'0');--sr_rxll_data((8 * 4) - 1 downto 8 * 3);
-                i_usr_rxd((8 * 3) - 1 downto 8 * 2) <= sr_rxll_data((8 * 3) - 1 downto 8 * 2);
-                i_usr_rxd((8 * 2) - 1 downto 8 * 1) <= sr_rxll_data((8 * 2) - 1 downto 8 * 1);
-                i_usr_rxd((8 * 1) - 1 downto 8 * 0) <= sr_rxll_data((8 * 1) - 1 downto 8 * 0);
+          when "01" =>
+            i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= (others=>'0');--sr_rxll_data((8 * 4) - 1 downto 8 * 3);
+            i_usr_rxd((8 * 3) - 1 downto 8 * 2) <= sr_rxll_data((8 * 3) - 1 downto 8 * 2);
+            i_usr_rxd((8 * 2) - 1 downto 8 * 1) <= sr_rxll_data((8 * 2) - 1 downto 8 * 1);
+            i_usr_rxd((8 * 1) - 1 downto 8 * 0) <= sr_rxll_data((8 * 1) - 1 downto 8 * 0);
 
-              when "10" =>
-                i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= (others=>'0');--sr_rxll_data((8 * 4) - 1 downto 8 * 3);
-                i_usr_rxd((8 * 3) - 1 downto 8 * 2) <= (others=>'0');--sr_rxll_data((8 * 3) - 1 downto 8 * 2);
-                i_usr_rxd((8 * 2) - 1 downto 8 * 1) <= sr_rxll_data((8 * 2) - 1 downto 8 * 1);
-                i_usr_rxd((8 * 1) - 1 downto 8 * 0) <= sr_rxll_data((8 * 1) - 1 downto 8 * 0);
+          when "10" =>
+            i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= (others=>'0');--sr_rxll_data((8 * 4) - 1 downto 8 * 3);
+            i_usr_rxd((8 * 3) - 1 downto 8 * 2) <= (others=>'0');--sr_rxll_data((8 * 3) - 1 downto 8 * 2);
+            i_usr_rxd((8 * 2) - 1 downto 8 * 1) <= sr_rxll_data((8 * 2) - 1 downto 8 * 1);
+            i_usr_rxd((8 * 1) - 1 downto 8 * 0) <= sr_rxll_data((8 * 1) - 1 downto 8 * 0);
 
-              when "11" =>
-                i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= (others=>'0');--sr_rxll_data((8 * 4) - 1 downto 8 * 3);
-                i_usr_rxd((8 * 3) - 1 downto 8 * 2) <= (others=>'0');--sr_rxll_data((8 * 3) - 1 downto 8 * 2);
-                i_usr_rxd((8 * 2) - 1 downto 8 * 1) <= (others=>'0');--sr_rxll_data((8 * 2) - 1 downto 8 * 1);
-                i_usr_rxd((8 * 1) - 1 downto 8 * 0) <= sr_rxll_data((8 * 1) - 1 downto 8 * 0);
+          when "11" =>
+            i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= (others=>'0');--sr_rxll_data((8 * 4) - 1 downto 8 * 3);
+            i_usr_rxd((8 * 3) - 1 downto 8 * 2) <= (others=>'0');--sr_rxll_data((8 * 3) - 1 downto 8 * 2);
+            i_usr_rxd((8 * 2) - 1 downto 8 * 1) <= (others=>'0');--sr_rxll_data((8 * 2) - 1 downto 8 * 1);
+            i_usr_rxd((8 * 1) - 1 downto 8 * 0) <= sr_rxll_data((8 * 1) - 1 downto 8 * 0);
 
-              when others => null;
-              end case;
+          when others => null;
+          end case;
 
-              i_usr_rxd_sof <= '0';
-              i_usr_rxd_eof <= '1';
+          i_usr_rxd_sof <= '0';
+          i_usr_rxd_eof <= '1';
 
-              if i_rxll_eof_det = '1' then
-              fsm_eth_rx_cs <= S_IDLE;
-              else
-              fsm_eth_rx_cs <= S_RX_WAIT_EOF;
-              end if;
-
+          if i_rxll_eof_det = '1' then
+          fsm_eth_rx_cs <= S_RX_END2;
+          else
+          fsm_eth_rx_cs <= S_RX_WAIT_EOF;
           end if;
 
         --------------------------------------
@@ -460,8 +475,42 @@ if rising_edge(p_in_clk) then
           i_rxll_eof_det <= '0';
 
           if p_in_rxll_src_rdy_n = '0' and p_in_rxll_eof_n = '0' then
-          fsm_eth_rx_cs <= S_IDLE;
+          fsm_eth_rx_cs <= S_RX_END2;
           end if;
+
+        --------------------------------------
+        --
+        --------------------------------------
+        when S_RX_END2 =>
+
+          if i_rxbuf_dcnt(0) = '1' then
+            i_usr_rxd <= (others=>'0');
+            i_usr_rxd_eof <= '1';
+            i_usr_wr <= '1';
+            i_ll_dst_rdy2 <= '1';
+            fsm_eth_rx_cs <= S_RX_END3;
+          else
+            i_usr_rxd_eof <= '0';
+            i_usr_wr <= '0';
+            i_ll_dst_rdy2 <= '0';
+            fsm_eth_rx_cs <= S_IDLE;
+          end if;
+
+          i_ll_dst_rdy <= '0';
+          i_usr_rxd_sof_en <= '0';
+          i_usr_rxd_sof <= '0';
+          i_dcnt <= (others=>'0');
+          i_rxll_eof_det <= '0';
+
+        --------------------------------------
+        --
+        --------------------------------------
+        when S_RX_END3 =>
+
+          i_usr_rxd_eof <= '0';
+          i_usr_wr <= '0';
+          i_ll_dst_rdy2 <= '0';
+          fsm_eth_rx_cs <= S_IDLE;
 
       end case;
 
@@ -484,9 +533,9 @@ end process;
 p_out_rxbuf_din <= i_rxbuf_din;
 p_out_rxbuf_wr <= i_rxbuf_wr;
 p_out_rxd_sof <= i_rxd_sof;
-p_out_rxd_eof <= i_rxd_eof;
+p_out_rxd_eof <= i_rxd_eof when fsm_eth_rx_cs /= S_RX_END3 else '0';
 
-p_out_rxll_dst_rdy_n <= i_ll_dst_rdy or p_in_rxbuf_full;
+p_out_rxll_dst_rdy_n <= i_ll_dst_rdy or p_in_rxbuf_full or i_ll_dst_rdy2;
 
 
 --------------------------------------
@@ -496,6 +545,10 @@ p_out_pause_req <= '0';
 p_out_pause_val <= (others=>'0');
 
 
+--i_rxbuf_din_tmp <= i_usr_rxd;
+--i_rxbuf_wr_tmp <= not p_in_rxbuf_full and ((not p_in_rxll_src_rdy_n and i_usr_wr) or i_ll_dst_rdy or i_usr_rxd_eof);
+--i_rxd_sof_tmp <= not p_in_rxbuf_full and (not p_in_rxll_src_rdy_n or i_ll_dst_rdy) and i_usr_wr and i_usr_rxd_sof;
+--i_rxd_eof_tmp <= not p_in_rxbuf_full and i_usr_rxd_eof;
 
 --END MAIN
 end behavioral;
