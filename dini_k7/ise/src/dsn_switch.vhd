@@ -234,12 +234,10 @@ signal syn_eth_rxd_eof               : std_logic;
 signal syn_eth_host_frr              : TEthFRR;
 signal syn_eth_vctrl_frr             : TEthFRR;
 
-signal i_eth_htxbuf_di               : std_logic_vector(p_in_eth_htxbuf_di'range);
-signal i_eth_txbuf_full              : std_logic;
+signal i_eth_txbuf_di                : std_logic_vector(p_in_eth_htxbuf_di'range);signal i_eth_txbuf_full              : std_logic;
 signal i_eth_txbuf_empty             : std_logic;
 
-signal i_eth_hrxbuf_do               : std_logic_vector(p_out_eth_hrxbuf_do'range);
-signal i_eth_rxbuf_full              : std_logic;
+signal i_eth_rxbuf_do                : std_logic_vector(p_out_eth_hrxbuf_do'range);signal i_eth_rxbuf_full              : std_logic;
 signal i_eth_rxbuf_empty             : std_logic;
 signal i_eth_rxd_rdy_dly             : std_logic_vector(2 downto 0);
 signal i_eth_rxbuf_fltr_dout         : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
@@ -285,6 +283,12 @@ signal fsm_state_cs                  : TFsm;
 
 signal tst_vbufi_empty               : std_logic;
 
+signal i_eth_hrxbuf_do_tmp           : std_logic_vector(127 downto 0);
+signal tst_txbuf_di                  : std_logic_vector(127 downto 0);
+signal tst_rxbuf_do                  : std_logic_vector(127 downto 0);
+signal tst_rxbuf_do_rd               : std_logic;
+signal tst_eth_txbuf_empty           : std_logic;
+signal tst_eth_rxbuf_empty           : std_logic;
 
 --MAIN
 begin
@@ -294,8 +298,20 @@ begin
 ------------------------------------
 p_out_tst(0) <= b_rst_vctrl_bufs;
 p_out_tst(1) <= tst_vbufi_empty;
-p_out_tst(31 downto 2) <= (others=>'0');
+p_out_tst(2) <= OR_reduce(tst_txbuf_di) or OR_reduce(tst_rxbuf_do) or tst_rxbuf_do_rd or tst_eth_txbuf_empty or tst_eth_rxbuf_empty;
+p_out_tst(31 downto 3) <= (others=>'0');
 
+process(p_in_hclk)
+begin
+  if rising_edge(p_in_hclk) then
+  tst_txbuf_di <= p_in_eth_htxbuf_di;
+  tst_rxbuf_do <= i_eth_hrxbuf_do_tmp;
+  tst_rxbuf_do_rd <= p_in_eth_hrxbuf_rd;
+  tst_eth_txbuf_empty <= i_eth_txbuf_empty;
+  tst_eth_rxbuf_empty <= i_eth_rxbuf_empty;
+
+  end if;
+end process;
 
 
 ----------------------------------------------------
@@ -489,16 +505,14 @@ begin
   end if;
 end process;
 
-gen_swap_ethtx : for i in 0 to (p_in_eth_htxbuf_di'length / 64) - 1 generate
-i_eth_htxbuf_di((i_eth_htxbuf_di'length - (64 * i)) - 1 downto
-                              (i_eth_htxbuf_di'length - (64 * (i + 1)) ))
-                          <= p_in_eth_htxbuf_di((64 * (i + 1)) - 1 downto (64 * i));
-end generate;-- gen_swap_ethtx;
-
+gen_ethtx_swap_d : for i in 0 to (p_in_eth_htxbuf_di'length / G_ETH_DWIDTH) - 1 generate
+i_eth_txbuf_di((i_eth_txbuf_di'length - (G_ETH_DWIDTH * i)) - 1 downto
+                              (i_eth_txbuf_di'length - (G_ETH_DWIDTH * (i + 1)) ))
+                          <= p_in_eth_htxbuf_di((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i));
+end generate;-- gen_ethtx_swap_d;
 m_eth_txbuf : host_ethg_txfifo
 port map(
-din     => i_eth_htxbuf_di,
-wr_en   => p_in_eth_htxbuf_wr,
+din     => i_eth_txbuf_di,wr_en   => p_in_eth_htxbuf_wr,
 wr_clk  => p_in_hclk,
 
 dout    => p_out_eth(0).txbuf_do,
@@ -562,8 +576,7 @@ din     => i_eth_rxbuf_fltr_dout,
 wr_en   => i_eth_rxbuf_fltr_den,
 wr_clk  => p_in_eth_clk,
 
-dout    => i_eth_hrxbuf_do,
-rd_en   => p_in_eth_hrxbuf_rd,
+dout    => i_eth_rxbuf_do,rd_en   => p_in_eth_hrxbuf_rd,
 rd_clk  => p_in_hclk,
 
 empty   => i_eth_rxbuf_empty,
@@ -573,13 +586,12 @@ prog_full => i_eth_rxbuf_full,
 rst     => b_rst_eth_bufs
 );
 
-gen_swap_ethrx : for i in 0 to (p_out_eth_hrxbuf_do'length / 64) - 1 generate
-p_out_eth_hrxbuf_do((p_out_eth_hrxbuf_do'length - (64 * i)) - 1 downto
-                              (p_out_eth_hrxbuf_do'length - (64 * (i + 1)) ))
-                          <= i_eth_hrxbuf_do((64 * (i + 1)) - 1 downto (64 * i));
-end generate;-- gen_swap_ethrx;
-
-p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
+gen_ethrx_swap_d : for i in 0 to (p_out_eth_hrxbuf_do'length / G_ETH_DWIDTH) - 1 generate
+i_eth_hrxbuf_do_tmp((p_out_eth_hrxbuf_do'length - (G_ETH_DWIDTH * i)) - 1 downto
+                              (p_out_eth_hrxbuf_do'length - (G_ETH_DWIDTH * (i + 1)) ))
+                          <= i_eth_rxbuf_do((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i));
+end generate;-- gen_ethrx_swap_d;
+p_out_eth_hrxbuf_do <= i_eth_hrxbuf_do_tmp;p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 
 p_out_eth(0).rxbuf_empty <= i_eth_rxbuf_empty;
@@ -730,6 +742,15 @@ i_vpkt_size <= EXT(i_vpkt_size_byte(i_vpkt_size_byte'high downto log2(CI_VBUFI_D
 --                     H0 H4 D1 D5 ...
 --                     H0 H1 D0 D4 ...
 
+--mem_ctrl: bus 256b:  H4 D7 D15 ...
+--                     H3 D6 D14 ...
+--                     H4 D5 D13 ...
+--                     H1 D4 D12 ...
+--                     H0 D3 D11 ...
+--                     H0 D2 D10 ...
+--                     H0 D1 D9 ...
+--                     H0 D0 D8 ...
+
 process(i_vbufi_rdclk)
 begin
 if rising_edge(i_vbufi_rdclk) then
@@ -761,9 +782,12 @@ if rising_edge(i_vbufi_rdclk) then
                 --кол-во байт пакета + кол-во байт поля length
                 i_vpkt_size_byte <= i_vbufi_do(15 downto 0) + 2;
 
+                if CI_VBUFI_DO_WIDTH = 256 then
+                i_bus_dwcnt <= CONV_STD_LOGIC_VECTOR(4, i_bus_dwcnt'length);
+                else
                 i_bus_dwcnt <= CONV_STD_LOGIC_VECTOR((i_vbufi2_di'length
                                                         / i_vbufi_do'length) - 1, i_bus_dwcnt'length);
-
+                end if;
                 for i in 0 to ((i_vbufi2_di'length / i_vbufi_do'length) - 1) loop
                   i_vbufi2_di((i_vbufi_do'length * (i + 1)) - 1
                                   downto (i_vbufi_do'length * i)) <= i_vbufi_do;

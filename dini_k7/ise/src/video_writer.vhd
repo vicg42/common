@@ -349,35 +349,93 @@ if rising_edge(p_in_clk) then
 
             elsif G_MEM_DWIDTH = 128 then
 
-                --номер начального пикселя в строке
-                i_pix_num(15 downto 0) <= i_upp_data(15 downto 0);
-
-                --маркер строки
-                i_vfr_row_mrk(15 downto 0) <= i_upp_data(31 downto 16);
-                i_vfr_row_mrk(31 downto 16)<= i_upp_data((15 + 32) downto (0 + 32));
-
                 for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
                   if i_vch_num = i then
-                    if i_vfr_num(i) /= i_upp_data((3 + 64) downto (0 + 64)) then
+                    if i_vfr_num(i) /= i_upp_data(3 downto 0) then
                       --Обнаружил начало нового кадра!!!!!!!!!
                       --Перезагрузка параметров канала
                       i_mem_wrbase <= p_in_cfg_prm_vch(i).mem_adr;
                     end if;
 
                     --Сохраняем номер текущего кадра:
-                    i_vfr_num(i) <= i_upp_data((3 + 64) downto (0 + 64));
+                    i_vfr_num(i) <= i_upp_data(3 downto 0);
 
                    end if;
                 end loop;
 
                 --размер кадра: кол-во пикселей
-                i_vfr_pix_count <= i_upp_data((31 + 64) downto (16 + 64));
+                i_vfr_pix_count <= i_upp_data((31 + 0) downto (16 + 0));
 
                 --размер кадра: кол-во строк
-                i_vfr_row_count <= i_upp_data((15 + 32 + 64) downto (0 + 32 + 64));
+                i_vfr_row_count <= i_upp_data((15 + 32) downto (0 + 32));
 
                 --номер текущей строки:
-                i_vfr_row <= i_upp_data((31 + 32 + 64) downto (16 + 32 + 64));
+                i_vfr_row <= i_upp_data((31 + 32) downto (16 + 32));
+
+                --номер начального пикселя в строке
+                i_pix_num(15 downto 0) <= i_upp_data((15 + 64) downto (0 + 64));
+
+                --маркер строки
+                i_vfr_row_mrk(15 downto 0) <= i_upp_data((31 + 64) downto (16 + 64));
+                i_vfr_row_mrk(31 downto 16)<= i_upp_data((15 + 96) downto (0 + 96));
+
+            elsif G_MEM_DWIDTH = 256 then
+
+                if i_upp_data(19 downto 16) = "0001"
+                  and i_upp_data(27 downto 24) = "0011"
+                    and i_upp_data(23 downto 20) < CONV_STD_LOGIC_VECTOR(C_VCTRL_VCH_COUNT, 4) then
+                --тип пакета - Видео Данные + проверка намера источника пакета
+
+                  --номер текущего видео канала:
+                  i_vch_num <= i_upp_data(23 downto 20);
+                else
+                  --Не наш пакет
+                  i_vpkt_header_rd <= '0';
+                  i_vpkt_skip_rd <= '1';
+
+                  if i_upp_data(19 downto 16) /= "0001" then
+                    i_pkt_type_err(0) <= '1';--pkt_type
+                  end if;
+                  if i_upp_data(23 downto 20) > CONV_STD_LOGIC_VECTOR(C_VCTRL_VCH_COUNT - 1, 4) then
+                    i_pkt_type_err(1) <= '1';--vch
+                  end if;
+                  if i_upp_data(27 downto 24) /= "0011" then
+                    i_pkt_type_err(2) <= '1';--src video
+                  end if;
+
+                  fsm_state_cs <= S_PKT_SKIP;
+                end if;
+
+                for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
+                  if i_vch_num = i then
+                    if i_vfr_num(i) /= i_upp_data((3 + 127) downto (0 + 128)) then
+                      --Обнаружил начало нового кадра!!!!!!!!!
+                      --Перезагрузка параметров канала
+                      i_mem_wrbase <= p_in_cfg_prm_vch(i).mem_adr;
+                    end if;
+
+                    --Сохраняем номер текущего кадра:
+                    i_vfr_num(i) <= i_upp_data((3 + 127) downto (0 + 128));
+
+                   end if;
+                end loop;
+
+                --размер кадра: кол-во пикселей
+                i_vfr_pix_count <= i_upp_data((31 + 0 + 127) downto (16 + 0 + 128));
+
+                --размер кадра: кол-во строк
+                i_vfr_row_count <= i_upp_data((15 + 32 + 127) downto (0 + 32 + 128));
+
+                --номер текущей строки:
+                i_vfr_row <= i_upp_data((31 + 32 + 127) downto (16 + 32));
+
+                --номер начального пикселя в строке
+                i_pix_num(15 downto 0) <= i_upp_data((15 + 64 + 127) downto (0 + 64 + 128));
+
+                --маркер строки
+                i_vfr_row_mrk(15 downto 0) <= i_upp_data((31 + 64 + 127) downto (16 + 64 + 128));
+                i_vfr_row_mrk(31 downto 16)<= i_upp_data((15 + 96 + 127) downto (0 + 96 + 128));
+
               end if;
 
               fsm_state_cs <= S_MEM_START;

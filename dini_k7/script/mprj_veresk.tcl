@@ -33,8 +33,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/eth/src/eth_unit_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/eth/src/eth_mac_rx_64b.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/eth/src/eth_mac_tx_64b.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/src/eth_mac_rx_128b.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/src/eth_mac_tx_128b.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_app.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
@@ -45,26 +45,26 @@ set _projects [ list \
       [ list "../../../common/lib/hw/pci_express/pcie_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_tx.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_tx_128.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_rx_128.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_usr_app.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_v7_main_axi.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_v7_main_axi_128.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/prom_loader/prog_flash.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/prom_loader/prom_ld_main.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/vctrl/dsn_video_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/video_reader.vhd" $_VHDMod ] \
-      [ list "../../../common/vctrl/video_writer.vhd" $_VHDMod ] \
+      [ list "../src/video_writer.vhd" $_VHDMod ] \
       [ list "../../../common/mirror/vmirx_main.vhd" $_VHDMod ] \
       [ list "../../../common/veresk21/pult_core/pult_io_null.v" $_VMod ] \
       [ list "../../../common/veresk21/sync_u_null.v" $_VMod ] \
       [ list "../../../common/veresk21/edev_null.vhd" $_VHDMod ] \
       [ list "../../../common/cfgdev_buf.vhd" $_VHDMod ] \
       [ list "../../../common/video_pkt_filter.vhd" $_VHDMod ] \
-      [ list "../../../common/dsn_switch.vhd" $_VHDMod ] \
+      [ list "../src/dsn_switch.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_timer.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_pkg.vhd" $_VHDPkg ] \

@@ -31,20 +31,20 @@ constant C_PCFG_MEMARB_CH_COUNT        : integer:=3; --HOST + VCTRL_WR + VCTRL_R
 --cfg PCI-Express
 constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс сгенеренный в проекте/с стота PCI-Express
 constant C_PCGF_PCIE_LINK_WIDTH        : integer:=4;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
-constant C_PCGF_PCIE_DWIDTH            : integer:=64;
+constant C_PCGF_PCIE_DWIDTH            : integer:=128;
 
 --cfg VCTRL
 constant C_PCFG_VCTRL_USR_OPT          : std_logic_vector(7 downto 0):="0000"&"0000";
 constant C_PCFG_VCTRL_DBG              : string:="OFF";
-constant C_PCFG_VCTRL_VBUFI_OWIDTH     : integer:=32;
+constant C_PCFG_VCTRL_VBUFI_OWIDTH     : integer:=C_PCGF_PCIE_DWIDTH;
 --Memory map for video: (max frame size: 8192x8192)
 --                                                   --Пиксели видеокадра(VLINE_LSB-1...0)
 constant C_PCFG_VCTRL_MEM_VLINE_L_BIT  : integer:=13;--Строки видеокадра (MSB...LSB)
 constant C_PCFG_VCTRL_MEM_VLINE_M_BIT  : integer:=25;
 constant C_PCFG_VCTRL_MEM_VFR_L_BIT    : integer:=26;--Номер кадра (MSB...LSB) - Видеобуфера
-constant C_PCFG_VCTRL_MEM_VFR_M_BIT    : integer:=27;
-constant C_PCFG_VCTRL_MEM_VCH_L_BIT    : integer:=28;--Номер видео канала (MSB...LSB)
-constant C_PCFG_VCTRL_MEM_VCH_M_BIT    : integer:=30;
+constant C_PCFG_VCTRL_MEM_VFR_M_BIT    : integer:=28;
+constant C_PCFG_VCTRL_MEM_VCH_L_BIT    : integer:=29;--Номер видео канала (MSB...LSB)
+constant C_PCFG_VCTRL_MEM_VCH_M_BIT    : integer:=31;
 
 constant C_PCFG_VCTRL_VCH_COUNT        : integer:=6; --max 6
 
@@ -53,7 +53,7 @@ constant C_PCFG_ETH_USE                : string:="ON";
 constant C_PCFG_ETH_DBG                : string:="OFF";
 constant C_PCFG_ETH_COUNT              : integer:=1;--Кол-во каналов
 constant C_PCFG_ETH_PHY_SEL            : integer:=0;--0/3 - FIBER/COPPER_GMII
-constant C_PCFG_ETH_USR_DWIDTH         : integer:=C_PCGF_PCIE_DWIDTH;
+constant C_PCFG_ETH_USR_DWIDTH         : integer:=64;
 constant C_PCFG_ETH_PHY_DWIDTH         : integer:=64;
 constant C_PCFG_ETH_MAC_LEN_SWAP       : integer:=1; --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
 
