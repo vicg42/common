@@ -570,11 +570,11 @@ rst     => b_rst_eth_bufs
 );
 
 gen_ethrx_swap_d : for i in 0 to (p_out_eth_hrxbuf_do'length / G_ETH_DWIDTH) - 1 generate
-i_eth_hrxbuf_do_tmp((p_out_eth_hrxbuf_do'length - (G_ETH_DWIDTH * i)) - 1 downto
+p_out_eth_hrxbuf_do((p_out_eth_hrxbuf_do'length - (G_ETH_DWIDTH * i)) - 1 downto
                               (p_out_eth_hrxbuf_do'length - (G_ETH_DWIDTH * (i + 1)) ))
                           <= i_eth_rxbuf_do((G_ETH_DWIDTH * (i + 1)) - 1 downto (G_ETH_DWIDTH * i));
 end generate;-- gen_ethrx_swap_d;
-p_out_eth_hrxbuf_do <= i_eth_hrxbuf_do_tmp;
+
 p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
 p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 
@@ -746,9 +746,9 @@ if rising_edge(i_vbufi_rdclk) then
     i_vpkt_size_byte <= (others=>'0');
     i_vbufi_rd_skip <= '0';
     i_vbufi2_wr <= '0';
-    i_vbufi2_di <= (others=>'0'); tst_vbufi_empty <= '0';
+    i_vbufi2_di <= (others=>'0');
 
-  else  tst_vbufi_empty <= i_vbufi_empty;
+  else
 
     case fsm_state_cs is
 
