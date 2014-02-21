@@ -226,7 +226,8 @@ constant C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT : integer:=5;
 constant C_HREG_FUNCPRM_VCTRL_MIR_BIT         : integer:=6;
 constant C_HREG_FUNCPRM_VCTRL_REV_BIT         : integer:=7;
 constant C_HREG_FUNCPRM_ETH_REV_BIT           : integer:=8;
-constant C_HREG_FUNCPRM_LAST_BIT              : integer:=C_HREG_FUNCPRM_ETH_REV_BIT;
+constant C_HREG_FUNCPRM_VCTRL_128_BIT         : integer:=9;
+constant C_HREG_FUNCPRM_LAST_BIT              : integer:=C_HREG_FUNCPRM_VCTRL_128_BIT;
 
 
 --Порт модуля dsn_host.vhd /p_in_dev_option/ Bit Map:
