@@ -131,7 +131,8 @@ begin
 --Технологические сигналы
 ------------------------------------
 p_out_tst(0) <= b_rst_vctrl_bufs;
-p_out_tst(31 downto 1) <= (others=>'0');
+p_out_tst(1) <= i_en_video;
+p_out_tst(31 downto 2) <= (others=>'0');
 
 
 ----------------------------------------------------
@@ -237,7 +238,7 @@ end process;
 
 
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---ImageSensor->VCTRL
+--ImageSensor -> PCIE
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 m_vbufi : vin
 generic map(
@@ -252,7 +253,7 @@ p_in_vs            => p_in_vs,
 p_in_hs            => p_in_hs,
 p_in_vclk          => p_in_vclk,
 p_in_vclk_en       => p_in_vclk_en,
-p_in_ext_syn       => i_en_video, -- разрешение записи в вх. буфер (подсинхривается сигналом p_in_vs)
+p_in_ext_syn       => p_in_ext_syn, -- разрешение записи в вх. буфер (подсинхривается сигналом p_in_vs)
 
 --Вых. видеопоток
 p_out_vbufi_d      => p_out_vbufi_do,

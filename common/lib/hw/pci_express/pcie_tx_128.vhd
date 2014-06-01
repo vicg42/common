@@ -647,7 +647,7 @@ if rising_edge(clk) then
 
         when S_TX_MWR_QWN =>
 
-            if i_usr_rxbuf_rd = '1' then
+            if trn_tdst_rdy_n = '0' and usr_rxbuf_empty_i = '0' then
 
                 i_trn_tsof_n <= '1';
 
@@ -742,9 +742,13 @@ if rising_edge(clk) then
 
                 end if;
 
-            else --if i_usr_rxbuf_rd /= '1' then
+            elsif trn_tdst_rdy_n = '0' and usr_rxbuf_empty_i = '1' then
 
-                i_trn_tsrc_rdy_n <= '1';
+              i_trn_tsrc_rdy_n <= '1';
+
+            elsif trn_tdst_rdy_n = '1' then
+
+              i_trn_tsrc_rdy_n <= '0';
 
             end if;
         --end S_TX_MWR_QWN :

@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0405#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0406#;
 
 --VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--DWORD
@@ -226,7 +226,8 @@ constant C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT : integer:=5;
 constant C_HREG_FUNCPRM_VCTRL_MIR_BIT         : integer:=6;
 constant C_HREG_FUNCPRM_VCTRL_REV_BIT         : integer:=7;
 constant C_HREG_FUNCPRM_ETH_REV_BIT           : integer:=8;
-constant C_HREG_FUNCPRM_LAST_BIT              : integer:=C_HREG_FUNCPRM_ETH_REV_BIT;
+constant C_HREG_FUNCPRM_VCTRL_128_BIT         : integer:=9;
+constant C_HREG_FUNCPRM_LAST_BIT              : integer:=C_HREG_FUNCPRM_VCTRL_128_BIT;
 
 
 --Порт модуля dsn_host.vhd /p_in_dev_option/ Bit Map:

@@ -576,6 +576,7 @@ if rising_edge(p_in_clk) then
 
           txd(C_HREG_FUNCPRM_VCTRL_MIR_BIT) := '1';
           txd(C_HREG_FUNCPRM_VCTRL_REV_BIT) := '1';
+          txd(C_HREG_FUNCPRM_VCTRL_128_BIT) := '1';
           txd(C_HREG_FUNCPRM_ETH_REV_BIT) := '1';
 
         end if;

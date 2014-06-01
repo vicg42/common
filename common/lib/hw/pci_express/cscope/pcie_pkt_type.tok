@@ -1,0 +1,22 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+IORd=02\h
+IOWr=42\h
+MWr_3DW=40\h
+MWr_4DW=60\h
+MRd_3DW=00\h
+MRd_4DW=20\h
+MRdLk_3DW=01\h
+MRdLk_4DW=21\h
+CplLk=0B\h
+CplDLk=4B\h
+Cpl=0A\h
+CplD=4A\h
+CfgRd0=04\h
+CfgwR0=44\h
+CfgRd1=05\h
+CfgwR1=45\h
+

@@ -9,9 +9,6 @@
 -- –еализаци€ дл€ шины данных 64bit!!!!
 --
 -- Revision:
--- Revision 1.00 - ѕередача MAC FRAME. ћодуль вычитывает данных из пользовательского буфера, определ€ет
---                 размер передоваемого пакета (fst WORD пользовательских данных) + вставл€ет
---                 mac адреса (DST/SRC) в выходной MAC FRAME и пользовательские данных
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -77,7 +74,8 @@ S_TX_MAC_A00,
 S_TX_MAC_A000,
 S_TX_MAC_A1,
 S_TX_MAC_D,
-S_TX_END
+S_TX_END,
+S_TX_END2
 );
 signal fsm_eth_tx_cs: TEth_fsm_tx;
 
@@ -89,7 +87,7 @@ signal i_remain_byte          : std_logic_vector(15 downto 0);
 signal i_dcnt                 : std_logic_vector(15 downto 0);
 
 signal sr_txbuf_dout          : std_logic_vector(63 downto 0);
-
+signal i_txbuf_rd             : std_logic;
 signal i_ll_data              : std_logic_vector(p_out_txll_data'range);
 signal i_ll_sof_n             : std_logic;
 signal i_ll_eof_n             : std_logic;
@@ -101,9 +99,10 @@ signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range) := (others => '0');
 signal tst_txbuf_empty        : std_logic := '0';
 signal tst_ll_dst_rdy_n       : std_logic := '0';
---signal tst_txbuf_d            : std_logic_vector(p_in_txbuf_dout'range) := (others => '1');
+signal tst_txbuf_d            : std_logic_vector(p_in_txbuf_dout'range) := (others => '1');
 signal tst_txbuf_rd           : std_logic := '0';
 signal tst_tx_start           : std_logic := '0';
+signal tst_pkt_cnt            : std_logic_vector(7 downto 0);
 
 --MAIN
 begin
@@ -120,12 +119,12 @@ ltstout:process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
 
---    tst_txbuf_d <= p_in_txbuf_dout;
-    tst_txbuf_rd <= not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n;
+    tst_txbuf_d <= p_in_txbuf_dout;
+    tst_txbuf_rd <= (not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n) or (i_txbuf_rd and not p_in_txbuf_empty);
 
     tst_txbuf_empty <= p_in_txbuf_empty; tst_ll_dst_rdy_n <= p_in_txll_dst_rdy_n;
     tst_fms_cs_dly <= tst_fms_cs;
-    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty or tst_ll_dst_rdy_n or tst_txbuf_rd;
+    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty or tst_ll_dst_rdy_n or tst_txbuf_rd or OR_reduce(tst_pkt_cnt) or OR_reduce(tst_txbuf_d);
     p_out_tst(1) <= tst_tx_start;
 
     if fsm_eth_tx_cs = S_TX_MAC_A0 then
@@ -142,6 +141,7 @@ tst_fms_cs <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_tx_c
               CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_tx_cs = S_TX_MAC_A1  else
               CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_eth_tx_cs = S_TX_MAC_D   else
               CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_eth_tx_cs = S_TX_END     else
+              CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_eth_tx_cs = S_TX_END2     else
               CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_eth_tx_cs = S_IDLE     else
 
 end generate gen_dbg_on;
@@ -171,7 +171,8 @@ if rising_edge(p_in_clk) then
 
     sr_txbuf_dout <= (others=>'0');
     i_mac_dlen_byte <= (others=>'0');
-    i_dcnt <= (others=>'0');
+    i_dcnt <= (others=>'0'); tst_pkt_cnt <= (others=>'0');
+    i_txbuf_rd <= '0';
 
   else
 
@@ -186,13 +187,14 @@ if rising_edge(p_in_clk) then
 
 --        if p_in_txll_dst_rdy_n = '0' then
 --          i_ll_sof_n <= '1';
+          i_txbuf_rd <= '0';
           i_ll_eof_n <= '1';
           i_ll_src_rdy_n <= '1';
           i_ll_rem <= (others=>'1');
           i_ll_dlast <= '0';
           i_dcnt <= (others=>'0');
 
-          if p_in_txbuf_empty = '0' then
+          if p_in_txbuf_empty = '0' then tst_pkt_cnt <= tst_pkt_cnt + 1;
 
             i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_cfg.mac.src(1);
             i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_cfg.mac.src(0);
@@ -306,7 +308,7 @@ if rising_edge(p_in_clk) then
 
                 i_ll_dlast <= '1';
                 i_ll_eof_n <= '0';
-                fsm_eth_tx_cs <= S_IDLE;
+                fsm_eth_tx_cs <= S_TX_END2;
 
             end if;
           end if;
@@ -381,7 +383,7 @@ if rising_edge(p_in_clk) then
                       i_ll_rem(3 downto 0) <= (others=>'1');
 
                       i_ll_eof_n <= '0';
-                      fsm_eth_tx_cs <= S_IDLE;
+                      fsm_eth_tx_cs <= S_TX_END2;
 
                   end if;
 
@@ -444,7 +446,21 @@ if rising_edge(p_in_clk) then
             end case;
 
             i_ll_eof_n <= '0';
+            fsm_eth_tx_cs <= S_TX_END2;
+
+        when S_TX_END2 =>
+
+          i_ll_eof_n <= '1';
+          i_ll_src_rdy_n <= '1';
+          i_ll_rem <= (others=>'1');
+          i_ll_dlast <= '0';
+          i_dcnt <= (others=>'0');
+
+          i_txbuf_rd <= not p_in_txbuf_empty;
+
+          if p_in_txbuf_empty = '1' then
             fsm_eth_tx_cs <= S_IDLE;
+          end if;
 
       end case;
 
@@ -453,7 +469,7 @@ if rising_edge(p_in_clk) then
 end if;
 end process;
 
-p_out_txbuf_rd <= not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n;
+p_out_txbuf_rd <= (not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n) or (i_txbuf_rd and not p_in_txbuf_empty);
 
 p_out_txll_data <= i_ll_data;
 p_out_txll_sof_n <= i_ll_sof_n;

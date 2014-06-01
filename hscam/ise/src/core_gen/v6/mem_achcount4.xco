@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 14.5
-# Date: Sun Sep 29 06:16:30 2013
+# Xilinx Core Generator version 14.6
+# Date: Sat Jan 25 06:41:45 2014
 #
 ##############################################################
 #
@@ -41,7 +41,7 @@ SELECT AXI_Interconnect xilinx.com:ip:axi_interconnect:1.06.a
 # BEGIN Parameters
 CSET aclk_period=500
 CSET axi_addr_width=32
-CSET component_name=mem_achcount3
+CSET component_name=mem_achcount4
 CSET interconnect_data_width=128
 CSET m00_axi_aclk_ratio=1:1
 CSET m00_axi_data_width=128
@@ -53,7 +53,7 @@ CSET m00_axi_register=true
 CSET m00_axi_write_fifo_delay=false
 CSET m00_axi_write_fifo_depth=0_(none)
 CSET m00_axi_write_issuing=16
-CSET num_slave_ports=3
+CSET num_slave_ports=4
 CSET s00_axi_aclk_ratio=1:1
 CSET s00_axi_arb_priority=0_(Round-Robin)
 CSET s00_axi_data_width=128
@@ -79,7 +79,7 @@ CSET s01_axi_write_acceptance=2
 CSET s01_axi_write_fifo_delay=false
 CSET s01_axi_write_fifo_depth=0_(none)
 CSET s02_axi_aclk_ratio=1:1
-CSET s02_axi_arb_priority=0_(Round-Robin)
+CSET s02_axi_arb_priority=1
 CSET s02_axi_data_width=128
 CSET s02_axi_is_aclk_async=false
 CSET s02_axi_read_acceptance=2
@@ -91,26 +91,26 @@ CSET s02_axi_write_acceptance=1
 CSET s02_axi_write_fifo_delay=false
 CSET s02_axi_write_fifo_depth=0_(none)
 CSET s03_axi_aclk_ratio=1:1
-CSET s03_axi_arb_priority=0_(Round-Robin)
-CSET s03_axi_data_width=32
+CSET s03_axi_arb_priority=2
+CSET s03_axi_data_width=128
 CSET s03_axi_is_aclk_async=false
-CSET s03_axi_read_acceptance=1
+CSET s03_axi_read_acceptance=2
 CSET s03_axi_read_fifo_delay=false
 CSET s03_axi_read_fifo_depth=0_(none)
-CSET s03_axi_read_write_support=READ/WRITE
-CSET s03_axi_register=false
+CSET s03_axi_read_write_support=READ-ONLY
+CSET s03_axi_register=true
 CSET s03_axi_write_acceptance=1
 CSET s03_axi_write_fifo_delay=false
 CSET s03_axi_write_fifo_depth=0_(none)
 CSET s04_axi_aclk_ratio=1:1
 CSET s04_axi_arb_priority=0_(Round-Robin)
-CSET s04_axi_data_width=32
+CSET s04_axi_data_width=128
 CSET s04_axi_is_aclk_async=false
 CSET s04_axi_read_acceptance=1
 CSET s04_axi_read_fifo_delay=false
 CSET s04_axi_read_fifo_depth=0_(none)
-CSET s04_axi_read_write_support=READ/WRITE
-CSET s04_axi_register=false
+CSET s04_axi_read_write_support=READ-ONLY
+CSET s04_axi_register=true
 CSET s04_axi_write_acceptance=1
 CSET s04_axi_write_fifo_delay=false
 CSET s04_axi_write_fifo_depth=0_(none)
@@ -249,7 +249,7 @@ CSET s15_axi_write_fifo_depth=0_(none)
 CSET thread_id_width=4
 # END Parameters
 # BEGIN Extra information
-MISC pkg_timestamp=2013-03-15T16:49:59Z
+MISC pkg_timestamp=2013-05-16T18:37:17Z
 # END Extra information
 GENERATE
-# CRC: 1097878a
+# CRC: 6537ad41

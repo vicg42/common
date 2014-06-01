@@ -2,13 +2,21 @@
 --Как создать проект для ISE
 --######################################
 
-* установить и запустить программу клиент SVN (например TortoiseSVN (http://tortoisesvn.net/downloads.html))
+* установить и запустить программу клиент GIT (TortoiseGIT)
 
-* выпистать из SVN репозиторий veresk_m (или по не нашему SVN Checkout)
-  URL of repository: svn://10.1.7.240:3691/veresk_m
-  Checkout directory: путь куда копировать данные репозитория (например D:\Work\Linkos\veresk_m)
-  username : guest
-  password : linkos
+* выпистать из github репозиторий veresk_m
+  git clone https://github.com/vicg42/veresk_m
+
+* подключить внешнюю библиотеку:
+  - git remote add lib https://github.com/vicg42/common.git
+  - git fetch lib
+  - git checkout -b common-lib lib/master
+  - git checkout master
+  - git read-tree --prefix=common/lib -u common-lib
+  - git commit
+  - git merge -s subtree common-lib
+
+* теперь все слияния с веткой common-lib нужно делать используя флаг -s subtree!!!!
 
 * скорректировать пути в следующих файлах:
   veresk_m/xxx/script/firmware_copy.bat - копирование файла прошивки в отдельный каталог
@@ -118,3 +126,10 @@ Logs ISE:
 --Git
 --#######################################
 merge веток devel <-> common-lib ТОЛЬКО C ФЛАГОМ -s subtree!!!
+
+
+--#######################################
+--ModelSim
+--#######################################
+Полезная команда для ModelSim
+.main clear  -  очистка окна Transcript

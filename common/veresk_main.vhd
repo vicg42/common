@@ -843,6 +843,7 @@ i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT)
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)
 <= i_host_rxbuf_empty(C_HDEV_MEM)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM , i_host_devadr'length) else
     i_host_rxbuf_empty(C_HDEV_VCH)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_VCH , i_host_devadr'length) else
+    i_host_rxbuf_empty(C_HDEV_ETH) when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_ETH, i_host_devadr'length) else
     i_host_rxbuf_empty(C_HDEV_PROM) when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
     '0';
 
