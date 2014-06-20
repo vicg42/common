@@ -6,7 +6,9 @@
 -- Module Name : spi_core
 --
 -- Назначение/Описание :
---
+--   Adr Reg = p_in_adr & p_in_dir;
+--   TxD (FPGA -> DEV)  --shift MSB first
+--   RxD (FPGA <- DEV)  --recieve MSB first
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -18,12 +20,17 @@ use ieee.numeric_std.all;
 
 library work;
 use work.spi_pkg.all;
+use work.vicg_common_pkg.all;
 
 entity spi_core is
+generic(
+G_AWIDTH : integer := 16;
+G_DWIDTH : integer := 16
+);
 port(
-p_in_adr    : in   std_logic_vector(15 downto 0);
-p_in_data   : in   std_logic_vector(15 downto 0); --FPGA -> DEV
-p_out_data  : out  std_logic_vector(15 downto 0); --FPGA <- DEV
+p_in_adr    : in   std_logic_vector(G_AWIDTH - 1 downto 0);
+p_in_data   : in   std_logic_vector(G_DWIDTH - 1 downto 0); --FPGA -> DEV
+p_out_data  : out  std_logic_vector(G_DWIDTH - 1 downto 0); --FPGA <- DEV
 p_in_dir    : in   std_logic;
 p_in_start  : in   std_logic;
 
@@ -33,6 +40,7 @@ p_out_physpi : out TSPI_pinout;
 p_in_physpi  : in  TSPI_pinin;
 
 p_out_tst    : out std_logic_vector(31 downto 0);
+p_in_tst     : in  std_logic_vector(31 downto 0);
 
 p_in_clk_en : in   std_logic;
 p_in_clk    : in   std_logic;
@@ -59,8 +67,10 @@ signal i_sck        : std_logic := '0';
 signal i_ss_n       : std_logic := '0';
 signal i_mosi       : std_logic := '0';
 
-signal sr_reg       : std_logic_vector(15 downto 0) := (others=>'0');
-signal i_bitcnt     : unsigned(15 downto 0) := (others=>'0');
+signal sr_reg       : std_logic_vector(max2(G_AWIDTH, G_DWIDTH) - 1 downto 0) := (others=>'0');
+signal i_bitcnt     : unsigned(log2(sr_reg'length) - 1 downto 0) := (others=>'0');
+
+signal i_adr        : std_logic_vector(G_AWIDTH - 1 + 1 downto 0) := (others=>'0');
 
 --MAIN
 begin
@@ -74,8 +84,8 @@ p_out_physpi.sck <= i_sck when i_fsm_core_cs = S_TX_ADR
                                or i_fsm_core_cs = S_TX_D
                                 or i_fsm_core_cs = S_RX_D else '0';
 p_out_physpi.ss_n <= i_ss_n;
-p_out_physpi.mosi <= sr_reg(9) when i_fsm_core_cs = S_TX_ADR else
-                      sr_reg(15) when i_fsm_core_cs = S_TX_D else
+p_out_physpi.mosi <= sr_reg(G_AWIDTH - 1 + 1) when i_fsm_core_cs = S_TX_ADR else
+                      sr_reg(G_DWIDTH - 1) when i_fsm_core_cs = S_TX_D else
                       'Z';
 
 process(p_in_clk)
@@ -87,6 +97,7 @@ begin
   end if;
 end process;
 
+i_adr <= p_in_adr & p_in_dir;
 
 process(p_in_clk)
 begin
@@ -99,7 +110,6 @@ begin
       i_ss_n <= '1';
 
     else
---      if p_in_clk_en = '1' and i_sck = '0' then
 
         case i_fsm_core_cs is
 
@@ -119,7 +129,7 @@ begin
           when S_IDLE2 =>
 
             if p_in_clk_en = '1' and i_sck = '1' then
-                sr_reg <= p_in_adr(sr_reg'high - 1 downto 0) & p_in_dir;
+                sr_reg <= std_logic_vector(RESIZE(UNSIGNED(i_adr), sr_reg'length));
                 i_ss_n <= '0';
                 i_fsm_core_cs <= S_TX_ADR;
             end if;
@@ -127,7 +137,7 @@ begin
           when S_TX_ADR =>
 
             if p_in_clk_en = '1' and i_sck = '1' then
-              if i_bitcnt = TO_UNSIGNED(10 - 1, i_bitcnt'length) then
+              if i_bitcnt = TO_UNSIGNED(G_AWIDTH - 1 + 1, i_bitcnt'length) then
                 sr_reg <= p_in_data;
                 i_bitcnt <= (others => '0');
                 if p_in_dir = C_SPI_WRITE then
@@ -144,7 +154,7 @@ begin
           when S_TX_D =>
 
             if p_in_clk_en = '1' and i_sck = '1' then
-              if i_bitcnt = TO_UNSIGNED(16 - 1, i_bitcnt'length) then
+              if i_bitcnt = TO_UNSIGNED(G_DWIDTH - 1, i_bitcnt'length) then
                 i_bitcnt <= (others => '0');
                 i_fsm_core_cs <= S_DONE;
               else
@@ -156,14 +166,14 @@ begin
           when S_RX_D =>
 
             if p_in_clk_en = '1' and i_sck = '1' then
-              if i_bitcnt = TO_UNSIGNED(16 - 1, i_bitcnt'length) then
+              if i_bitcnt = TO_UNSIGNED(G_DWIDTH - 1, i_bitcnt'length) then
                 i_bitcnt <= (others => '0');
                 i_fsm_core_cs <= S_DONE;
               else
                 i_bitcnt <= i_bitcnt + 1;
               end if;
 
-              sr_reg <= sr_reg(14 downto 0) & p_in_physpi.miso; --recieve MSB first
+              sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & p_in_physpi.miso; --recieve MSB first
             end if;
 
           when S_DONE =>
@@ -186,7 +196,6 @@ begin
 
         end case;
 
---      end if; --if p_in_clk_en = '1' then
     end if;
   end if;
 end process;
