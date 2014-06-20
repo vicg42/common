@@ -16,10 +16,14 @@ end spi_core_tb;
 architecture test of spi_core_tb is
 
 component spi_core is
+generic(
+G_AWIDTH : integer := 16;
+G_DWIDTH : integer := 16
+);
 port(
-p_in_adr    : in   std_logic_vector(15 downto 0);
-p_in_data   : in   std_logic_vector(15 downto 0); --FPGA -> DEV
-p_out_data  : out  std_logic_vector(15 downto 0); --FPGA <- DEV
+p_in_adr    : in   std_logic_vector(G_AWIDTH - 1 downto 0);
+p_in_data   : in   std_logic_vector(G_DWIDTH - 1 downto 0); --FPGA -> DEV
+p_out_data  : out  std_logic_vector(G_DWIDTH - 1 downto 0); --FPGA <- DEV
 p_in_dir    : in   std_logic;
 p_in_start  : in   std_logic;
 
@@ -29,6 +33,7 @@ p_out_physpi : out TSPI_pinout;
 p_in_physpi  : in  TSPI_pinin;
 
 p_out_tst    : out std_logic_vector(31 downto 0);
+p_in_tst     : in  std_logic_vector(31 downto 0);
 
 p_in_clk_en : in   std_logic;
 p_in_clk    : in   std_logic;
@@ -75,6 +80,10 @@ end process;
 i_clk_en <= i_cntclk(0);
 
 m_core : spi_core
+generic map(
+G_AWIDTH => 16,
+G_DWIDTH => 16
+)
 port map(
 p_in_adr    => i_adr,
 p_in_data   => i_txd, --FPGA -> DEV
@@ -88,6 +97,7 @@ p_out_physpi => i_spi_out,
 p_in_physpi  => i_spi_in,
 
 p_out_tst   => i_tst_out,
+p_in_tst    => (others => '0'),
 
 p_in_clk_en => i_clk_en,
 p_in_clk    => i_clk,
