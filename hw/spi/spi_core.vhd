@@ -2,39 +2,6 @@
 -- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 18.06.2014 14:01:47
--- Module Name : spi_pkg
---
--- Description :
---
--- Revision:
--- Revision 0.01 - File Created
---
--------------------------------------------------------------------------
-library ieee;
-use ieee.std_logic_1164.all;
-
-package spi_pkg is
-
-constant C_SPI_WRITE : std_logic := '1';
-constant C_SPI_READ  : std_logic := '0';
-
-type TSPI_pinout is record
-sck  : std_logic;
-ss_n : std_logic;
-mosi : std_logic;--Master OUT, Slave IN
-end record;
-
-type TSPI_pinin is record
-miso : std_logic;--Master IN, Slave OUT
-end record;
-
-end spi_pkg;
-
--------------------------------------------------------------------------
--- Company     : Yansar
--- Engineer    : Golovachenko Victor
---
 -- Create Date : 18.06.2014 13:55:15
 -- Module Name : spi_core
 --
@@ -86,8 +53,8 @@ S_DONE2
 );
 
 signal i_fsm_core_cs : TFsm_spi;
+
 signal i_busy       : std_logic := '0';
-signal i_dir        : std_logic := '0';
 signal i_sck        : std_logic := '0';
 signal i_ss_n       : std_logic := '0';
 signal i_mosi       : std_logic := '0';
@@ -129,7 +96,6 @@ begin
       i_bitcnt <= (others => '0');
       sr_reg <= (others => '0');
       i_busy <= '0';
-      i_dir <= C_SPI_READ;
       i_ss_n <= '1';
 
     else
