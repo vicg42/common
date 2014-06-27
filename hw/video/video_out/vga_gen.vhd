@@ -35,6 +35,7 @@ architecture behavioral of vga_gen is
 
 type TVGA_param is array (0 to 2) of integer;
 
+--Данные взяты из Standard_VESA_timing.pdf
 --                                          --------------------------------
 --                       Resolution select |    0    |    1     |    2      |
 --                                         |--------------------------------
