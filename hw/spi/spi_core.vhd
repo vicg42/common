@@ -21,6 +21,7 @@ use ieee.numeric_std.all;
 library work;
 use work.spi_pkg.all;
 use work.vicg_common_pkg.all;
+use work.reduce_pack.all;
 
 entity spi_core is
 generic(
@@ -65,28 +66,49 @@ signal i_fsm_core_cs : TFsm_spi;
 signal i_busy       : std_logic := '0';
 signal i_sck        : std_logic := '0';
 signal i_ss_n       : std_logic := '0';
-signal i_mosi       : std_logic := '0';
-
+signal i_rxd        : std_logic_vector(max2(G_AWIDTH, G_DWIDTH) - 1 downto 0) := (others=>'0');
 signal sr_reg       : std_logic_vector(max2(G_AWIDTH, G_DWIDTH) - 1 downto 0) := (others=>'0');
 signal i_bitcnt     : unsigned(log2(sr_reg'length) - 1 downto 0) := (others=>'0');
 
 signal i_adr        : std_logic_vector(G_AWIDTH - 1 + 1 downto 0) := (others=>'0');
 
+signal tst_fsmstate,tst_fsmstate_dly : std_logic_vector(2 downto 0) := (others => '0');
+signal i_sck_out : std_logic;
+signal i_mosi_out : std_logic := '0';
+signal tst_mosi    : std_logic;
+signal tst_sck_out : std_logic;
+
 --MAIN
 begin
 
 p_out_tst(0) <= '1' when i_fsm_core_cs = S_RX_D else '0';
+p_out_tst(1) <= OR_reduce(tst_fsmstate_dly) or tst_mosi or tst_sck_out;
 
 p_out_busy <= i_busy;
-p_out_data <= sr_reg;
+p_out_data <= i_rxd;
 
-p_out_physpi.sck <= i_sck when i_fsm_core_cs = S_TX_ADR
-                               or i_fsm_core_cs = S_TX_D
-                                or i_fsm_core_cs = S_RX_D else '0';
+--p_out_physpi.sck <= i_sck when i_fsm_core_cs = S_TX_ADR
+--                               or i_fsm_core_cs = S_TX_D
+--                                or i_fsm_core_cs = S_RX_D else '0';
+--p_out_physpi.ss_n <= i_ss_n;
+--p_out_physpi.mosi <= sr_reg(G_AWIDTH - 1 + 1) when i_fsm_core_cs = S_TX_ADR else
+--                      sr_reg(G_DWIDTH - 1) when i_fsm_core_cs = S_TX_D else
+--                      'Z';
+
 p_out_physpi.ss_n <= i_ss_n;
-p_out_physpi.mosi <= sr_reg(G_AWIDTH - 1 + 1) when i_fsm_core_cs = S_TX_ADR else
-                      sr_reg(G_DWIDTH - 1) when i_fsm_core_cs = S_TX_D else
-                      'Z';
+p_out_physpi.mosi <= i_mosi_out when i_fsm_core_cs = S_TX_ADR or i_fsm_core_cs = S_TX_D else 'Z';
+p_out_physpi.sck <= i_sck_out;
+
+i_sck_out <= i_sck when i_fsm_core_cs = S_TX_ADR
+                          or i_fsm_core_cs = S_TX_D
+                            or i_fsm_core_cs = S_RX_D else '0';
+
+--txd: MSB
+i_mosi_out <= sr_reg(G_AWIDTH - 1 + 1) when i_fsm_core_cs = S_TX_ADR else
+              sr_reg(G_DWIDTH - 1) when i_fsm_core_cs = S_TX_D else
+              '0';
+--txd: LSB
+--i_mosi_out <= sr_reg(0);
 
 process(p_in_clk)
 begin
@@ -108,6 +130,7 @@ begin
       sr_reg <= (others => '0');
       i_busy <= '0';
       i_ss_n <= '1';
+      i_rxd <= (others => '0');
 
     else
 
@@ -146,7 +169,8 @@ begin
                   i_fsm_core_cs <= S_RX_D;
                 end if;
               else
-                sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & '0'; --shift MSB first
+--                sr_reg <= '0' & sr_reg(sr_reg'length - 1 downto 1); --txd: LSB first
+                sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & '0'; --txd: MSB first
                 i_bitcnt <= i_bitcnt + 1;
               end if;
             end if;
@@ -158,7 +182,8 @@ begin
                 i_bitcnt <= (others => '0');
                 i_fsm_core_cs <= S_DONE;
               else
-                sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & '0'; --shift MSB first
+--                sr_reg <= '0' & sr_reg(sr_reg'length - 1 downto 1); --txd: LSB first
+                sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & '0'; --txd: MSB first
                 i_bitcnt <= i_bitcnt + 1;
               end if;
             end if;
@@ -173,12 +198,14 @@ begin
                 i_bitcnt <= i_bitcnt + 1;
               end if;
 
-              sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & p_in_physpi.miso; --recieve MSB first
+--              sr_reg <= p_in_physpi.miso & sr_reg(sr_reg'length - 1 downto 0); --rxd: LSB first
+              sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & p_in_physpi.miso; --rxd: MSB first
             end if;
 
           when S_DONE =>
 
             if p_in_clk_en = '1' and i_sck = '1' then
+                i_rxd <= sr_reg;
                 i_fsm_core_cs <= S_DONE2;
             end if;
 
@@ -188,6 +215,7 @@ begin
               i_ss_n <= '1';
               if i_bitcnt = TO_UNSIGNED(2 - 1, i_bitcnt'length) then
                 i_busy <= '0';
+                i_bitcnt <= (others => '0');
                 i_fsm_core_cs <= S_IDLE;
               else
                 i_bitcnt <= i_bitcnt + 1;
@@ -199,6 +227,25 @@ begin
     end if;
   end if;
 end process;
+
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    tst_fsmstate_dly <= tst_fsmstate;
+    tst_mosi    <= i_mosi_out;
+    tst_sck_out <= i_sck_out;
+  end if;
+end process;
+
+
+tst_fsmstate <= std_logic_vector(TO_UNSIGNED(16#06#,tst_fsmstate'length)) when i_fsm_core_cs = S_DONE2  else
+                std_logic_vector(TO_UNSIGNED(16#05#,tst_fsmstate'length)) when i_fsm_core_cs = S_DONE   else
+                std_logic_vector(TO_UNSIGNED(16#04#,tst_fsmstate'length)) when i_fsm_core_cs = S_RX_D   else
+                std_logic_vector(TO_UNSIGNED(16#03#,tst_fsmstate'length)) when i_fsm_core_cs = S_TX_D   else
+                std_logic_vector(TO_UNSIGNED(16#02#,tst_fsmstate'length)) when i_fsm_core_cs = S_TX_ADR else
+                std_logic_vector(TO_UNSIGNED(16#01#,tst_fsmstate'length)) when i_fsm_core_cs = S_IDLE2  else
+                std_logic_vector(TO_UNSIGNED(16#00#,tst_fsmstate'length)); --i_fsm_core_cs = S_IDLE      else
 
 
 --END MAIN
