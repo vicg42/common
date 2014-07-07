@@ -25,10 +25,10 @@
 --
 --  Поэтому чтоб сомпонент был гибче сделал возможность выбора кол-ва активных строк как в 1-ом поле так и 2-ом!!!!!
 --
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 entity TVS is
 generic
@@ -43,7 +43,7 @@ generic
 --  var1   : integer:=2;  --продстройка
 --  var2   : integer:=2   --продстройка
 
-----Все значения относительно clk=12.5MHz (Активных строк/пиксел - 577/640)
+----Все значения относительно p_in_clk=12.5MHz (Активных строк/пиксел - 577/640)
 ----Проверено на Starter Kit SPARTAN-3.
 --  N_ROW  : integer:=625;--Кол-во строк в кадре. (312.5 строк в одном поле)
 --  N_H2   : integer:=400;--т.е. 64us/2=32us (удвоеная частота строк)
@@ -54,16 +54,27 @@ generic
 --  var1   : integer:=4;  --продстройка
 --  var2   : integer:=5   --продстройка
 
---Все значения относительно clk=15MHz (Активных строк/пиксел - 574/768)
+----Все значения относительно p_in_clk=15MHz (Активных строк/пиксел - 574/768)
+----Проверено на Starter Kit SPARTAN-3.
+--N_ROW  : integer:=625;--Кол-во строк в кадре. (312.5 строк в одном поле)
+--N_H2   : integer:=480;--т.е. 64us/2=32us (удвоеная частота строк)
+--W2_32us: integer:=35; --т.е. 2.32 us
+--W4_7us : integer:=71; --т.е. 4.7 us
+--W1_53us: integer:=23; --т.е. 1.53 us
+--W5_8us : integer:=87; --т.е. 5.8 us
+--var1   : integer:=6;   --продстройка
+--var2   : integer:=6    --продстройка
+
+--Все значения относительно p_in_clk=17,734472MHz (Активных строк/пиксел - 574/768)
 --Проверено на Starter Kit SPARTAN-3.
 N_ROW  : integer:=625;--Кол-во строк в кадре. (312.5 строк в одном поле)
-N_H2   : integer:=480;--т.е. 64us/2=32us (удвоеная частота строк)
-W2_32us: integer:=35; --т.е. 2.32 us
-W4_7us : integer:=71; --т.е. 4.7 us
-W1_53us: integer:=23; --т.е. 1.53 us
-W5_8us : integer:=87; --т.е. 5.8 us
-var1   : integer:=6;   --продстройка
-var2   : integer:=6    --продстройка
+N_H2   : integer:=568;--т.е. 64us/2=32us (удвоеная частота строк)
+W2_32us: integer:=41; --т.е. 2.32 us
+W4_7us : integer:=83; --т.е. 4.7 us
+W1_53us: integer:=27; --т.е. 1.53 us
+W5_8us : integer:=103; --т.е. 5.8 us
+var1   : integer:=0;   --продстройка
+var2   : integer:=0    --продстройка
 );
 port(
 --EN_ADJUST  : out std_logic;
@@ -77,13 +88,13 @@ p_out_den      : out std_logic;--Активная часть строки.(Разрешение вывода пиксел
 
 p_in_clk_en: in std_logic;
 p_in_clk   : in std_logic;
-p_in_rst   : in std_logic;
+p_in_rst   : in std_logic
 );
 end TVS;
 
 architecture behavior of TVS is
 
-signal cnt_2H  : std_logic_vector(8 downto 0);--integer range 0 to 511;--счетчик удвоенной строки
+signal cnt_2H  : std_logic_vector(9 downto 0);--integer range 0 to 1023;--счетчик удвоенной строки
 signal cnt_N2H : std_logic_vector(9 downto 0);--integer range 0 to 1023;--Счетчик кол-ва удвоеных строк
 signal cnt_N2H5: std_logic_vector(6 downto 0);--integer range 0 to 127;--кол-во 5раз удвоенных строк
 signal cnt_2H5 : std_logic_vector(2 downto 0);--integer range 0 to 7;
@@ -107,15 +118,15 @@ begin
 p_out_tv_field<=Fiald_int;
 p_out_tv_kci<=KCI_int;
 
-process(p_in_rst,clk)
+process(p_in_rst,p_in_clk)
 variable a : std_logic;
 variable b : std_logic;
 begin
   if p_in_rst='1' then
     cnt_2H<=(others=>'0');--0;
-    cnt_N2H<=CONV_STD_LOGIC_VECTOR((N_ROW-2), 10);
-    cnt_2H5<=CONV_STD_LOGIC_VECTOR(3, 3);
-    cnt_N2H5<=CONV_STD_LOGIC_VECTOR(((N_ROW/5)-1), 7);
+    cnt_N2H<=CONV_STD_LOGIC_VECTOR((N_ROW-2), cnt_N2H'length);
+    cnt_2H5<=CONV_STD_LOGIC_VECTOR(3, cnt_2H5'length);
+    cnt_N2H5<=CONV_STD_LOGIC_VECTOR(((N_ROW/5)-1), cnt_N2H5'length);
     H2SHT3<='0';
     H2SHT2<='0';
     H2SHT1<='0';
@@ -132,9 +143,9 @@ begin
     KCI_int<='0';
 --      KGI<='0';
 
-  elsif clk'event and clk='1' then
+  elsif p_in_clk'event and p_in_clk='1' then
   if p_in_clk_en='1' then
-    if cnt_2H=CONV_STD_LOGIC_VECTOR(N_H2-1, 9) then
+    if cnt_2H=CONV_STD_LOGIC_VECTOR(N_H2-1, cnt_2H'length) then
       --Формируем сигнал удвоенной частоты строк
       H2<='1';
       cnt_2H<=(others=>'0');--0;
@@ -143,11 +154,11 @@ begin
       SelH<=a;
 
       --Подсчитываем 5 импульсов удвоенной частоты строк
-      if cnt_2H5=CONV_STD_LOGIC_VECTOR(4, 3) then
+      if cnt_2H5=CONV_STD_LOGIC_VECTOR(4, cnt_2H5'length) then
         cnt_2H5<=(others=>'0');--0;
 
         --Подсчитываем кол-во раз по 5 импульсов удвоенной частоты строк
-        if cnt_N2H5=CONV_STD_LOGIC_VECTOR(((N_ROW/5)-1), 7) then
+        if cnt_N2H5=CONV_STD_LOGIC_VECTOR(((N_ROW/5)-1), cnt_N2H5'length) then
           cnt_N2H5<=(others=>'0');--0;
           KCI_int<='0';
           --Формируем разрешение для формирования уравнивающих импульсов
@@ -155,7 +166,7 @@ begin
           --Формируем разрешение для формирования кадрового гасящего импульса
 --            KGI<='1';
 
-        elsif cnt_N2H5="0000000" then
+        elsif cnt_N2H5=(cnt_N2H5'range => '0') then
           --Формируем сигнал поля
           b:=not b;
           Fiald_int<=b;
@@ -164,18 +175,18 @@ begin
           KCI_int<='1';
           cnt_N2H5<=cnt_N2H5+1;
 
-        elsif cnt_N2H5=CONV_STD_LOGIC_VECTOR(1, 7) then
+        elsif cnt_N2H5=CONV_STD_LOGIC_VECTOR(1, cnt_N2H5'length) then
           --Формируем кадовый синхро импульс
           KCI_int<='0';
           cnt_N2H5<=cnt_N2H5+1;
 
-        elsif cnt_N2H5=CONV_STD_LOGIC_VECTOR(2, 7) then
+        elsif cnt_N2H5=CONV_STD_LOGIC_VECTOR(2, cnt_N2H5'length) then
           --Запрещаем разрешение для формирования уравнивающих импульсов
           EUR<='0';
 
           cnt_N2H5<=cnt_N2H5+1;
 
---          elsif cnt_N2H5=CONV_STD_LOGIC_VECTOR(9, 7) then
+--          elsif cnt_N2H5=CONV_STD_LOGIC_VECTOR(9, cnt_N2H5'length) then
 --            --Запрещаем разрешение для формирования кадрового гасящего импульса
 --            KGI<='0';
 --            cnt_N2H5<=cnt_N2H5+1;
@@ -191,7 +202,7 @@ begin
       end if;
 
       --Посчитываем кол-во удвоенных строк
-      if cnt_N2H=CONV_STD_LOGIC_VECTOR((N_ROW-1), 10) then
+      if cnt_N2H=CONV_STD_LOGIC_VECTOR((N_ROW-1), cnt_N2H'length) then
         cnt_N2H<=(others=>'0');--0;
 
       else
@@ -200,7 +211,7 @@ begin
       end if;
 
 --Формирование импульсов сдвинутых на оределенные величины относительно H2
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((W2_32us-1), 9) then
+    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((W2_32us-1), cnt_2H'length) then
       --Формируем сдвинутый сигнал относительно H2
       --на 0+2,3мкс
         H2SHT1<='1';
@@ -211,7 +222,7 @@ begin
         H2<='0';
         cnt_2H<=cnt_2H+1;
 
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((N_H2-(W4_7us-1)), 9) then
+    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((N_H2-(W4_7us-1)), cnt_2H'length) then
       --Формируем сдвинутый сигнал относительно H2
       --на 0-4,7мкс
         H2SHT1<='0';
@@ -222,7 +233,7 @@ begin
         H2<='0';
         cnt_2H<=cnt_2H+1;
 
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((W4_7us-1), 9) then
+    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((W4_7us-1), cnt_2H'length) then
       --Формируем сдвинутый сигнал относительно H2
       --на 0+4,7мкс
         H2SHT1<='0';
@@ -233,9 +244,9 @@ begin
         H2<='0';
         cnt_2H<=cnt_2H+1;
 
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR(((W4_7us-1)+(W5_8us-1)+var1), 9) then
+    elsif cnt_2H=CONV_STD_LOGIC_VECTOR(((W4_7us-1)+(W5_8us-1)+var1), cnt_2H'length) then
       --Формируем сдвинутый сигнал относительно H2
-      --на 0+4,7мкс+5,8мкс+6(clk)
+      --на 0+4,7мкс+5,8мкс+6(p_in_clk)
         H2SHT1<='0';
         H2SHT2<='0';
         H2SHT3<='0';
@@ -244,9 +255,9 @@ begin
         H2<='0';
         cnt_2H<=cnt_2H+1;
 
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((N_H2-W1_53us-1-var2), 9) then
+    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((N_H2-W1_53us-1-var2), cnt_2H'length) then
       --Формируем сдвинутый сигнал относительно H2
-      --на 0-1,53мкс-6(clk)
+      --на 0-1,53мкс-6(p_in_clk)
         H2SHT1<='0';
         H2SHT2<='0';
         H2SHT3<='0';
@@ -268,13 +279,13 @@ begin
 end process;
 
 --Формируем TV сигнал (синхросмесь)
-process(p_in_rst,clk)
+process(p_in_rst,p_in_clk)
 variable a : std_logic;
 begin
   if p_in_rst='1' then
     a:= '0';
     p_out_tv_ssi<='0';
-  elsif clk'event and clk='1' then
+  elsif p_in_clk'event and p_in_clk='1' then
   if p_in_clk_en='1' then
         --формируем ССИ в строке
     if ((H2='1' or H2SHT3='1') and SelH='1' and EUR='0')  or
@@ -290,26 +301,26 @@ begin
 end process;
 
 --Формируем Активную часть строки
-process(p_in_rst,clk)
+process(p_in_rst,p_in_clk)
   variable a : std_logic;
 begin
   if p_in_rst='1' then
     a:= '0';
     p_out_den<='0';
 
-  elsif clk'event and clk='1' then
+  elsif p_in_clk'event and p_in_clk='1' then
   if p_in_clk_en='1' then
     if ((H2SHT4='1' and SelH='1') or (H2SHT5='1'  and SelH='0')) then
       --Выбираем кол-во активных строк в 1-ом и 2-ом поле
       --В 1-ом поле ТВ сигнала 287 строк
---        if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(50, 10) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(624, 10))) or
---           (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(49, 10) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(623, 10))) then
+--        if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(50, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(624, cnt_N2H'length))) or
+--           (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(49, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(623, cnt_N2H'length))) then
       --В 1-ом поле ТВ сигнала 288 строк
-      if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(48, 10) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(624, 10))) or
-         (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(47, 10) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(623, 10))) then
+      if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(48, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(624, cnt_N2H'length))) or
+         (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(47, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(623, cnt_N2H'length))) then
       --Test
---        if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(24, 10) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(64, 10))) or
---           (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(23, 10) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(63, 10))) then
+--        if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(24, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(64, cnt_N2H'length))) or
+--           (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(23, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(63, cnt_N2H'length))) then
         a:= not a;
         p_out_den<=not a;
 
@@ -324,24 +335,24 @@ end process;
 
 
 ----Формируем сигналы для подстройки строки
---process(p_in_rst,clk)
+--process(p_in_rst,p_in_clk)
 --begin
 --  if p_in_rst='1' then
 --    LOAD_ADJUST<='0';
 --    EN_ADJUST<='0';
 --
---  elsif clk'event and clk='1' then
+--  elsif p_in_clk'event and p_in_clk='1' then
 --  if p_in_clk_en='1' then
 --
-----      if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(51, 10)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(50, 10)) then
---    if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(49, 10)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(48, 10)) then
+----      if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(51, cnt_N2H'length)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(50, cnt_N2H'length)) then
+--    if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(49, cnt_N2H'length)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(48, cnt_N2H'length)) then
 --      EN_ADJUST<='1';
---    elsif cnt_N2H=CONV_STD_LOGIC_VECTOR(0, 10) then
+--    elsif cnt_N2H=CONV_STD_LOGIC_VECTOR(0, cnt_N2H'length) then
 --      EN_ADJUST<='0';
 --    end if;
 --
-----      if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(51, 10)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(50, 10)) then
---    if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(49, 10)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(48, 10)) then
+----      if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(51, cnt_N2H'length)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(50, cnt_N2H'length)) then
+--    if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(49, cnt_N2H'length)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(48, cnt_N2H'length)) then
 --      LOAD_ADJUST<='1';
 --    else
 --      LOAD_ADJUST<='0';
@@ -355,11 +366,11 @@ end process;
 --  *********************************************************************************
 --  ************* Тестируем кол-во строк в кадре и пиксел в строке ******************
 --  *********************************************************************************
---  process(p_in_rst,clk)
+--  process(p_in_rst,p_in_clk)
 --  begin
 --    if p_in_rst='1' then
 --      test_pix<=0;
---    elsif clk'event and clk='1' then
+--    elsif p_in_clk'event and p_in_clk='1' then
 --      if APRT='1' then
 --        test_pix<=test_pix+1;
 --      else
