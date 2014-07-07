@@ -1,8 +1,8 @@
 --------------------------------------------------------------------------------
 -- Engineer: Golovachenko V. (vicg@hotmail.ru)
 -- Create Date: 10.02.2005
--- Design Name: TVS.vhd
--- Component Name: TVS
+-- Design Name: tv_gen.vhd
+-- Component Name: tv_gen
 -- Revision: ver.03
 --  change ver.03 - Ввел сигналы управления блоком точного позицианирования кадра TV (TVADJUST)
 --                - Изменил кол-во строк в плое TV. Теперь в поле 288 строк. Раньше было 287
@@ -30,29 +30,29 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity TVS is
+entity tv_gen is
 generic
 (
 ----значения отладки
---  N_ROW  : integer:=65;--Кол-во строк в кадре. (312.5 строк в одном поле)
---  N_H2   : integer:=32;--т.е. 64us/2=32us (удвоеная частота строк)
---  W2_32us: integer:=5; --т.е. 2.32 us
---  W4_7us : integer:=10; --т.е. 4.7 us
---  W1_53us: integer:=2; --т.е. 1.53 us
---  W5_8us : integer:=11; --т.е. 5.8 us
---  var1   : integer:=2;  --продстройка
---  var2   : integer:=2   --продстройка
+--N_ROW  : integer:=65;--Кол-во строк в кадре. (312.5 строк в одном поле)
+--N_H2   : integer:=32;--т.е. 64us/2=32us (удвоеная частота строк)
+--W2_32us: integer:=5; --т.е. 2.32 us
+--W4_7us : integer:=10; --т.е. 4.7 us
+--W1_53us: integer:=2; --т.е. 1.53 us
+--W5_8us : integer:=11; --т.е. 5.8 us
+--var1   : integer:=2;  --продстройка
+--var2   : integer:=2   --продстройка
 
 ----Все значения относительно p_in_clk=12.5MHz (Активных строк/пиксел - 577/640)
 ----Проверено на Starter Kit SPARTAN-3.
---  N_ROW  : integer:=625;--Кол-во строк в кадре. (312.5 строк в одном поле)
---  N_H2   : integer:=400;--т.е. 64us/2=32us (удвоеная частота строк)
---  W2_32us: integer:=29;--т.е. 2.32 us
---  W4_7us : integer:=59;--т.е. 4.7 us
---  W1_53us: integer:=19; --т.е. 1.53 us
---  W5_8us : integer:=73; --т.е. 5.8 us
---  var1   : integer:=4;  --продстройка
---  var2   : integer:=5   --продстройка
+--N_ROW  : integer:=625;--Кол-во строк в кадре. (312.5 строк в одном поле)
+--N_H2   : integer:=400;--т.е. 64us/2=32us (удвоеная частота строк)
+--W2_32us: integer:=29;--т.е. 2.32 us
+--W4_7us : integer:=59;--т.е. 4.7 us
+--W1_53us: integer:=19; --т.е. 1.53 us
+--W5_8us : integer:=73; --т.е. 5.8 us
+--var1   : integer:=4;  --продстройка
+--var2   : integer:=5   --продстройка
 
 ----Все значения относительно p_in_clk=15MHz (Активных строк/пиксел - 574/768)
 ----Проверено на Starter Kit SPARTAN-3.
@@ -64,15 +64,15 @@ generic
 --W5_8us : integer:=87; --т.е. 5.8 us
 --var1   : integer:=6;   --продстройка
 --var2   : integer:=6    --продстройка
-
+--
 --Все значения относительно p_in_clk=17,734472MHz (Активных строк/пиксел - 574/768)
 --Проверено на Starter Kit SPARTAN-3.
 N_ROW  : integer:=625;--Кол-во строк в кадре. (312.5 строк в одном поле)
-N_H2   : integer:=568;--т.е. 64us/2=32us (удвоеная частота строк)
+N_H2   : integer:=567;--т.е. 64us/2=32us (удвоеная частота строк)
 W2_32us: integer:=41; --т.е. 2.32 us
 W4_7us : integer:=83; --т.е. 4.7 us
 W1_53us: integer:=27; --т.е. 1.53 us
-W5_8us : integer:=103; --т.е. 5.8 us
+W5_8us : integer:=102; --т.е. 5.8 us
 var1   : integer:=0;   --продстройка
 var2   : integer:=0    --продстройка
 );
@@ -90,9 +90,9 @@ p_in_clk_en: in std_logic;
 p_in_clk   : in std_logic;
 p_in_rst   : in std_logic
 );
-end TVS;
+end entity;
 
-architecture behavior of TVS is
+architecture behavior of tv_gen is
 
 signal cnt_2H  : std_logic_vector(9 downto 0);--integer range 0 to 1023;--счетчик удвоенной строки
 signal cnt_N2H : std_logic_vector(9 downto 0);--integer range 0 to 1023;--Счетчик кол-ва удвоеных строк
@@ -106,7 +106,7 @@ signal KCI_int: std_logic;
 --  signal KGI: std_logic;
 signal SelH: std_logic;
 signal Fiald_int: std_logic;
-
+signal i_pixen : std_logic;
 --  Для тестирования кол-ва строк в кадре и пиксел в строке!!!!!!
 --  signal test_pix: integer:=0;--  Тестовый счетчик. Тестирует кол-во пиксел в строке
 --  signal test_row: integer:=0;--  Тестовый счетчик. Тестирует кол-во строк в кадре
@@ -306,7 +306,7 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     a:= '0';
-    p_out_den<='0';
+    i_pixen<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
   if p_in_clk_en='1' then
@@ -322,7 +322,7 @@ begin
 --        if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(24, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(64, cnt_N2H'length))) or
 --           (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(23, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(63, cnt_N2H'length))) then
         a:= not a;
-        p_out_den<=not a;
+        i_pixen<=not a;
 
         --Для тестирования кол-ва строк в кадре и пиксел в строке!!!!!!
 --          APRT<=not a;
@@ -332,6 +332,8 @@ begin
   end if;
   end if;
 end process;
+
+p_out_den <= i_pixen;
 
 
 ----Формируем сигналы для подстройки строки
@@ -389,4 +391,4 @@ end process;
 --  end process;
 
 --  END MAIN
-end behavior;
+end architecture;

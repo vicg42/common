@@ -29,7 +29,7 @@ p_out_den     : out  std_logic; --Pixels
 p_in_clk      : in   std_logic;
 p_in_rst      : in   std_logic
 );
-end vga_gen;
+end entity;
 
 architecture behavioral of vga_gen is
 
@@ -135,4 +135,4 @@ p_out_den   <= i_pix_ha and i_pix_va;
 
 
 --END MAIN
-end behavioral;
+end architecture;

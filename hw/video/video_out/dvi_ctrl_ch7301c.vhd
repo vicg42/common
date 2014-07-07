@@ -57,7 +57,7 @@ p_out_tst     : out   std_logic_vector(31 downto 0);
 p_in_clk      : in    std_logic; --100MHz!!!!
 p_in_rst      : in    std_logic
 );
-end dvi_ctrl;
+end entity;
 
 architecture behavioral of dvi_ctrl is
 
@@ -832,6 +832,6 @@ S  => '0'
 
 
 --END MAIN
-end behavioral;
+end architecture;
 
 
