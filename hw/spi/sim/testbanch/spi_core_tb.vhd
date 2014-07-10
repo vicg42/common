@@ -49,7 +49,7 @@ signal i_spi_out : TSPI_pinout;
 signal i_clk    : std_logic:='0';
 signal i_rst    : std_logic:='0';
 signal i_busy   : std_logic;
-signal i_adr    : std_logic_vector(15 downto 0);
+signal i_adr    : std_logic_vector(14 downto 0);
 signal i_txd    : std_logic_vector(15 downto 0);
 signal i_rxd    : std_logic_vector(15 downto 0);
 signal i_start  : std_logic := '0';
@@ -81,7 +81,7 @@ i_clk_en <= i_cntclk(0);
 
 m_core : spi_core
 generic map(
-G_AWIDTH => 16,
+G_AWIDTH => 15,
 G_DWIDTH => 16
 )
 port map(
