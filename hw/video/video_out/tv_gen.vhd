@@ -27,8 +27,7 @@
 --
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity tv_gen is
 generic
@@ -69,7 +68,7 @@ port(
 --EN_ADJUST  : out std_logic;
 --LOAD_ADJUST: out std_logic;
 
---    KGI   : out std_logic;
+--p_out_tv_kgi   : out std_logic;
 p_out_tv_kci   : out std_logic;
 p_out_tv_ssi   : out std_logic;--Синхросмесь. Стандартный TV сигнал
 p_out_tv_field : out std_logic;--Поле TV сигнала (Четные/Нечетные строки)
@@ -83,235 +82,239 @@ end entity;
 
 architecture behavior of tv_gen is
 
-signal cnt_2H  : std_logic_vector(9 downto 0);--integer range 0 to 1023;--счетчик удвоенной строки
-signal cnt_N2H : std_logic_vector(9 downto 0);--integer range 0 to 1023;--Счетчик кол-ва удвоеных строк
-signal cnt_N2H5: std_logic_vector(6 downto 0);--integer range 0 to 127;--кол-во 5раз удвоенных строк
-signal cnt_2H5 : std_logic_vector(2 downto 0);--integer range 0 to 7;
-signal H2,H2SHT1,H2SHT2,H2SHT3,H2SHT4,H2SHT5: std_logic;
-
-signal EUR: std_logic;
---  signal EAR: std_logic;
-signal KCI_int: std_logic;
---  signal KGI: std_logic;
-signal SelH: std_logic;
-signal Fiald_int: std_logic;
-signal i_pixen : std_logic;
---  Для тестирования кол-ва строк в кадре и пиксел в строке!!!!!!
---  signal test_pix: integer:=0;--  Тестовый счетчик. Тестирует кол-во пиксел в строке
---  signal test_row: integer:=0;--  Тестовый счетчик. Тестирует кол-во строк в кадре
---  signal APRT: std_logic;
+signal i_cnt_2H   : unsigned(9 downto 0) := (others => '0');--integer range 0 to 1023;--счетчик удвоенной строки
+signal i_cnt_N2H  : unsigned(9 downto 0) := (others => '0');--integer range 0 to 1023;--Счетчик кол-ва удвоеных строк
+signal i_cnt_N2H5 : unsigned(6 downto 0) := (others => '0');--integer range 0 to 127;--кол-во 5раз удвоенных строк
+signal i_cnt_2H5  : unsigned(2 downto 0) := (others => '0');--integer range 0 to 7;
+signal i_H2       : std_logic;
+signal i_H2SHT1   : std_logic;
+signal i_H2SHT2   : std_logic;
+signal i_H2SHT3   : std_logic;
+signal i_H2SHT4   : std_logic;
+signal i_H2SHT5   : std_logic;
+signal i_EUR      : std_logic;
+signal i_kci      : std_logic;
+signal i_SelH     : std_logic;
+signal i_field    : std_logic;
+signal i_pixen    : std_logic;
+--signal i_kgi      : std_logic;
+--signal EAR      : std_logic;
+--Для тестирования кол-ва строк в кадре и пиксел в строке!!!!!!
+--signal test_pix: integer:=0;--  Тестовый счетчик. Тестирует кол-во пиксел в строке
+--signal test_row: integer:=0;--  Тестовый счетчик. Тестирует кол-во строк в кадре
+--signal APRT: std_logic;
 
 --  MAIN
 begin
 
-p_out_tv_field<=Fiald_int;
-p_out_tv_kci<=KCI_int;
+p_out_tv_field <= i_field;
+p_out_tv_kci <= i_kci;
 
-process(p_in_rst,p_in_clk)
+process(p_in_rst, p_in_clk)
 variable a : std_logic;
 variable b : std_logic;
 begin
-  if p_in_rst='1' then
-    cnt_2H<=(others=>'0');--0;
-    cnt_N2H<=CONV_STD_LOGIC_VECTOR((N_ROW-2), cnt_N2H'length);
-    cnt_2H5<=CONV_STD_LOGIC_VECTOR(3, cnt_2H5'length);
-    cnt_N2H5<=CONV_STD_LOGIC_VECTOR(((N_ROW/5)-1), cnt_N2H5'length);
-    H2SHT3<='0';
-    H2SHT2<='0';
-    H2SHT1<='0';
-    H2<='0';
+  if p_in_rst = '1' then
+    i_cnt_2H <= (others=>'0');
+    i_cnt_N2H <= TO_UNSIGNED((N_ROW-2), i_cnt_N2H'length);
+    i_cnt_2H5 <= TO_UNSIGNED(3, i_cnt_2H5'length);
+    i_cnt_N2H5 <= TO_UNSIGNED(((N_ROW/5)-1), i_cnt_N2H5'length);
+    i_H2SHT3 <= '0';
+    i_H2SHT2 <= '0';
+    i_H2SHT1 <= '0';
+    i_H2 <= '0';
 
-    a:='0';
-    SelH<='0';
+    a := '0';
+    i_SelH <= '0';
 
-    Fiald_int<='0';
-    b:='0';
+    i_field <= '0';
+    b := '0';
 
-    EUR<='0';
---      EAR<='0';
-    KCI_int<='0';
---      KGI<='0';
+    i_EUR <= '0';
+--      EAR <= '0';
+    i_kci <= '0';
+--      i_kgi <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
-  if p_in_clk_en='1' then
-    if cnt_2H=CONV_STD_LOGIC_VECTOR(N_H2-1, cnt_2H'length) then
+  elsif rising_edge(p_in_clk) then
+  if p_in_clk_en = '1' then
+    if i_cnt_2H = TO_UNSIGNED(N_H2-1, i_cnt_2H'length) then
       --Формируем сигнал удвоенной частоты строк
-      H2<='1';
-      cnt_2H<=(others=>'0');--0;
+      i_H2 <= '1';
+      i_cnt_2H <= (others=>'0');
 
       a:= not a;
-      SelH<=a;
+      i_SelH<=a;
 
       --Подсчитываем 5 импульсов удвоенной частоты строк
-      if cnt_2H5=CONV_STD_LOGIC_VECTOR(4, cnt_2H5'length) then
-        cnt_2H5<=(others=>'0');--0;
+      if i_cnt_2H5 = TO_UNSIGNED(4, i_cnt_2H5'length) then
+        i_cnt_2H5 <= (others=>'0');
 
         --Подсчитываем кол-во раз по 5 импульсов удвоенной частоты строк
-        if cnt_N2H5=CONV_STD_LOGIC_VECTOR(((N_ROW/5)-1), cnt_N2H5'length) then
-          cnt_N2H5<=(others=>'0');--0;
-          KCI_int<='0';
+        if i_cnt_N2H5 = TO_UNSIGNED(((N_ROW/5)-1), i_cnt_N2H5'length) then
+          i_cnt_N2H5 <= (others=>'0');
+          i_kci <= '0';
           --Формируем разрешение для формирования уравнивающих импульсов
-          EUR<='1';
+          i_EUR <= '1';
           --Формируем разрешение для формирования кадрового гасящего импульса
---            KGI<='1';
+--            i_kgi <= '1';
 
-        elsif cnt_N2H5=(cnt_N2H5'range => '0') then
+        elsif i_cnt_N2H5 = (i_cnt_N2H5'range => '0') then
           --Формируем сигнал поля
           b:=not b;
-          Fiald_int<=b;
+          i_field<=b;
 
           --Формируем кадовый синхро импульс
-          KCI_int<='1';
-          cnt_N2H5<=cnt_N2H5+1;
+          i_kci <= '1';
+          i_cnt_N2H5 <= i_cnt_N2H5 + 1;
 
-        elsif cnt_N2H5=CONV_STD_LOGIC_VECTOR(1, cnt_N2H5'length) then
+        elsif i_cnt_N2H5 = TO_UNSIGNED(1, i_cnt_N2H5'length) then
           --Формируем кадовый синхро импульс
-          KCI_int<='0';
-          cnt_N2H5<=cnt_N2H5+1;
+          i_kci <= '0';
+          i_cnt_N2H5 <= i_cnt_N2H5 + 1;
 
-        elsif cnt_N2H5=CONV_STD_LOGIC_VECTOR(2, cnt_N2H5'length) then
+        elsif i_cnt_N2H5 = TO_UNSIGNED(2, i_cnt_N2H5'length) then
           --Запрещаем разрешение для формирования уравнивающих импульсов
-          EUR<='0';
+          i_EUR <= '0';
 
-          cnt_N2H5<=cnt_N2H5+1;
+          i_cnt_N2H5 <= i_cnt_N2H5 + 1;
 
---          elsif cnt_N2H5=CONV_STD_LOGIC_VECTOR(9, cnt_N2H5'length) then
+--          elsif i_cnt_N2H5 = TO_UNSIGNED(9, i_cnt_N2H5'length) then
 --            --Запрещаем разрешение для формирования кадрового гасящего импульса
---            KGI<='0';
---            cnt_N2H5<=cnt_N2H5+1;
+--            i_kgi <= '0';
+--            i_cnt_N2H5 <= i_cnt_N2H5 + 1;
 
         else
-          cnt_N2H5<=cnt_N2H5+1;
+          i_cnt_N2H5 <= i_cnt_N2H5 + 1;
 
         end if;
 
       else
-        cnt_2H5<=cnt_2H5+1;
+        i_cnt_2H5 <= i_cnt_2H5 + 1;
 
       end if;
 
       --Посчитываем кол-во удвоенных строк
-      if cnt_N2H=CONV_STD_LOGIC_VECTOR((N_ROW-1), cnt_N2H'length) then
-        cnt_N2H<=(others=>'0');--0;
+      if i_cnt_N2H = TO_UNSIGNED((N_ROW-1), i_cnt_N2H'length) then
+        i_cnt_N2H <= (others=>'0');
 
       else
-        cnt_N2H<=cnt_N2H+1;
+        i_cnt_N2H <= i_cnt_N2H + 1;
 
       end if;
 
---Формирование импульсов сдвинутых на оределенные величины относительно H2
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((W2_32us-1), cnt_2H'length) then
-      --Формируем сдвинутый сигнал относительно H2
+--Формирование импульсов сдвинутых на оределенные величины относительно i_H2
+    elsif i_cnt_2H = TO_UNSIGNED((W2_32us-1), i_cnt_2H'length) then
+      --Формируем сдвинутый сигнал относительно i_H2
       --на 0+2,3мкс
-        H2SHT1<='1';
-        H2SHT2<='0';
-        H2SHT3<='0';
-        H2SHT4<='0';
-        H2SHT5<='0';
-        H2<='0';
-        cnt_2H<=cnt_2H+1;
+        i_H2SHT1 <= '1';
+        i_H2SHT2 <= '0';
+        i_H2SHT3 <= '0';
+        i_H2SHT4 <= '0';
+        i_H2SHT5 <= '0';
+        i_H2 <= '0';
+        i_cnt_2H <= i_cnt_2H + 1;
 
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((N_H2-(W4_7us-1)), cnt_2H'length) then
-      --Формируем сдвинутый сигнал относительно H2
+    elsif i_cnt_2H = TO_UNSIGNED((N_H2-(W4_7us-1)), i_cnt_2H'length) then
+      --Формируем сдвинутый сигнал относительно i_H2
       --на 0-4,7мкс
-        H2SHT1<='0';
-        H2SHT2<='1';
-        H2SHT3<='0';
-        H2SHT4<='0';
-        H2SHT5<='0';
-        H2<='0';
-        cnt_2H<=cnt_2H+1;
+        i_H2SHT1 <= '0';
+        i_H2SHT2 <= '1';
+        i_H2SHT3 <= '0';
+        i_H2SHT4 <= '0';
+        i_H2SHT5 <= '0';
+        i_H2 <= '0';
+        i_cnt_2H <= i_cnt_2H + 1;
 
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((W4_7us-1), cnt_2H'length) then
-      --Формируем сдвинутый сигнал относительно H2
+    elsif i_cnt_2H = TO_UNSIGNED((W4_7us-1), i_cnt_2H'length) then
+      --Формируем сдвинутый сигнал относительно i_H2
       --на 0+4,7мкс
-        H2SHT1<='0';
-        H2SHT2<='0';
-        H2SHT3<='1';
-        H2SHT4<='0';
-        H2SHT5<='0';
-        H2<='0';
-        cnt_2H<=cnt_2H+1;
+        i_H2SHT1 <= '0';
+        i_H2SHT2 <= '0';
+        i_H2SHT3 <= '1';
+        i_H2SHT4 <= '0';
+        i_H2SHT5 <= '0';
+        i_H2 <= '0';
+        i_cnt_2H <= i_cnt_2H + 1;
 
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR(((W4_7us-1)+(W5_8us-1)+var1), cnt_2H'length) then
-      --Формируем сдвинутый сигнал относительно H2
+    elsif i_cnt_2H = TO_UNSIGNED(((W4_7us-1)+(W5_8us-1)+var1), i_cnt_2H'length) then
+      --Формируем сдвинутый сигнал относительно i_H2
       --на 0+4,7мкс+5,8мкс+6(p_in_clk)
-        H2SHT1<='0';
-        H2SHT2<='0';
-        H2SHT3<='0';
-        H2SHT4<='1';
-        H2SHT5<='0';
-        H2<='0';
-        cnt_2H<=cnt_2H+1;
+        i_H2SHT1 <= '0';
+        i_H2SHT2 <= '0';
+        i_H2SHT3 <= '0';
+        i_H2SHT4 <= '1';
+        i_H2SHT5 <= '0';
+        i_H2 <= '0';
+        i_cnt_2H <= i_cnt_2H + 1;
 
-    elsif cnt_2H=CONV_STD_LOGIC_VECTOR((N_H2-W1_53us-1-var2), cnt_2H'length) then
-      --Формируем сдвинутый сигнал относительно H2
+    elsif i_cnt_2H = TO_UNSIGNED((N_H2-W1_53us-1-var2), i_cnt_2H'length) then
+      --Формируем сдвинутый сигнал относительно i_H2
       --на 0-1,53мкс-6(p_in_clk)
-        H2SHT1<='0';
-        H2SHT2<='0';
-        H2SHT3<='0';
-        H2SHT4<='0';
-        H2SHT5<='1';
-        H2<='0';
-        cnt_2H<=cnt_2H+1;
+        i_H2SHT1 <= '0';
+        i_H2SHT2 <= '0';
+        i_H2SHT3 <= '0';
+        i_H2SHT4 <= '0';
+        i_H2SHT5 <= '1';
+        i_H2 <= '0';
+        i_cnt_2H <= i_cnt_2H + 1;
     else
-        H2SHT1<='0';
-        H2SHT2<='0';
-        H2SHT3<='0';
-        H2SHT4<='0';
-        H2SHT5<='0';
-        H2<='0';
-        cnt_2H<=cnt_2H+1;
+        i_H2SHT1 <= '0';
+        i_H2SHT2 <= '0';
+        i_H2SHT3 <= '0';
+        i_H2SHT4 <= '0';
+        i_H2SHT5 <= '0';
+        i_H2 <= '0';
+        i_cnt_2H <= i_cnt_2H + 1;
     end if;
   end if;
   end if;
 end process;
 
 --Формируем TV сигнал (синхросмесь)
-process(p_in_rst,p_in_clk)
+process(p_in_rst, p_in_clk)
 variable a : std_logic;
 begin
-  if p_in_rst='1' then
-    a:= '0';
-    p_out_tv_ssi<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
-  if p_in_clk_en='1' then
+  if p_in_rst = '1' then
+    a := '0';
+    p_out_tv_ssi <= '0';
+  elsif rising_edge(p_in_clk) then
+  if p_in_clk_en = '1' then
         --формируем ССИ в строке
-    if ((H2='1' or H2SHT3='1') and SelH='1' and EUR='0')  or
+    if ((i_H2 = '1' or i_H2SHT3 = '1') and i_SelH = '1' and i_EUR = '0')  or
       --формируем уравнивающие импульсы вне КСИ
-       ((H2='1' or H2SHT1='1') and EUR='1' and KCI_int='0') or
+       ((i_H2 = '1' or i_H2SHT1 = '1') and i_EUR = '1' and i_kci = '0') or
         --формируем уравнивающие импульсы внутри КСИ
-       ((H2='1' or H2SHT2='1') and EUR='1' and KCI_int='1') then
+       ((i_H2 = '1' or i_H2SHT2 = '1') and i_EUR = '1' and i_kci = '1') then
       a:= not a;
-      p_out_tv_ssi<=not a;
+      p_out_tv_ssi <= not a;
     end if;
   end if;
   end if;
 end process;
 
 --Формируем Активную часть строки
-process(p_in_rst,p_in_clk)
+process(p_in_rst, p_in_clk)
   variable a : std_logic;
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
     a:= '0';
-    i_pixen<='0';
+    i_pixen <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
-  if p_in_clk_en='1' then
-    if ((H2SHT4='1' and SelH='1') or (H2SHT5='1'  and SelH='0')) then
+  elsif rising_edge(p_in_clk) then
+  if p_in_clk_en = '1' then
+    if ((i_H2SHT4 = '1' and i_SelH = '1') or (i_H2SHT5 = '1'  and i_SelH = '0')) then
       --Выбираем кол-во активных строк в 1-ом и 2-ом поле
       --В 1-ом поле ТВ сигнала 287 строк
---        if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(50, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(624, cnt_N2H'length))) or
---           (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(49, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(623, cnt_N2H'length))) then
+--        if (i_field = '1' and (i_cnt_N2H > TO_UNSIGNED(50, i_cnt_N2H'length) and i_cnt_N2H <= TO_UNSIGNED(624, i_cnt_N2H'length))) or
+--           (i_field = '0' and (i_cnt_N2H > TO_UNSIGNED(49, i_cnt_N2H'length) and i_cnt_N2H <= TO_UNSIGNED(623, i_cnt_N2H'length))) then
       --В 1-ом поле ТВ сигнала 288 строк
-      if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(48, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(624, cnt_N2H'length))) or
-         (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(47, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(623, cnt_N2H'length))) then
+      if (i_field = '1' and (i_cnt_N2H > TO_UNSIGNED(48, i_cnt_N2H'length) and i_cnt_N2H <= TO_UNSIGNED(624, i_cnt_N2H'length))) or
+         (i_field = '0' and (i_cnt_N2H > TO_UNSIGNED(47, i_cnt_N2H'length) and i_cnt_N2H <= TO_UNSIGNED(623, i_cnt_N2H'length))) then
       --Test
---        if (Fiald_int='1' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(24, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(64, cnt_N2H'length))) or
---           (Fiald_int='0' and (cnt_N2H>CONV_STD_LOGIC_VECTOR(23, cnt_N2H'length) and cnt_N2H<=CONV_STD_LOGIC_VECTOR(63, cnt_N2H'length))) then
+--        if (i_field = '1' and (i_cnt_N2H > TO_UNSIGNED(24, i_cnt_N2H'length) and i_cnt_N2H <= TO_UNSIGNED(64, i_cnt_N2H'length))) or
+--           (i_field = '0' and (i_cnt_N2H > TO_UNSIGNED(23, i_cnt_N2H'length) and i_cnt_N2H <= TO_UNSIGNED(63, i_cnt_N2H'length))) then
         a:= not a;
-        i_pixen<=not a;
+        i_pixen <= not a;
 
         --Для тестирования кол-ва строк в кадре и пиксел в строке!!!!!!
 --          APRT<=not a;
@@ -326,27 +329,27 @@ p_out_den <= i_pixen;
 
 
 ----Формируем сигналы для подстройки строки
---process(p_in_rst,p_in_clk)
+--process(p_in_rst, p_in_clk)
 --begin
---  if p_in_rst='1' then
---    LOAD_ADJUST<='0';
---    EN_ADJUST<='0';
+--  if p_in_rst = '1' then
+--    LOAD_ADJUST <= '0';
+--    EN_ADJUST <= '0';
 --
---  elsif p_in_clk'event and p_in_clk='1' then
---  if p_in_clk_en='1' then
+--  elsif rising_edge(p_in_clk) then
+--  if p_in_clk_en = '1' then
 --
-----      if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(51, cnt_N2H'length)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(50, cnt_N2H'length)) then
---    if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(49, cnt_N2H'length)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(48, cnt_N2H'length)) then
---      EN_ADJUST<='1';
---    elsif cnt_N2H=CONV_STD_LOGIC_VECTOR(0, cnt_N2H'length) then
---      EN_ADJUST<='0';
+----      if (i_field = '1' and i_cnt_N2H = TO_UNSIGNED(51, i_cnt_N2H'length)) or (i_field = '0' and i_cnt_N2H = TO_UNSIGNED(50, i_cnt_N2H'length)) then
+--    if (i_field = '1' and i_cnt_N2H = TO_UNSIGNED(49, i_cnt_N2H'length)) or (i_field = '0' and i_cnt_N2H = TO_UNSIGNED(48, i_cnt_N2H'length)) then
+--      EN_ADJUST <= '1';
+--    elsif i_cnt_N2H = TO_UNSIGNED(0, i_cnt_N2H'length) then
+--      EN_ADJUST <= '0';
 --    end if;
 --
-----      if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(51, cnt_N2H'length)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(50, cnt_N2H'length)) then
---    if (Fiald_int='1' and cnt_N2H=CONV_STD_LOGIC_VECTOR(49, cnt_N2H'length)) or (Fiald_int='0' and cnt_N2H=CONV_STD_LOGIC_VECTOR(48, cnt_N2H'length)) then
---      LOAD_ADJUST<='1';
+----      if (i_field = '1' and i_cnt_N2H = TO_UNSIGNED(51, i_cnt_N2H'length)) or (i_field = '0' and i_cnt_N2H = TO_UNSIGNED(50, i_cnt_N2H'length)) then
+--    if (i_field = '1' and i_cnt_N2H = TO_UNSIGNED(49, i_cnt_N2H'length)) or (i_field = '0' and i_cnt_N2H = TO_UNSIGNED(48, i_cnt_N2H'length)) then
+--      LOAD_ADJUST <= '1';
 --    else
---      LOAD_ADJUST<='0';
+--      LOAD_ADJUST <= '0';
 --    end if;
 --
 --  end if;
@@ -357,25 +360,25 @@ p_out_den <= i_pixen;
 --  *********************************************************************************
 --  ************* Тестируем кол-во строк в кадре и пиксел в строке ******************
 --  *********************************************************************************
---  process(p_in_rst,p_in_clk)
+--  process(p_in_rst, p_in_clk)
 --  begin
---    if p_in_rst='1' then
---      test_pix<=0;
---    elsif p_in_clk'event and p_in_clk='1' then
---      if APRT='1' then
---        test_pix<=test_pix+1;
+--    if p_in_rst = '1' then
+--      test_pix <= 0;
+--    elsif rising_edge(p_in_clk) then
+--      if APRT = '1' then
+--        test_pix <= test_pix + 1;
 --      else
---        test_pix<=0;
+--        test_pix <= 0;
 --      end if;
 --    end if;
 --  end process;
 
---  process(KCI_int,APRT)
+--  process(i_kci,APRT)
 --  begin
---    if KCI_int='1' then
---      test_row<=0;
---    elsif APRT'event and APRT='1' then
---      test_row<=test_row+1;
+--    if i_kci = '1' then
+--      test_row <= 0;
+--    elsif APRT'event and APRT = '1' then
+--      test_row <= test_row + 1;
 --    end if;
 --  end process;
 
