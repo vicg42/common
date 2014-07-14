@@ -70,8 +70,6 @@ signal i_rxd        : std_logic_vector(max2(G_AWIDTH, G_DWIDTH) - 1 downto 0) :=
 signal sr_reg       : std_logic_vector(max2(G_AWIDTH, G_DWIDTH) - 1 downto 0) := (others=>'0');
 signal i_bitcnt     : unsigned(log2(sr_reg'length) - 1 downto 0) := (others=>'0');
 
-signal i_adr        : std_logic_vector(G_AWIDTH - 1 + 1 downto 0) := (others=>'0');
-
 signal tst_fsmstate,tst_fsmstate_dly : std_logic_vector(2 downto 0) := (others => '0');
 signal i_sck_out : std_logic;
 signal i_mosi_out : std_logic := '0';
@@ -91,7 +89,7 @@ p_out_data <= i_rxd;
 --                               or i_fsm_core_cs = S_TX_D
 --                                or i_fsm_core_cs = S_RX_D else '0';
 --p_out_physpi.ss_n <= i_ss_n;
---p_out_physpi.mosi <= sr_reg(G_AWIDTH - 1 + 1) when i_fsm_core_cs = S_TX_ADR else
+--p_out_physpi.mosi <= sr_reg(G_AWIDTH - 1) when i_fsm_core_cs = S_TX_ADR else
 --                      sr_reg(G_DWIDTH - 1) when i_fsm_core_cs = S_TX_D else
 --                      'Z';
 
@@ -104,7 +102,7 @@ i_sck_out <= i_sck when i_fsm_core_cs = S_TX_ADR
                             or i_fsm_core_cs = S_RX_D else '0';
 
 --txd: MSB
-i_mosi_out <= sr_reg(G_AWIDTH - 1 + 1) when i_fsm_core_cs = S_TX_ADR else
+i_mosi_out <= sr_reg(G_AWIDTH - 1) when i_fsm_core_cs = S_TX_ADR else
               sr_reg(G_DWIDTH - 1) when i_fsm_core_cs = S_TX_D else
               '0';
 --txd: LSB
@@ -118,8 +116,6 @@ begin
     end if;
   end if;
 end process;
-
-i_adr <= p_in_adr & p_in_dir;
 
 process(p_in_clk)
 begin
@@ -152,7 +148,7 @@ begin
           when S_IDLE2 =>
 
             if p_in_clk_en = '1' and i_sck = '1' then
-                sr_reg <= std_logic_vector(RESIZE(UNSIGNED(i_adr), sr_reg'length));
+                sr_reg <= std_logic_vector(RESIZE(UNSIGNED(p_in_adr), sr_reg'length));
                 i_ss_n <= '0';
                 i_fsm_core_cs <= S_TX_ADR;
             end if;
@@ -160,7 +156,7 @@ begin
           when S_TX_ADR =>
 
             if p_in_clk_en = '1' and i_sck = '1' then
-              if i_bitcnt = TO_UNSIGNED(G_AWIDTH - 1 + 1, i_bitcnt'length) then
+              if i_bitcnt = TO_UNSIGNED(G_AWIDTH - 1, i_bitcnt'length) then
                 sr_reg <= p_in_data;
                 i_bitcnt <= (others => '0');
                 if p_in_dir = C_SPI_WRITE then

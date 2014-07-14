@@ -113,7 +113,7 @@ pin_out_tp(1) <= i_dir or i_start or i_busy;
 
 process
 begin
-i_adr <= std_logic_vector(TO_UNSIGNED(16#1F5#, i_adr'length));
+i_adr <= std_logic_vector(TO_UNSIGNED(16#1F5#, i_adr'length - 1)) & '1';
 i_txd <= std_logic_vector(TO_UNSIGNED(16#F755#, i_txd'length));
 i_start <= '0';
 i_spi_in.miso <= 'Z';
