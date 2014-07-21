@@ -6,9 +6,6 @@
 -- Module Name : spi_core
 --
 -- Назначение/Описание :
---   Adr Reg = p_in_adr & p_in_dir;
---   TxD (FPGA -> DEV)  --shift MSB first
---   RxD (FPGA <- DEV)  --recieve MSB first
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -25,6 +22,8 @@ use work.reduce_pack.all;
 
 entity spi_core is
 generic(
+G_DBG    : string := "OFF";
+G_OPT    : std_logic_vector(3 downto 0) := (others => '0'); --G_OPT(0)=0/1 - tx,rx data MSB/LSB first
 G_AWIDTH : integer := 16;
 G_DWIDTH : integer := 16
 );
@@ -47,7 +46,7 @@ p_in_clk_en : in   std_logic;
 p_in_clk    : in   std_logic;
 p_in_rst    : in   std_logic
 );
-end;
+end entity spi_core;
 
 architecture behavior of spi_core is
 
@@ -71,27 +70,16 @@ signal sr_reg       : std_logic_vector(max2(G_AWIDTH, G_DWIDTH) - 1 downto 0) :=
 signal i_bitcnt     : unsigned(log2(sr_reg'length) - 1 downto 0) := (others=>'0');
 
 signal tst_fsmstate,tst_fsmstate_dly : std_logic_vector(2 downto 0) := (others => '0');
-signal i_sck_out : std_logic;
-signal i_mosi_out : std_logic := '0';
-signal tst_mosi    : std_logic;
-signal tst_sck_out : std_logic;
+signal i_sck_out    : std_logic;
+signal i_mosi_out   : std_logic := '0';
+signal tst_mosi     : std_logic;
+signal tst_sck_out  : std_logic;
 
 --MAIN
 begin
 
-p_out_tst(0) <= '1' when i_fsm_core_cs = S_RX_D else '0';
-p_out_tst(1) <= OR_reduce(tst_fsmstate_dly) or tst_mosi or tst_sck_out;
-
 p_out_busy <= i_busy;
 p_out_data <= i_rxd;
-
---p_out_physpi.sck <= i_sck when i_fsm_core_cs = S_TX_ADR
---                               or i_fsm_core_cs = S_TX_D
---                                or i_fsm_core_cs = S_RX_D else '0';
---p_out_physpi.ss_n <= i_ss_n;
---p_out_physpi.mosi <= sr_reg(G_AWIDTH - 1) when i_fsm_core_cs = S_TX_ADR else
---                      sr_reg(G_DWIDTH - 1) when i_fsm_core_cs = S_TX_D else
---                      'Z';
 
 p_out_physpi.ss_n <= i_ss_n;
 p_out_physpi.mosi <= i_mosi_out when i_fsm_core_cs = S_TX_ADR or i_fsm_core_cs = S_TX_D else 'Z';
@@ -102,11 +90,16 @@ i_sck_out <= i_sck when i_fsm_core_cs = S_TX_ADR
                             or i_fsm_core_cs = S_RX_D else '0';
 
 --txd: MSB
+gen_msb_first : if G_OPT(0) = '0' generate
 i_mosi_out <= sr_reg(G_AWIDTH - 1) when i_fsm_core_cs = S_TX_ADR else
               sr_reg(G_DWIDTH - 1) when i_fsm_core_cs = S_TX_D else
               '0';
+end generate gen_msb_first;
+
 --txd: LSB
---i_mosi_out <= sr_reg(0);
+gen_lsb_first : if G_OPT(0) = '1' generate
+i_mosi_out <= sr_reg(0);
+end generate gen_lsb_first;
 
 process(p_in_clk)
 begin
@@ -129,12 +122,12 @@ begin
       i_rxd <= (others => '0');
 
     else
+      if p_in_clk_en = '1' then
 
         case i_fsm_core_cs is
 
           when S_IDLE =>
 
-            if p_in_clk_en = '1' then
               if p_in_start = '1' then
                 i_busy <= '1';
                 i_ss_n <= '0';
@@ -143,11 +136,10 @@ begin
                 i_ss_n <= '1';
                 i_busy <= '0';
               end if;
-            end if;
 
           when S_IDLE2 =>
 
-            if p_in_clk_en = '1' and i_sck = '1' then
+            if i_sck = '1' then
                 sr_reg <= std_logic_vector(RESIZE(UNSIGNED(p_in_adr), sr_reg'length));
                 i_ss_n <= '0';
                 i_fsm_core_cs <= S_TX_ADR;
@@ -155,7 +147,7 @@ begin
 
           when S_TX_ADR =>
 
-            if p_in_clk_en = '1' and i_sck = '1' then
+            if i_sck = '1' then
               if i_bitcnt = TO_UNSIGNED(G_AWIDTH - 1, i_bitcnt'length) then
                 sr_reg <= p_in_data;
                 i_bitcnt <= (others => '0');
@@ -165,28 +157,36 @@ begin
                   i_fsm_core_cs <= S_RX_D;
                 end if;
               else
---                sr_reg <= '0' & sr_reg(sr_reg'length - 1 downto 1); --txd: LSB first
+                if G_OPT(0) = '1' then
+                sr_reg <= '0' & sr_reg(sr_reg'length - 1 downto 1); --txd: LSB first
+                else
                 sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & '0'; --txd: MSB first
+                end if;
+
                 i_bitcnt <= i_bitcnt + 1;
               end if;
             end if;
 
           when S_TX_D =>
 
-            if p_in_clk_en = '1' and i_sck = '1' then
+            if i_sck = '1' then
               if i_bitcnt = TO_UNSIGNED(G_DWIDTH - 1, i_bitcnt'length) then
                 i_bitcnt <= (others => '0');
                 i_fsm_core_cs <= S_DONE;
               else
---                sr_reg <= '0' & sr_reg(sr_reg'length - 1 downto 1); --txd: LSB first
+                if G_OPT(0) = '1' then
+                sr_reg <= '0' & sr_reg(sr_reg'length - 1 downto 1); --txd: LSB first
+                else
                 sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & '0'; --txd: MSB first
+                end if;
+
                 i_bitcnt <= i_bitcnt + 1;
               end if;
             end if;
 
           when S_RX_D =>
 
-            if p_in_clk_en = '1' and i_sck = '1' then
+            if i_sck = '1' then
               if i_bitcnt = TO_UNSIGNED(G_DWIDTH - 1, i_bitcnt'length) then
                 i_bitcnt <= (others => '0');
                 i_fsm_core_cs <= S_DONE;
@@ -194,20 +194,24 @@ begin
                 i_bitcnt <= i_bitcnt + 1;
               end if;
 
---              sr_reg <= p_in_physpi.miso & sr_reg(sr_reg'length - 1 downto 0); --rxd: LSB first
+              if G_OPT(0) = '1' then
+              sr_reg <= p_in_physpi.miso & sr_reg(sr_reg'length - 1 downto 0); --rxd: LSB first
+              else
               sr_reg <= sr_reg(sr_reg'length - 2 downto 0) & p_in_physpi.miso; --rxd: MSB first
+              end if;
+
             end if;
 
           when S_DONE =>
 
-            if p_in_clk_en = '1' and i_sck = '1' then
+            if i_sck = '1' then
                 i_rxd <= sr_reg;
                 i_fsm_core_cs <= S_DONE2;
             end if;
 
           when S_DONE2 =>
 
-            if p_in_clk_en = '1' and i_sck = '1' then
+            if i_sck = '1' then
               i_ss_n <= '1';
               if i_bitcnt = TO_UNSIGNED(2 - 1, i_bitcnt'length) then
                 i_busy <= '0';
@@ -220,10 +224,19 @@ begin
 
         end case;
 
+      end if;
     end if;
   end if;
 end process;
 
+
+gen_dbg_off : if strcmp(G_DBG, "OFF") generate
+p_out_tst <= (others => '0');
+end generate gen_dbg_off;
+
+gen_dbg_on : if strcmp(G_DBG, "ON") generate
+p_out_tst(0) <= '1' when i_fsm_core_cs = S_RX_D else '0';
+p_out_tst(1) <= OR_reduce(tst_fsmstate_dly) or tst_mosi or tst_sck_out;
 
 process(p_in_clk)
 begin
@@ -234,7 +247,6 @@ begin
   end if;
 end process;
 
-
 tst_fsmstate <= std_logic_vector(TO_UNSIGNED(16#06#,tst_fsmstate'length)) when i_fsm_core_cs = S_DONE2  else
                 std_logic_vector(TO_UNSIGNED(16#05#,tst_fsmstate'length)) when i_fsm_core_cs = S_DONE   else
                 std_logic_vector(TO_UNSIGNED(16#04#,tst_fsmstate'length)) when i_fsm_core_cs = S_RX_D   else
@@ -242,7 +254,7 @@ tst_fsmstate <= std_logic_vector(TO_UNSIGNED(16#06#,tst_fsmstate'length)) when i
                 std_logic_vector(TO_UNSIGNED(16#02#,tst_fsmstate'length)) when i_fsm_core_cs = S_TX_ADR else
                 std_logic_vector(TO_UNSIGNED(16#01#,tst_fsmstate'length)) when i_fsm_core_cs = S_IDLE2  else
                 std_logic_vector(TO_UNSIGNED(16#00#,tst_fsmstate'length)); --i_fsm_core_cs = S_IDLE      else
-
+end generate gen_dbg_on;
 
 --END MAIN
-end architecture;
+end architecture behavior;
