@@ -25,19 +25,30 @@ END tv_gen_tb;
 ARCHITECTURE behavior OF tv_gen_tb IS
 
 --  Определяем частоты генераторов на плате:
-    CONSTANT period_sys_clk       : TIME := 16.666 ns;--60MHz
+    CONSTANT period_sys_clk       : TIME := 56.388 ns;--17,733990147783251231527093596059 MHz
 
-  COMPONENT tv_gen
-  PORT(
-    p_in_rst : IN std_logic;
-    p_in_clk : IN std_logic;
-    p_in_clk_en : IN std_logic;
-    p_out_tv_kci   : out std_logic;
-    p_out_tv_ssi : OUT std_logic;
-    p_out_tv_field : OUT std_logic;
-    p_out_den : OUT std_logic
-    );
-  END COMPONENT;
+component tv_gen is
+generic(
+N_ROW  : integer:=625;--Кол-во строк в кадре. (312.5 строк в одном поле)
+N_H2   : integer:=400;--т.е. 64us/2=32us (удвоеная частота строк)
+W2_32us: integer:=29 ;--т.е. 2.32 us
+W4_7us : integer:=59 ;--т.е. 4.7 us
+W1_53us: integer:=19 ;--т.е. 1.53 us
+W5_8us : integer:=73 ;--т.е. 5.8 us
+var1   : integer:=4  ;--продстройка
+var2   : integer:=5   --продстройка
+);
+port(
+p_out_tv_kci   : out std_logic;
+p_out_tv_ssi   : out std_logic;--Синхросмесь. Стандартный TV сигнал
+p_out_tv_field : out std_logic;--Поле TV сигнала (Четные/Нечетные строки)
+p_out_den      : out std_logic;--Активная часть строки.(Разрешение вывода пиксел)
+
+p_in_clk_en: in std_logic;
+p_in_clk   : in std_logic;
+p_in_rst   : in std_logic
+);
+end component;
 
   SIGNAL rst :  std_logic;
   SIGNAL clk :  std_logic;
@@ -48,15 +59,28 @@ ARCHITECTURE behavior OF tv_gen_tb IS
 
 BEGIN
 
-  uut: tv_gen PORT MAP(
-    p_in_rst => rst,
-    p_in_clk => clk,
-    p_in_clk_en => '1',
-    p_out_tv_ssi => p_out_tv_ssi,
-    p_out_tv_kci => p_out_tv_kci,
-    p_out_tv_field => p_out_tv_field,
-    p_out_den => i_tv_den
-  );
+uut: tv_gen
+generic map(
+--Все значения относительно p_in_clk=17,734472MHz (Активных строк/пиксел - 574/xxx)
+N_ROW   => 625, --Кол-во строк в кадре. (312.5 строк в одном поле)
+N_H2    => 567, --т.е. 64us/2=32us (удвоеная частота строк)
+W2_32us => 41 , --т.е. 2.32 us
+W4_7us  => 83 , --т.е. 4.7 us
+W1_53us => 27 , --т.е. 1.53 us
+W5_8us  => 102, --т.е. 5.8 us
+var1    => 13  , --продстройка
+var2    => 14    --продстройка
+)
+port map(
+p_out_tv_kci   => p_out_tv_kci,
+p_out_tv_ssi   => p_out_tv_ssi,
+p_out_tv_field => p_out_tv_field,
+p_out_den      => i_tv_den,
+
+p_in_clk_en => '1',
+p_in_clk => clk,
+p_in_rst => rst
+);
 
 
 -- *** Test Bench - User Defined Section ***

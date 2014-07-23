@@ -6,7 +6,7 @@ vlib work
 vlog "c:/Xilinx/14.6/ISE_DS/ISE/verilog/src/glbl.v"
 
 # compile all of the files
-vcom -work work ../../../common/hw/video/video_out/tv_gen.vhd
+vcom -work work ../../tv_gen.vhd
 vcom -work work ../testbanch/tv_gen_tb.vhd
 
 # run the simulation
