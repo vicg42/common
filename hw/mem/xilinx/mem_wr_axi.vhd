@@ -74,7 +74,7 @@ p_out_tst            : out   std_logic_vector(31 downto 0);
 p_in_clk             : in    std_logic;
 p_in_rst             : in    std_logic
 );
-end mem_wr;
+end entity mem_wr;
 
 architecture behavioral of mem_wr is
 
@@ -110,7 +110,7 @@ signal i_axi_trnlen        : std_logic_vector(p_in_cfg_mem_trn_len'range);
 signal i_cfg_mem_dlen_rq   : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
 signal i_cfg_mem_trn_len   : std_logic_vector(p_in_cfg_mem_trn_len'range);
 
-signal tst_fsm_cs          : std_logic_vector(3 downto 0);
+signal tst_fsm_cs,tst_fsm_cs_dly  : std_logic_vector(3 downto 0);
 
 
 --MAIN
@@ -121,9 +121,16 @@ begin
 --------------------------------------
 p_out_tst(0) <= '0';--i_mem_term;
 p_out_tst(1) <= '0';--sr_mem_term_out;
-p_out_tst(5 downto 2) <= tst_fsm_cs;
+p_out_tst(5 downto 2) <= tst_fsm_cs_dly;
 p_out_tst(15 downto 6) <= (others=>'0');
 p_out_tst(31 downto 16) <= i_mem_trn_len;
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk)  then
+    tst_fsm_cs_dly <= tst_fsm_cs;
+  end if;
+end process;
 
 tst_fsm_cs <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_REMAIN_SIZE_CALC     else
               CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_LEN_CALC         else
@@ -185,7 +192,7 @@ p_out_mem.axir.avalid <= i_axir_avalid;
 p_out_mem.axir.rready <= i_mem_trn_work when i_mem_dir = C_MEMWR_READ else '0';
 
 
-process(p_in_clk)
+mem_term : process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
 
@@ -199,7 +206,7 @@ begin
     end if;
 
   end if;
-end process;
+end process mem_term;
 
 
 --------------------------------------------------
@@ -213,7 +220,7 @@ i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid when i_mem_dir = C_MEMWR_REA
 i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty when i_mem_dir = C_MEMWR_WRITE else '0';
 
 --Логика работы автомата
-process(p_in_clk)
+fsm : process(p_in_clk)
   variable update_addr: std_logic_vector(i_mem_trn_len'length + log2(G_MEM_DWIDTH/8) - 1 downto 0);
 begin
 if rising_edge(p_in_clk) then
@@ -386,8 +393,8 @@ if rising_edge(p_in_clk) then
     end case;
   end if;
 end if;
-end process;
+end process fsm;
 
 --END MAIN
-end behavioral;
+end architecture behavioral;
 
