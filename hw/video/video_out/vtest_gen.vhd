@@ -121,23 +121,12 @@ end process;
 ------------------------------------
 --Video
 ------------------------------------
-p_out_vd <= sr_vd_out;
-p_out_vs <= sr_vs;
-p_out_hs <= sr_hs;
+p_out_vd <= i_vd_out;
+p_out_vs <= i_vs;
+p_out_hs <= i_hs;
 
 i_vrow_half_count <= RESIZE(UNSIGNED(p_in_vrow(p_in_vrow'length - 1 downto 1))
                                                     , i_vrow_half_count'length);
-
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-    if p_in_clk_en = '1' then
-      sr_hs <= i_hs;
-      sr_vs <= i_vs;
-      sr_vd_out <= i_vd_out;
-    end if;
-  end if;
-end process;
 
 --vsync
 process(p_in_clk)
@@ -282,5 +271,15 @@ gen_vd : for i in 0 to (G_VD_WIDTH / 8) - 1 generate
 i_vd_out((i_vd(i)'length * (i + 1)) - 1 downto (i_vd(i)'length * i)) <= std_logic_vector(i_vd(i));
 end generate gen_vd;
 
+--process(p_in_clk)
+--begin
+--  if rising_edge(p_in_clk) then
+--    if p_in_clk_en = '1' then
+--      sr_hs <= i_hs;
+--      sr_vs <= i_vs;
+--      sr_vd_out <= i_vd_out;
+--    end if;
+--  end if;
+--end process;
 --END MAIN
 end architecture behavioral;
