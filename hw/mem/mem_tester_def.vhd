@@ -28,7 +28,7 @@ constant C_PCFG_MEMARB_CH_COUNT     : integer := 1;
 
 --cfg TESTING
 constant C_PCFG_MEMADR_START     : integer := 0;--(BYTE)
-constant C_PCFG_MEMTEST_SIZE     : integer := 256;--(BYTE)
+constant C_PCFG_MEMTEST_SIZE     : integer := 1 * C_1KB;--(BYTE) Тестируемый объем данных
 constant C_PCFG_MEMWR_BURST      : integer := 64;--(BYTE)
 constant C_PCFG_MEMWR_TRLEN      : integer := 64;
 constant C_PCFG_MEMRD_BURST      : integer := 64;--(BYTE)

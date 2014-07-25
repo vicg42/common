@@ -179,8 +179,6 @@ signal i_mem_dir          : std_logic := '0';
 signal i_mem_start        : std_logic := '0';
 signal i_mem_done         : std_logic := '0';
 signal i_mem_test_err     : unsigned((CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE) - 1 downto 0);
-signal i_memwr_burst_byte : unsigned(i_mem_dlen_rq'range) := (others => '0');
-signal i_memrd_burst_byte : unsigned(i_mem_dlen_rq'range) := (others => '0');
 signal sr_mem_done        : unsigned(0 to 1) := (others => '0');
 signal i_mem_dcnt  : unsigned(31 downto 0) := (others => '0');
 
@@ -467,9 +465,7 @@ begin
   end if;
 end process;
 
-i_memwr_burst_byte <= TO_UNSIGNED(C_PCFG_MEMWR_BURST, i_memwr_burst_byte'length);
-i_memrd_burst_byte <= TO_UNSIGNED(C_PCFG_MEMRD_BURST, i_memrd_burst_byte'length);
-
+--Управление модулем pcie2mem_ctrl.vhd
 mem_ctrl : process(g_hmem_clk)
 begin
 if rising_edge(g_hmem_clk) then
@@ -487,7 +483,7 @@ if rising_edge(g_hmem_clk) then
     case i_fsm_memctrl_cs is
 
       --------------------------------------
-      --Исходное состояние
+      --
       --------------------------------------
       when S_IDLE =>
 
@@ -497,15 +493,11 @@ if rising_edge(g_hmem_clk) then
         end if;
 
       --------------------------------------
-      --WRITE
+      --WRITE (весь массив данных (C_PCFG_MEMTEST_SIZE) записываем частями (C_PCFG_MEMWR_BURST))
       --------------------------------------
       when S_MEMWR_START =>
 
-        i_mem_dlen_rq <= RESIZE(i_memwr_burst_byte(i_memwr_burst_byte'high downto log2(CI_HDEV_DWIDTH / 8))
-                                                                              , i_mem_dlen_rq'length)
-                         + (TO_UNSIGNED(0, i_mem_dlen_rq'length - 2)
-                            & OR_reduce(i_memwr_burst_byte(log2(CI_HDEV_DWIDTH / 8) - 1 downto 0)));
-
+        i_mem_dlen_rq <= TO_UNSIGNED(C_PCFG_MEMWR_BURST, i_mem_dlen_rq'length);
         i_mem_dir <= C_MEMWR_WRITE;
         i_mem_start <= '1';
         i_fsm_memctrl_cs <= S_MEMWR_BUSY;
@@ -516,7 +508,7 @@ if rising_edge(g_hmem_clk) then
 
         if i_mem_done = '1' then
 
-          i_mem_adr <= i_mem_adr + RESIZE(i_memwr_burst_byte, i_mem_adr'length);
+          i_mem_adr <= i_mem_adr + TO_UNSIGNED(C_PCFG_MEMWR_BURST, i_mem_adr'length);
           i_fsm_memctrl_cs <= S_MEMWR_NXT;
 
         end if;
@@ -537,15 +529,11 @@ if rising_edge(g_hmem_clk) then
 
 
       --------------------------------------
-      --READ
+      --READ (вычитывваем необходимое кол-во данных (C_PCFG_MEMTEST_SIZE) частями (C_PCFG_MEMRD_BURST))
       --------------------------------------
       when S_MEMRD_START =>
 
-        i_mem_dlen_rq <= RESIZE(i_memrd_burst_byte(i_memrd_burst_byte'high downto log2(CI_HDEV_DWIDTH / 8))
-                                                                              , i_mem_dlen_rq'length)
-                         + (TO_UNSIGNED(0, i_mem_dlen_rq'length - 2)
-                            & OR_reduce(i_memrd_burst_byte(log2(CI_HDEV_DWIDTH / 8) - 1 downto 0)));
-
+        i_mem_dlen_rq <= TO_UNSIGNED(C_PCFG_MEMRD_BURST, i_mem_dlen_rq'length);
         i_mem_dir <= C_MEMWR_READ;
         i_mem_start <= '1';
         i_fsm_memctrl_cs <= S_MEMRD_BUSY;
@@ -556,28 +544,25 @@ if rising_edge(g_hmem_clk) then
 
         if i_mem_done = '1' then
 
-          i_mem_adr <= i_mem_adr + RESIZE(i_memrd_burst_byte, i_mem_adr'length);
+          i_mem_adr <= i_mem_adr + TO_UNSIGNED(C_PCFG_MEMRD_BURST, i_mem_adr'length);
           i_fsm_memctrl_cs <= S_MEMRD_NXT;
 
         end if;
 
       when S_MEMRD_NXT =>
 
-        if i_mem_done = '1' then
+        if i_mem_adr >= (TO_UNSIGNED(C_PCFG_MEMADR_START, i_mem_adr'length)
+                          + TO_UNSIGNED(C_PCFG_MEMTEST_SIZE, i_mem_adr'length)) then
 
-          if i_mem_adr >= (TO_UNSIGNED(C_PCFG_MEMADR_START, i_mem_adr'length)
-                            + TO_UNSIGNED(C_PCFG_MEMTEST_SIZE, i_mem_adr'length)) then
+          i_mem_adr <= TO_UNSIGNED(C_PCFG_MEMADR_START, i_mem_adr'length);
+          i_fsm_memctrl_cs <= S_IDLE;
 
-            i_mem_adr <= TO_UNSIGNED(C_PCFG_MEMADR_START, i_mem_adr'length);
-            i_fsm_memctrl_cs <= S_IDLE;
+        else
 
-          else
-
-            i_fsm_memctrl_cs <= S_MEMRD_START;
-
-          end if;
+          i_fsm_memctrl_cs <= S_MEMRD_START;
 
         end if;
+
     end case;
 
   end if;
@@ -585,6 +570,7 @@ end if;
 end process mem_ctrl;
 
 
+--Test data generater + checker read data
 mem_data : process(g_hmem_clk)
 begin
 if rising_edge(g_hmem_clk) then
@@ -704,7 +690,9 @@ end if;
 end process mem_data;
 
 
-
+------------------------------------
+--DBG
+------------------------------------
 process(g_hmem_clk)
 begin
   if rising_edge(g_hmem_clk)  then
