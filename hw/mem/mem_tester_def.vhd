@@ -19,6 +19,8 @@ use work.vicg_common_pkg.all;
 
 package prj_cfg is
 
+constant C_PCFG_SIM : string := "OFF";
+
 --cfg Memory Controller
 constant C_PCGF_MEMCTRL_DWIDTH      : integer := 32;
 constant C_PCFG_MEMCTRL_BANK_COUNT  : integer := 1;
