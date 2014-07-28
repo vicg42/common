@@ -5,7 +5,7 @@
 -- Create Date : 25.07.2014 13:46:00
 -- Module Name : mem_tester
 --
--- Назначение/Описание :
+-- Назначение/Описание : Настройки тестирования в файле mem_tester_def.vhd
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -49,6 +49,19 @@ end entity mem_tester;
 architecture struct of mem_tester is
 
 constant CI_HDEV_DWIDTH  : integer := C_AXIM_DWIDTH;
+
+type TMemRandomINIT is array (0 to 7) of std_logic_vector(15 downto 0);
+constant CI_RANDOM_INIT : TMemRandomINIT := (
+std_logic_vector(TO_UNSIGNED(16#F0F6# + 0, 16)),
+std_logic_vector(TO_UNSIGNED(16#F0F6# + 32, 16)),
+std_logic_vector(TO_UNSIGNED(16#F0F6# + 34, 16)),
+std_logic_vector(TO_UNSIGNED(16#F0F6# + 44, 16)),
+std_logic_vector(TO_UNSIGNED(16#F0F6# + 66, 16)),
+std_logic_vector(TO_UNSIGNED(16#F0F6# + 86, 16)),
+std_logic_vector(TO_UNSIGNED(16#F0F6# + 91, 16)),
+std_logic_vector(TO_UNSIGNED(16#F0F6# + 13, 16))
+);
+
 
 component debounce is
 generic(
@@ -161,6 +174,13 @@ signal i_mem_ctrl_status  : TMEMCTRL_status;
 signal i_mem_ctrl_sysin   : TMEMCTRL_sysin;
 signal i_mem_ctrl_sysout  : TMEMCTRL_sysout;
 
+signal i_mem_txd_rnd_init : std_logic;
+signal i_mem_txd_rnd_en   : std_logic;
+type TMemRandomData is array (0 to (CI_HDEV_DWIDTH / 32))
+                                    of std_logic_vector(31 downto 0);
+signal i_mem_txd_rnd      : TMemRandomData;
+signal sr_hmem_rxd_busy   : std_logic_vector(0 to 1) := (others => '0');
+
 signal i_hmem_ctrl        : TPce2Mem_Ctrl;
 signal i_hmem_status      : TPce2Mem_Status;
 signal i_hmem_txd_busy    : std_logic := '0';
@@ -178,14 +198,16 @@ signal i_mem_dlen_rq      : unsigned(i_hmem_ctrl.req_len'range) := (others => '0
 signal i_mem_dir          : std_logic := '0';
 signal i_mem_start        : std_logic := '0';
 signal i_mem_done         : std_logic := '0';
-signal i_mem_test_err     : unsigned((CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE) - 1 downto 0);
+signal i_mem_test_err     : unsigned((CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT) - 1 downto 0);
+signal i_mem_test_rnd_err : unsigned((CI_HDEV_DWIDTH / i_mem_txd_rnd(0)'length) - 1 downto 0);
 signal sr_mem_done        : unsigned(0 to 1) := (others => '0');
-signal i_mem_dcnt  : unsigned(31 downto 0) := (others => '0');
+signal i_mem_dcnt         : unsigned(31 downto 0) := (others => '0');
 
-type TMemTestData is array (0 to (CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE))
-                                    of unsigned(C_PCFG_TESTCNT_TYPE - 1 downto 0);
+type TMemTestData is array (0 to (CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT))
+                                    of unsigned(C_PCFG_TEST_TYPE_CNT - 1 downto 0);
 signal i_mem_txd          : TMemTestData;
 signal i_mem_rxd          : TMemTestData;
+signal i_mem_rxd_rnd      : TMemRandomData;
 
 type TFsm_memctrl is (
 S_IDLE       ,
@@ -212,12 +234,12 @@ signal i_btn_push         : std_logic;
 signal sr_btn_push        : unsigned(0 to 1);
 signal i_test_start       : std_logic := '0';
 signal i_test_err         : std_logic := '0';
-
+signal tst_mem_txd_rnd_init: std_logic := '0';
 
 signal tst_fsm_memctrl_cs,tmp_fsm_memctrl_cs  : unsigned(2 downto 0);
 signal tst_fsm_memd_cs,tmp_fsm_memd_cs        : unsigned(1 downto 0);
-signal tst_hmem_rxbuf_rd : std_logic;
-signal tst_hmem_rxbuf_do : std_logic_vector(CI_HDEV_DWIDTH - 1 downto 0);
+signal tst_hmem_rxbuf_rd    : std_logic;
+signal tst_hmem_rxbuf_do    : std_logic_vector(CI_HDEV_DWIDTH - 1 downto 0);
 signal tst_hmem_txbuf_full  : std_logic;
 signal tst_hmem_rxbuf_empty : std_logic;
 
@@ -335,7 +357,7 @@ p_in_sys        => i_mem_ctrl_sysin
 --***********************************************************
 pin_out_led(0) <= i_test_err;
 pin_out_TP2(0) <= OR_reduce(i_hmem_tst_out) or OR_reduce(tst_fsm_memctrl_cs) or OR_reduce(tst_fsm_memd_cs);
-pin_out_TP2(1) <= tst_hmem_rxbuf_rd or OR_reduce(tst_hmem_rxbuf_do);
+pin_out_TP2(1) <= tst_hmem_rxbuf_rd or OR_reduce(tst_hmem_rxbuf_do) or tst_mem_txd_rnd_init;
 pin_out_TP2(2) <= tst_hmem_txbuf_full or tst_hmem_rxbuf_empty
 or tst_rxbuf_empty
 or tst_rxbuf_full
@@ -396,13 +418,54 @@ end process;
 i_hmem_txbuf_wr <= i_hmem_txd_busy and not i_hmem_txbuf_full;
 i_hmem_rxbuf_rd <= i_hmem_rxd_busy and not i_hmem_rxbuf_empty;
 
-gen_memdata : for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE) - 1 generate
+gen_rnd_off : if C_PCFG_TEST_TYPE_RANDOM = '0' generate
+gen_memdata : for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT) - 1 generate
 i_hmem_txbuf_di((i_mem_txd(i)'length * (i + 1)) - 1
                             downto (i_mem_txd(i)'length * i)) <= std_logic_vector(i_mem_txd(i));
 
 i_mem_rxd(i) <= UNSIGNED(i_hmem_rxbuf_do((i_mem_rxd(i)'length * (i + 1)) - 1
                                                 downto (i_mem_rxd(i)'length * i)));
 end generate gen_memdata;
+end generate gen_rnd_off;
+
+
+gen_rnd_on : if C_PCFG_TEST_TYPE_RANDOM = '1' generate
+gen_memdata : for i in 0 to (CI_HDEV_DWIDTH / i_mem_txd_rnd(0)'length) - 1 generate
+i_hmem_txbuf_di((i_mem_txd_rnd(i)'length * (i + 1)) - 1
+                            downto (i_mem_txd_rnd(i)'length * i)) <= i_mem_txd_rnd(i);
+
+i_mem_rxd_rnd(i) <= i_hmem_rxbuf_do((i_mem_rxd_rnd(i)'length * (i + 1)) - 1
+                                                downto (i_mem_rxd_rnd(i)'length * i));
+end generate gen_memdata;
+
+gen_rnd_d : for i in 0 to (CI_HDEV_DWIDTH / i_mem_txd_rnd(0)'length) - 1 generate
+process(g_hmem_clk)
+begin
+if rising_edge(g_hmem_clk) then
+  if i_mem_txd_rnd_init = '1' then
+    i_mem_txd_rnd(i) <= srambler32_0(CI_RANDOM_INIT(i));
+  else
+    if i_mem_txd_rnd_en = '1' then
+      i_mem_txd_rnd(i) <= srambler32_0(i_mem_txd_rnd(i)(31 downto 16));
+    end if;
+  end if;
+end if;
+end process;
+end generate gen_rnd_d;
+
+process(g_hmem_clk)
+begin
+  if rising_edge(g_hmem_clk)  then
+    sr_hmem_rxd_busy <= i_hmem_rxd_busy & sr_hmem_rxd_busy(0 to 0);
+  end if;
+end process;
+
+i_mem_txd_rnd_init <= i_test_start
+                    or (sr_hmem_rxd_busy(0) and not sr_hmem_rxd_busy(1));
+i_mem_txd_rnd_en <= i_hmem_txbuf_wr or i_hmem_rxbuf_rd;
+
+end generate gen_rnd_on;
+
 
 m_host2mem : pcie2mem_ctrl
 generic map(
@@ -580,9 +643,10 @@ if rising_edge(g_hmem_clk) then
     i_hmem_txd_busy <= '0';
     i_hmem_rxd_busy <= '0';
     i_mem_test_err <= (others => '0');
+    i_mem_test_rnd_err <= (others => '0');
     i_mem_dcnt <= (others =>'0');
 
-    for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE) - 1 loop
+    for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT) - 1 loop
     i_mem_txd(i) <= TO_UNSIGNED(i, i_mem_txd(i)'length);
     end loop;
 
@@ -599,9 +663,11 @@ if rising_edge(g_hmem_clk) then
 
         if i_fsm_memctrl_cs = S_MEMWR_BUSY then
 
-          for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE) - 1 loop
+          if C_PCFG_TEST_TYPE_RANDOM = '0' then
+          for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT) - 1 loop
           i_mem_txd(i) <= TO_UNSIGNED(i, i_mem_txd(i)'length);
           end loop;
+          end if;
 
           if i_hmem_txbuf_full = '0' then
             i_hmem_txd_busy <= '1';
@@ -620,9 +686,11 @@ if rising_edge(g_hmem_clk) then
 
             i_mem_dcnt <= (others => '0');
 
-            for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE) - 1 loop
+            if C_PCFG_TEST_TYPE_RANDOM = '0' then
+            for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT) - 1 loop
             i_mem_txd(i) <= TO_UNSIGNED(i, i_mem_txd(i)'length);
             end loop;
+            end if;
 
             i_hmem_txd_busy <= '0';
             i_hmem_rxd_busy <= '1';
@@ -633,10 +701,12 @@ if rising_edge(g_hmem_clk) then
 
             i_mem_dcnt <= i_mem_dcnt + 1;
 
-            for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE) - 1 loop
+            if C_PCFG_TEST_TYPE_RANDOM = '0' then
+            for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT) - 1 loop
             i_mem_txd(i) <= i_mem_txd(i)
-                              + TO_UNSIGNED((CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE), i_mem_txd(i)'length);
+                              + TO_UNSIGNED((CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT), i_mem_txd(i)'length);
             end loop;
+            end if;
 
           end if;
         end if;
@@ -658,12 +728,13 @@ if rising_edge(g_hmem_clk) then
 
             i_mem_dcnt <= i_mem_dcnt + 1;
 
-            for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE) - 1 loop
+            if C_PCFG_TEST_TYPE_RANDOM = '0' then
+            for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT) - 1 loop
             i_mem_txd(i) <= i_mem_txd(i)
-                              + TO_UNSIGNED((CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE), i_mem_txd(i)'length);
+                              + TO_UNSIGNED((CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT), i_mem_txd(i)'length);
             end loop;
 
-            for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TESTCNT_TYPE) - 1 loop
+            for i in 0 to (CI_HDEV_DWIDTH / C_PCFG_TEST_TYPE_CNT) - 1 loop
               if i_mem_rxd(i) /= i_mem_txd(i) then
                 i_mem_test_err(i) <= '1';
               else
@@ -673,6 +744,22 @@ if rising_edge(g_hmem_clk) then
 
             if OR_reduce(i_mem_test_err) = '1' then
               i_fsm_memd_cs <= S_ERR;
+            end if;
+            end if;
+
+
+            if C_PCFG_TEST_TYPE_RANDOM = '1' then
+            for i in 0 to (CI_HDEV_DWIDTH / i_mem_txd_rnd(0)'length) - 1 loop
+              if i_mem_rxd_rnd(i) /= i_mem_txd_rnd(i) then
+                i_mem_test_rnd_err(i) <= '1';
+              else
+                i_mem_test_rnd_err(i) <= '0';
+              end if;
+            end loop;
+
+            if OR_reduce(i_mem_test_rnd_err) = '1' then
+              i_fsm_memd_cs <= S_ERR;
+            end if;
             end if;
 
           end if;
@@ -701,7 +788,7 @@ begin
 
     tst_hmem_rxbuf_rd <= i_hmem_rxbuf_rd;
     tst_hmem_rxbuf_do <= i_hmem_rxbuf_do;
-
+    tst_mem_txd_rnd_init <= i_mem_txd_rnd_init;
   end if;
 end process;
 
