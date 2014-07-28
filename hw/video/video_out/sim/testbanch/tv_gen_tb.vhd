@@ -50,12 +50,15 @@ p_in_rst   : in std_logic
 );
 end component;
 
-  SIGNAL rst :  std_logic;
-  SIGNAL clk :  std_logic;
+signal rst :  std_logic;
+signal clk :  std_logic;
 
-  SIGNAL i_pixcnt : unsigned(9 downto 0) := (others => '0');
-  signal i_tv_den : std_logic;
-
+signal i_pixcnt : unsigned(9 downto 0) := (others => '0');
+signal i_tv_den : std_logic;
+signal sr_tv_den: std_logic_vector(0 to 1) := (others => '0');
+signal i_kci    : std_logic := '0';
+signal i_tv_field: std_logic := '0';
+signal i_rowcnt : unsigned(9 downto 0) := (others => '0');
 
 BEGIN
 
@@ -72,9 +75,9 @@ var1    => 13  , --продстройка
 var2    => 14    --продстройка
 )
 port map(
-p_out_tv_kci   => p_out_tv_kci,
+p_out_tv_kci   => i_kci,
 p_out_tv_ssi   => p_out_tv_ssi,
-p_out_tv_field => p_out_tv_field,
+p_out_tv_field => i_tv_field,
 p_out_den      => i_tv_den,
 
 p_in_clk_en => '1',
@@ -102,11 +105,19 @@ begin
     else
       i_pixcnt <= (OTHERS => '0');
     end if;
+
+    sr_tv_den <= i_tv_den & sr_tv_den(0 to 0);
+    if i_kci = '1' and i_tv_field = '1' then
+      i_rowcnt <= (OTHERS => '0');
+    elsif sr_tv_den(0) = '1' and sr_tv_den(1) = '0' then
+      i_rowcnt <= i_rowcnt + 1;
+    end if;
   end if;
 end process;
 
-p_out_tst(0) <= i_pixcnt(8);
+p_out_tst(0) <= i_pixcnt(8) or i_rowcnt(8);
 p_out_den <= i_tv_den;
-
+p_out_tv_kci <= i_kci;
+p_out_tv_field <= i_tv_field;
 
 END;
