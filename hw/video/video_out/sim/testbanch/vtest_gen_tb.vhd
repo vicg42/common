@@ -108,12 +108,12 @@ p_in_rst      => i_rst
 );
 
 
-tst_vfr_pixcount <= TO_UNSIGNED(5120 / 32, tst_vfr_pixcount'length);
-tst_vfr_rowcount <= TO_UNSIGNED(5120, tst_vfr_rowcount'length);
+tst_vfr_pixcount <= TO_UNSIGNED(1280 / 32, tst_vfr_pixcount'length);
+tst_vfr_rowcount <= TO_UNSIGNED(1024, tst_vfr_rowcount'length);
 
 --3..0 --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
 --7..4 --0/1/2/    - Test picture: V+H Counter/ V Counter/ H Counter/
-tst_vfr_cfg <= TO_UNSIGNED(16#10#, tst_vfr_cfg'length);
+tst_vfr_cfg <= TO_UNSIGNED(16#00#, tst_vfr_cfg'length);
 
 --tst_vfr_synwidth <= TO_UNSIGNED(384, tst_vfr_synwidth'length);-- for 30fps (dwith 256)
 tst_vfr_synwidth <= TO_UNSIGNED(244, tst_vfr_synwidth'length);-- for 30fps (dwith 256)

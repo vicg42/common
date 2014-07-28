@@ -8,7 +8,8 @@
 -- Назначение/Описание :
 --
 --7..4 -  --0/1/2/    - Test picture: V+H Counter/ V Counter/ H Counter/
---
+--V Counter (вертикальные полоски) - gradiet from left to right
+--H Counter (горизонтальные полоски) - gradiet from top to bottom
 --------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -58,7 +59,7 @@ S_SYN_V
 );
 signal fsm_cs : fsm_state;
 signal i_cfg                : std_logic_vector(p_in_cfg'range);
-type TVData is array (0 to (G_VD_WIDTH / 8)) of unsigned(7 downto 0);
+type TVData is array (0 to (G_VD_WIDTH / 8) -  1) of unsigned(7 downto 0);
 signal i_vd                 : TVData;
 signal i_pix_cnt            : unsigned(p_in_vpix'range) := (others => '0');
 signal i_row_cnt            : unsigned(p_in_vrow'range) := (others => '0');
@@ -214,7 +215,7 @@ if rising_edge(p_in_clk) then
   if p_in_clk_en = '1' then
 
       if i_cfg(5 downto 4) = "01" then
-      --(вертикальные полоски)
+      --(V Counter (вертикальные полоски) - gradiet from left to right)
           if i_hs = G_VSYN_ACTIVE or i_vs = G_VSYN_ACTIVE then
             for i in 0 to (G_VD_WIDTH / 8) - 1 loop
             i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
@@ -226,8 +227,8 @@ if rising_edge(p_in_clk) then
           end if;
 
       elsif i_cfg(5 downto 4) = "10" then
-      --(горизонтальные полоски)
-          if i_vs = '1' then
+      --(H Counter (горизонтальные полоски) - gradiet from top to bottom)
+          if i_vs = G_VSYN_ACTIVE then
             for i in 0 to (G_VD_WIDTH / 8) - 1 loop
             i_vd(i) <= (others => '0');
             end loop;
@@ -250,15 +251,9 @@ if rising_edge(p_in_clk) then
             end loop;
           end if;
         else
-          if i_vs = '1' then
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
-            i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
-            end loop;
-          else
             for i in 0 to (G_VD_WIDTH / 8) - 1 loop
             i_vd(i) <= i_row_cnt(i_vd(i)'range);
             end loop;
-          end if;
         end if;
       end if;
 
@@ -271,15 +266,6 @@ gen_vd : for i in 0 to (G_VD_WIDTH / 8) - 1 generate
 i_vd_out((i_vd(i)'length * (i + 1)) - 1 downto (i_vd(i)'length * i)) <= std_logic_vector(i_vd(i));
 end generate gen_vd;
 
---process(p_in_clk)
---begin
---  if rising_edge(p_in_clk) then
---    if p_in_clk_en = '1' then
---      sr_hs <= i_hs;
---      sr_vs <= i_vs;
---      sr_vd_out <= i_vd_out;
---    end if;
---  end if;
---end process;
+
 --END MAIN
 end architecture behavioral;
