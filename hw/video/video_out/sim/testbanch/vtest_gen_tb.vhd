@@ -108,7 +108,7 @@ p_in_rst      => i_rst
 );
 
 
-tst_vfr_pixcount <= TO_UNSIGNED(1280 / 32, tst_vfr_pixcount'length);
+tst_vfr_pixcount <= TO_UNSIGNED(1280 / (32/8), tst_vfr_pixcount'length);
 tst_vfr_rowcount <= TO_UNSIGNED(1024, tst_vfr_rowcount'length);
 
 --3..0 --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
