@@ -251,9 +251,15 @@ if rising_edge(p_in_clk) then
             end loop;
           end if;
         else
+          if i_vs = G_VSYN_ACTIVE then
+            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
+            end loop;
+          else
             for i in 0 to (G_VD_WIDTH / 8) - 1 loop
             i_vd(i) <= i_row_cnt(i_vd(i)'range);
             end loop;
+          end if;
         end if;
       end if;
 

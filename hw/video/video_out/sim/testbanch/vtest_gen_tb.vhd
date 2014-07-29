@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 entity vtest_gen_tb is
 generic(
 G_DBG : string := "OFF";
-G_VD_WIDTH : integer := 32;
+G_VD_WIDTH : integer := 256;
 G_VSYN_ACTIVE : std_logic := '0'
 );
 port(
@@ -108,8 +108,8 @@ p_in_rst      => i_rst
 );
 
 
-tst_vfr_pixcount <= TO_UNSIGNED(1280 / (32/8), tst_vfr_pixcount'length);
-tst_vfr_rowcount <= TO_UNSIGNED(1024, tst_vfr_rowcount'length);
+tst_vfr_pixcount <= TO_UNSIGNED(5120 / (G_VD_WIDTH/8), tst_vfr_pixcount'length);
+tst_vfr_rowcount <= TO_UNSIGNED(5120, tst_vfr_rowcount'length);
 
 --3..0 --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
 --7..4 --0/1/2/    - Test picture: V+H Counter/ V Counter/ H Counter/
