@@ -33,25 +33,25 @@ end entity;
 
 architecture behavioral of vga_gen is
 
-type TVGA_param is array (0 to 2) of integer;
+type TVGA_param is array (0 to 3) of integer;
 
 --ƒанные вз€ты из Standard_VESA_timing.pdf
---                                          --------------------------------
---                       Resolution select |    0    |    1     |    2      |
---                                         |--------------------------------
---                             Resolution  | 800x600 | 1024x768 | 1280x1024 |
---                             Frame Ferq  | @72Hz   | @70Hz    | @75Hz     |
---                                 Pixclk  | 50MHz   | 75MHz    | 135MHz    |
+--                                          ------------------------------------------
+--                       Resolution select |    0     |    1    |    2     |    3     |
+--                                         |-------------------------------------------
+--                             Resolution  | 640x480 | 800x600 | 1024x768 | 1280x1024 |
+--                             Frame Ferq  | @72Hz   | @72Hz   | @70Hz    | @75Hz     |
+--                                 Pixclk  | 31.5MHz | 50MHz   | 75MHz    | 135MHz    |
 --HS: значени€ в пиксел€х
-constant CI_HS_SYN_W        : TVGA_param := (120     , 136      , 144       );
-constant CI_HS_BACKPORCH_W  : TVGA_param := (64      , 144      , 248       );
-constant CI_HS_ACTIV_W      : TVGA_param := (800     , 1024     , 1280      );
-constant CI_HS_FRONTPORCH_W : TVGA_param := (56      , 24       , 16        );
+constant CI_HS_SYN_W        : TVGA_param := (40      , 120     , 136      , 144       );
+constant CI_HS_BACKPORCH_W  : TVGA_param := (120     , 64      , 144      , 248       );
+constant CI_HS_ACTIV_W      : TVGA_param := (640     , 800     , 1024     , 1280      );
+constant CI_HS_FRONTPORCH_W : TVGA_param := (16      , 56      , 24       , 16        );
 --VS: значени€ в строках
-constant CI_VS_SYN_W        : TVGA_param := (6       , 6        , 3         );
-constant CI_VS_BACKPORCH_W  : TVGA_param := (23      , 29       , 38        );
-constant CI_VS_ACTIV_W      : TVGA_param := (600     , 768      , 1024      );
-constant CI_VS_FRONTPORCH_W : TVGA_param := (37      , 3        , 1         );
+constant CI_VS_SYN_W        : TVGA_param := (3       , 6       , 6        , 3         );
+constant CI_VS_BACKPORCH_W  : TVGA_param := (20      , 23      , 29       , 38        );
+constant CI_VS_ACTIV_W      : TVGA_param := (480     , 600     , 768      , 1024      );
+constant CI_VS_FRONTPORCH_W : TVGA_param := (1       , 37      , 3        , 1         );
 
 signal i_vga_xcnt           : unsigned(12 downto 0);
 signal i_vga_ycnt           : unsigned(12 downto 0);
