@@ -35,26 +35,26 @@ architecture behavioral of vga_gen is
 
 type TVGA_param is array (0 to 3) of integer;
 
---ƒанные вз€ты из Standard_VESA_timing.pdf
+--Data from Standard_VESA_timing.pdf
 --                                          ------------------------------------------
 --                       Resolution select |    0     |    1    |    2     |    3     |
 --                                         |-------------------------------------------
 --                             Resolution  | 640x480 | 800x600 | 1024x768 | 1280x1024 |
 --                             Frame Ferq  | @72Hz   | @72Hz   | @70Hz    | @75Hz     |
 --                                 Pixclk  | 31.5MHz | 50MHz   | 75MHz    | 135MHz    |
---HS: значени€ в пиксел€х
+--HS: (horisontal sync) values in pixel
 constant CI_HS_SYN_W        : TVGA_param := (40      , 120     , 136      , 144       );
 constant CI_HS_BACKPORCH_W  : TVGA_param := (120     , 64      , 144      , 248       );
 constant CI_HS_ACTIV_W      : TVGA_param := (640     , 800     , 1024     , 1280      );
 constant CI_HS_FRONTPORCH_W : TVGA_param := (16      , 56      , 24       , 16        );
---VS: значени€ в строках
+--VS: (vertical synch) values in line
 constant CI_VS_SYN_W        : TVGA_param := (3       , 6       , 6        , 3         );
 constant CI_VS_BACKPORCH_W  : TVGA_param := (20      , 23      , 29       , 38        );
 constant CI_VS_ACTIV_W      : TVGA_param := (480     , 600     , 768      , 1024      );
 constant CI_VS_FRONTPORCH_W : TVGA_param := (1       , 37      , 3        , 1         );
 
-signal i_vga_xcnt           : unsigned(12 downto 0);
-signal i_vga_ycnt           : unsigned(12 downto 0);
+signal i_vga_xcnt           : unsigned(12 downto 0) := (others =>'0');
+signal i_vga_ycnt           : unsigned(12 downto 0) := (others =>'0');
 signal i_vga_hs_e           : unsigned(i_vga_xcnt'range);--sync end
 signal i_vga_ha_b           : unsigned(i_vga_xcnt'range);--active begin
 signal i_vga_ha_e           : unsigned(i_vga_xcnt'range);--active end
@@ -64,10 +64,10 @@ signal i_vga_va_b           : unsigned(i_vga_ycnt'range);
 signal i_vga_va_e           : unsigned(i_vga_ycnt'range);
 signal i_vga_vend           : unsigned(i_vga_ycnt'range);--frame end
 
-signal i_pix_ha             : std_logic;
-signal i_pix_va             : std_logic;
-signal i_hsync              : std_logic;
-signal i_vsync              : std_logic;
+signal i_pix_ha             : std_logic := '0';
+signal i_pix_va             : std_logic := '0';
+signal i_hsync              : std_logic := '0';
+signal i_vsync              : std_logic := '0';
 
 
 --MAIN
@@ -89,17 +89,19 @@ i_vga_va_e <= TO_UNSIGNED(CI_VS_SYN_W(G_SEL) + CI_VS_BACKPORCH_W(G_SEL) + CI_VS_
 i_vga_vend <= TO_UNSIGNED(CI_VS_SYN_W(G_SEL) + CI_VS_BACKPORCH_W(G_SEL) + CI_VS_ACTIV_W(G_SEL) + CI_VS_FRONTPORCH_W(G_SEL) - 1, i_vga_vend'length);
 
 
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
-  if p_in_rst = '1' then
-    i_vga_xcnt <= (others=>'0');
-    i_vga_ycnt <= (others=>'0');
-    i_hsync <= '0';
-    i_vsync <= '0';
-    i_pix_ha <= '0';
-    i_pix_va <= '0';
+  if rising_edge(p_in_clk) then
+    if p_in_rst = '1' then
+      i_vga_xcnt <= (others=>'0');
+      i_vga_ycnt <= (others=>'0');
+      i_hsync <= '0';
+      i_vsync <= '0';
+      i_pix_ha <= '0';
+      i_pix_va <= '0';
 
-  elsif rising_edge(p_in_clk) then
+    else
+
       if i_vga_xcnt = i_vga_hend then
         i_vga_xcnt <= (others=>'0');
         if i_vga_ycnt = i_vga_vend then
@@ -126,6 +128,8 @@ begin
       if (i_vga_ycnt > i_vga_va_b) and (i_vga_ycnt <= i_vga_va_e) then i_pix_va <= '1';
       else                                                             i_pix_va <= '0';
       end if;
+
+    end if;
   end if;
 end process;
 
