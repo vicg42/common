@@ -13,21 +13,16 @@
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
-
-library work;
-use work.vicg_common_pkg.all;
 
 package pcie_pkg is
 
 type TPce2Mem_Ctrl is record
-dir       : std_logic;
+dir       : std_logic; --C_MEMWR_WRITE/READ from mem_wr_pkg.vhd
 start     : std_logic;
-adr       : std_logic_vector(31 downto 0);--//адрес в BYTE
-req_len   : std_logic_vector(17 downto 0);--//значение в BYTE. max 128KB
-trnwr_len : std_logic_vector(7 downto 0); --//значение в DWORD
-trnrd_len : std_logic_vector(7 downto 0); --//значение в DWORD
+adr       : std_logic_vector(31 downto 0);--адрес в BYTE
+req_len   : std_logic_vector(17 downto 0);--значение в BYTE. max 128KB
+trnwr_len : std_logic_vector(7 downto 0); --
+trnrd_len : std_logic_vector(7 downto 0); --
 end record;
 
 type TPce2Mem_Status is record

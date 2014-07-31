@@ -26,7 +26,7 @@ C  : in    std_logic;
 R  : in    std_logic;
 S  : in    std_logic
 );
-end dvi_ctrl_ddr_o;
+end entity;
 
 architecture behavioral of dvi_ctrl_ddr_o is
 
@@ -47,6 +47,6 @@ S  => S
 
 
 --END MAIN
-end behavioral;
+end architecture;
 
 

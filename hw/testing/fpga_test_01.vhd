@@ -39,7 +39,7 @@ p_out_1ms      : out   std_logic;
 p_in_clk       : in    std_logic;
 p_in_rst       : in    std_logic
 );
-end fpga_test_01;
+end entity fpga_test_01;
 
 architecture behavioral of fpga_test_01 is
 
@@ -138,5 +138,5 @@ end if;
 end process;
 
 --END MAIN
-end behavioral;
+end architecture behavioral;
 

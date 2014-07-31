@@ -7,23 +7,23 @@
 --   This source file may not be copied, sold, or included
 --   with software that is sold without written permission from the IEEE
 --   Standards Department. This source file may be used to implement this
---   [draft] standard and may be distributed in compiled form in any manner so 
---   long as the compiled form does not allow direct decompilation of the 
---   original source file. This source file may be copied for individaul use 
+--   [draft] standard and may be distributed in compiled form in any manner so
+--   long as the compiled form does not allow direct decompilation of the
+--   original source file. This source file may be copied for individaul use
 --   between licensed users.
 --
---   The IEEE disclaims any responsibility or liability for damages resulting 
+--   The IEEE disclaims any responsibility or liability for damages resulting
 --   from misinterpretation or misue of said information by the user.
--- 
---   [This source file represents a portion of the IEEE Draft Standard and is 
+--
+--   [This source file represents a portion of the IEEE Draft Standard and is
 --   unapproved and subject to change.]
--- 
+--
 --   < statement about permission to modify >
 --
 --   Title     :  REDUCE_PKG < IEEE std # 1076.3 >
 --
---   Library   :  This package shall be compiled into a library 
---                symbolically named IEEE. 
+--   Library   :  This package shall be compiled into a library
+--                symbolically named IEEE.
 --
 --   Developers:  IEEE DASC VHDL/Synthesis, PAR 1076.3
 --
@@ -31,7 +31,7 @@
 --                be collapsed into a signle bit.  Similar to the built
 --                in functions in Verilog.
 --
---   Limitation:  
+--   Limitation:
 --
 -- --------------------------------------------------------------------
 --   modification history :
@@ -49,137 +49,137 @@
 --   Date   :  13 May 2002
 --   Modified to deal with null arrays, added IEEE header.
 -- -------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.numeric_std.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 -- Package definition
-package reduce_Pack is
-  FUNCTION and_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of and'ing all of the bits of the vector. 
+package reduce_pack is
+  FUNCTION and_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of and'ing all of the bits of the vector.
 
-  FUNCTION nand_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of nand'ing all of the bits of the vector. 
+  FUNCTION nand_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of nand'ing all of the bits of the vector.
 
-  FUNCTION or_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of or'ing all of the bits of the vector. 
+  FUNCTION or_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of or'ing all of the bits of the vector.
 
-  FUNCTION nor_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of nor'ing all of the bits of the vector. 
+  FUNCTION nor_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of nor'ing all of the bits of the vector.
 
-  FUNCTION xor_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of xor'ing all of the bits of the vector. 
+  FUNCTION xor_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of xor'ing all of the bits of the vector.
 
-  FUNCTION xnor_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
+  FUNCTION xnor_reduce(arg : STD_LOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
   -- Result: Result of xnor'ing all of the bits of the vector.
 
-  FUNCTION and_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of and'ing all of the bits of the vector. 
+  FUNCTION and_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of and'ing all of the bits of the vector.
 
-  FUNCTION nand_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of nand'ing all of the bits of the vector. 
+  FUNCTION nand_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of nand'ing all of the bits of the vector.
 
-  FUNCTION or_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of or'ing all of the bits of the vector. 
+  FUNCTION or_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of or'ing all of the bits of the vector.
 
-  FUNCTION nor_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of nor'ing all of the bits of the vector. 
+  FUNCTION nor_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of nor'ing all of the bits of the vector.
 
-  FUNCTION xor_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of xor'ing all of the bits of the vector. 
+  FUNCTION xor_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of xor'ing all of the bits of the vector.
 
-  FUNCTION xnor_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of xnor'ing all of the bits of the vector. 
+  FUNCTION xnor_reduce(arg : STD_ULOGIC_VECTOR) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of xnor'ing all of the bits of the vector.
 
-  FUNCTION and_reduce(arg : SIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of and'ing all of the bits of the vector. 
+  FUNCTION and_reduce(arg : SIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of and'ing all of the bits of the vector.
 
-  FUNCTION nand_reduce(arg : SIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of nand'ing all of the bits of the vector. 
+  FUNCTION nand_reduce(arg : SIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of nand'ing all of the bits of the vector.
 
-  FUNCTION or_reduce(arg : SIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of or'ing all of the bits of the vector. 
+  FUNCTION or_reduce(arg : SIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of or'ing all of the bits of the vector.
 
-  FUNCTION nor_reduce(arg : SIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of nor'ing all of the bits of the vector. 
+  FUNCTION nor_reduce(arg : SIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of nor'ing all of the bits of the vector.
 
-  FUNCTION xor_reduce(arg : SIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of xor'ing all of the bits of the vector. 
+  FUNCTION xor_reduce(arg : SIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of xor'ing all of the bits of the vector.
 
-  FUNCTION xnor_reduce(arg : SIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of xnor'ing all of the bits of the vector. 
+  FUNCTION xnor_reduce(arg : SIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of xnor'ing all of the bits of the vector.
 
-  FUNCTION and_reduce(arg : UNSIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of and'ing all of the bits of the vector. 
+  FUNCTION and_reduce(arg : UNSIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of and'ing all of the bits of the vector.
 
-  FUNCTION nand_reduce(arg : UNSIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of nand'ing all of the bits of the vector. 
+  FUNCTION nand_reduce(arg : UNSIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of nand'ing all of the bits of the vector.
 
-  FUNCTION or_reduce(arg : UNSIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of or'ing all of the bits of the vector. 
+  FUNCTION or_reduce(arg : UNSIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of or'ing all of the bits of the vector.
 
-  FUNCTION nor_reduce(arg : UNSIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of nor'ing all of the bits of the vector. 
+  FUNCTION nor_reduce(arg : UNSIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of nor'ing all of the bits of the vector.
 
-  FUNCTION xor_reduce(arg : UNSIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of xor'ing all of the bits of the vector. 
+  FUNCTION xor_reduce(arg : UNSIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of xor'ing all of the bits of the vector.
 
-  FUNCTION xnor_reduce(arg : UNSIGNED) RETURN STD_LOGIC; 
-  -- Result subtype: STD_LOGIC. 
-  -- Result: Result of xnor'ing all of the bits of the vector. 
+  FUNCTION xnor_reduce(arg : UNSIGNED) RETURN STD_LOGIC;
+  -- Result subtype: STD_LOGIC.
+  -- Result: Result of xnor'ing all of the bits of the vector.
 
   -- bit_vector versions
-  FUNCTION and_reduce(arg : BIT_VECTOR) RETURN BIT; 
-  -- Result subtype: BIT. 
-  -- Result: Result of and'ing all of the bits of the vector. 
+  FUNCTION and_reduce(arg : BIT_VECTOR) RETURN BIT;
+  -- Result subtype: BIT.
+  -- Result: Result of and'ing all of the bits of the vector.
 
-  FUNCTION nand_reduce(arg : BIT_VECTOR) RETURN BIT; 
-  -- Result subtype: BIT. 
-  -- Result: Result of nand'ing all of the bits of the vector. 
+  FUNCTION nand_reduce(arg : BIT_VECTOR) RETURN BIT;
+  -- Result subtype: BIT.
+  -- Result: Result of nand'ing all of the bits of the vector.
 
-  FUNCTION or_reduce(arg : BIT_VECTOR) RETURN BIT; 
-  -- Result subtype: BIT. 
-  -- Result: Result of or'ing all of the bits of the vector. 
+  FUNCTION or_reduce(arg : BIT_VECTOR) RETURN BIT;
+  -- Result subtype: BIT.
+  -- Result: Result of or'ing all of the bits of the vector.
 
-  FUNCTION nor_reduce(arg : BIT_VECTOR) RETURN BIT; 
-  -- Result subtype: BIT. 
-  -- Result: Result of nor'ing all of the bits of the vector. 
+  FUNCTION nor_reduce(arg : BIT_VECTOR) RETURN BIT;
+  -- Result subtype: BIT.
+  -- Result: Result of nor'ing all of the bits of the vector.
 
-  FUNCTION xor_reduce(arg : BIT_VECTOR) RETURN BIT; 
-  -- Result subtype: BIT. 
-  -- Result: Result of xor'ing all of the bits of the vector. 
+  FUNCTION xor_reduce(arg : BIT_VECTOR) RETURN BIT;
+  -- Result subtype: BIT.
+  -- Result: Result of xor'ing all of the bits of the vector.
 
-  FUNCTION xnor_reduce(arg : BIT_VECTOR) RETURN BIT; 
-  -- Result subtype: BIT. 
-  -- Result: Result of xnor'ing all of the bits of the vector. 
+  FUNCTION xnor_reduce(arg : BIT_VECTOR) RETURN BIT;
+  -- Result subtype: BIT.
+  -- Result: Result of xnor'ing all of the bits of the vector.
 
-end reduce_Pack;
+end reduce_pack;
 
 -- Package body.
-package body reduce_Pack is
+package body reduce_pack is
 
 -- done in a recursively called function.
   function and_reduce (arg : std_logic_vector )
@@ -211,7 +211,7 @@ package body reduce_Pack is
     return std_logic is
   begin
     return not and_reduce (arg);
-  end;  
+  end;
 
   function or_reduce (arg : std_logic_vector )
     return std_logic is
@@ -243,7 +243,7 @@ package body reduce_Pack is
   begin
     return not or_reduce ( arg );
   end;
-  
+
   function xor_reduce (arg : std_logic_vector )
     return std_logic is
     variable Upper, Lower : std_logic;
@@ -316,7 +316,7 @@ package body reduce_Pack is
   begin
     return or_reduce (std_logic_vector ( arg ));
   end;
-  
+
   function or_reduce (arg : SIGNED )
     return std_logic is
   begin
@@ -334,7 +334,7 @@ package body reduce_Pack is
   begin
     return nor_reduce (std_logic_vector ( arg ));
   end;
-  
+
   function nor_reduce (arg : SIGNED )
     return std_logic is
   begin
@@ -352,7 +352,7 @@ package body reduce_Pack is
   begin
     return xor_reduce (std_logic_vector ( arg ));
   end;
-  
+
   function xor_reduce (arg : SIGNED )
     return std_logic is
   begin
@@ -364,7 +364,7 @@ package body reduce_Pack is
   begin
     return xor_reduce (std_logic_vector ( arg ));
   end;
-  
+
   function xnor_reduce (arg : std_ulogic_vector )
     return std_logic is
   begin
@@ -388,13 +388,13 @@ package body reduce_Pack is
   begin
     return to_bit (and_reduce (to_stdlogicvector ( arg )));
   end;
-  
+
   function nand_reduce (arg : bit_vector )
     return bit is
   begin
     return to_bit (nand_reduce (to_stdlogicvector ( arg )));
   end;
-  
+
   function or_reduce (arg : bit_vector )
     return bit is
   begin
@@ -412,13 +412,13 @@ package body reduce_Pack is
   begin
     return to_bit (xor_reduce (to_stdlogicvector ( arg )));
   end;
-  
+
   function xnor_reduce (arg : bit_vector )
     return bit is
   begin
     return to_bit (xnor_reduce (to_stdlogicvector ( arg )));
   end;
 
-end reduce_Pack;
+end reduce_pack;
 
 

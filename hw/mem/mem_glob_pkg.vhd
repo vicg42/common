@@ -16,8 +16,8 @@ use ieee.std_logic_1164.all;
 
 package mem_glob_pkg is
 
-constant C_MEMWR_AWIDTH_MAX : integer:=128;
-constant C_MEMWR_DWIDTH_MAX : integer:=128;
+constant C_MEMWR_AWIDTH_MAX : integer:=64;
+constant C_MEMWR_DWIDTH_MAX : integer:=256;
 constant C_MEMWR_IDWIDTH_MAX: integer:=32;
 
 constant C_MEMCH_COUNT_MAX  : integer:=8;
