@@ -79,11 +79,16 @@ signal i_text_ram_wr    : std_logic_vector(0 downto 0);
 
 signal sr_char_out      : std_logic_vector(7 downto 0);
 
+signal tst_char         : std_logic_vector(i_font_dout'range) := (others => '0');;
+signal tst_charen       : std_logic := '0';
 
 --MAIN
 begin
 
-p_out_tst(0) <= sr_char_out(sr_char_out'length - 1);
+p_out_tst(31) <= sr_char_out(sr_char_out'length - 1);
+p_out_tst(8) <= tst_charen;
+p_out_tst(7 downto 0) <= tst_char;
+
 
 
 process(p_in_clk)
@@ -224,6 +229,24 @@ begin
   when '1' => p_out_vd <= (others => '1');
   when others => null;
   end case;
+end process;
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    if p_in_rst = '1' then
+      tst_char <= (others => '0');
+      tst_charen <= '0';
+    else
+      if p_in_den = '1' then
+        if i_nchar_out = '1' then
+          tst_char <= i_font_dout;
+        end if;
+      end if;
+
+      tst_charen <= i_nchar_out;
+    end if;
+  end if;
 end process;
 
 

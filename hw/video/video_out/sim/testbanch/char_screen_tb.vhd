@@ -1,7 +1,11 @@
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_textio.all;
+use std.textio.all;
+
+library work;
+use work.vicg_common_pkg.all;
 
 entity char_screen_tb is
 generic(
@@ -70,6 +74,9 @@ signal i_ram_adr     : unsigned(11 downto 0) := (others => '0');
 signal i_ram_din     : unsigned(31 downto 0) := (others => '0');
 signal i_vout_pixcnt : unsigned(11 downto 0) := (others => '0');
 
+signal sr_pixen      : std_logic_vector(0 to 1) := (others => '0');
+signal i_tst_out     : std_logic_vector(31 downto 0);
+signal i_vd          : std_logic_vector(23 downto 0);
 
 begin
 
@@ -109,19 +116,21 @@ p_in_ram_adr  => std_logic_vector(i_ram_adr(11 downto 0)),
 p_in_ram_din  => std_logic_vector(i_ram_din(31 downto 0)),
 
 --SYNC
-p_out_vd      => p_out_vd,
+p_out_vd      => i_vd,
 p_in_vd       => (others => '0'),--p_in_vd,
 p_in_vsync    => i_vsync,
 p_in_hsync    => i_hsync,
 p_in_den      => i_pixen,
 
-p_out_tst     => p_out_tst,
+p_out_tst     => i_tst_out,
 
 --System
 p_in_clk      => i_clk,
 p_in_rst      => i_rst
 );
 
+p_out_vd <= i_vd;
+p_out_tst <= i_tst_out;
 
 process
 begin
@@ -195,6 +204,34 @@ begin
 end process;
 
 p_out_tp(0) <= i_vout_pixcnt(i_vout_pixcnt'high);
+
+
+process(i_clk)
+variable GUI_line  : LINE;--Строка для вывода в ModelSim
+variable string_value : unsigned(3 downto 0);
+begin
+  if rising_edge(i_clk) then
+    sr_pixen <= i_pixen & sr_pixen(0 to 0);
+
+    if sr_pixen(0) = '0' and sr_pixen(1) = '1' then
+      writeline(output, GUI_line);
+    else
+      if i_pixen = '1' then
+        if i_tst_out(8) = '1' then
+          write(GUI_line, string'(" 0x"));
+
+          for y in 1 to 2 loop
+          string_value := UNSIGNED(i_tst_out((8 - (4 * (y  -1))) - 1 downto (8 - (4 * y)));
+          write(GUI_line, Int2StrHEX(TO_INTEGER(string_value)));
+          end loop;
+
+          write(GUI_line, string'(" "));
+        end if;
+      end if;
+    end if;
+
+  end if;
+end process;
 
 
 end;
