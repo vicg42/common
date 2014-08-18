@@ -23,7 +23,9 @@ port(
 --SYNC
 p_out_vsync   : out  std_logic; --Vertical Sync
 p_out_hsync   : out  std_logic; --Horizontal Sync
-p_out_den     : out  std_logic; --Pixels
+p_out_pixen   : out  std_logic; --Pixels
+p_out_pixcnt  : out  std_logic_vector(15 downto 0);
+p_out_linecnt : out  std_logic_vector(15 downto 0);
 
 --System
 p_in_clk      : in   std_logic;
@@ -69,6 +71,9 @@ signal i_pix_va             : std_logic := '0';
 signal i_hsync              : std_logic := '0';
 signal i_vsync              : std_logic := '0';
 
+signal i_pixcnt             : unsigned(15 downto 0) := (others => '0');
+signal i_linecnt            : unsigned(15 downto 0) := (others => '0');
+
 
 --MAIN
 begin
@@ -99,6 +104,8 @@ begin
       i_vsync <= '0';
       i_pix_ha <= '0';
       i_pix_va <= '0';
+      i_pixcnt <= (others => '0');
+      i_linecnt <= (others => '0');
 
     else
 
@@ -129,14 +136,28 @@ begin
       else                                                             i_pix_va <= '0';
       end if;
 
+      if i_vga_xcnt > i_vga_ha_e then
+        i_pixcnt <= (others => '0');
+      elsif i_pix_ha = '1' and i_pix_va = '1' then
+        i_pixcnt <= i_pixcnt + 1;
+      end if;
+
+      if i_vga_xcnt = i_vga_vend then
+        i_linecnt <= (others => '0');
+      elsif i_pix_va = '1' and i_vga_xcnt = i_vga_ha_e then
+        i_linecnt <= i_linecnt + 1;
+      end if;
+
     end if;
   end if;
 end process;
 
 p_out_vsync <= i_vsync;
 p_out_hsync <= i_hsync;
-p_out_den   <= i_pix_ha and i_pix_va;
+p_out_pixen <= i_pix_ha and i_pix_va;
 
+p_out_pixcnt <= std_logic_vector(i_pixcnt);
+p_out_linecnt <= std_logic_vector(i_linecnt);
 
 --END MAIN
 end architecture;
