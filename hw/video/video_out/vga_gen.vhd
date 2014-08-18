@@ -104,8 +104,6 @@ begin
       i_vsync <= '0';
       i_pix_ha <= '0';
       i_pix_va <= '0';
-      i_pixcnt <= (others => '0');
-      i_linecnt <= (others => '0');
 
     else
 
@@ -136,18 +134,6 @@ begin
       else                                                             i_pix_va <= '0';
       end if;
 
-      if i_vga_xcnt > i_vga_ha_e then
-        i_pixcnt <= (others => '0');
-      elsif i_pix_ha = '1' and i_pix_va = '1' then
-        i_pixcnt <= i_pixcnt + 1;
-      end if;
-
-      if i_vga_xcnt = i_vga_vend then
-        i_linecnt <= (others => '0');
-      elsif i_pix_va = '1' and i_vga_xcnt = i_vga_ha_e then
-        i_linecnt <= i_linecnt + 1;
-      end if;
-
     end if;
   end if;
 end process;
@@ -158,6 +144,32 @@ p_out_pixen <= i_pix_ha and i_pix_va;
 
 p_out_pixcnt <= std_logic_vector(i_pixcnt);
 p_out_linecnt <= std_logic_vector(i_linecnt);
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    if p_in_rst = '1' then
+      i_pixcnt <= (others => '0');
+      i_linecnt <= (others => '0');
+
+    else
+
+      if i_hsync = '0' then
+        i_pixcnt <= (others => '0');
+      elsif i_pix_ha = '1' and i_pix_va = '1' then
+        i_pixcnt <= i_pixcnt + 1;
+      end if;
+
+      if i_vsync = '0' then
+        i_linecnt <= (others => '0');
+      elsif i_pix_va = '1' and i_vga_xcnt = (i_vga_ha_e + 1) then
+        i_linecnt <= i_linecnt + 1;
+      end if;
+
+    end if;
+  end if;
+end process;
+
 
 --END MAIN
 end architecture;

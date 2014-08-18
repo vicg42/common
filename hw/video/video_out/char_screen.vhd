@@ -18,7 +18,8 @@ use work.vicg_common_pkg.all;
 entity char_screen is
 generic(
 G_FONT_SIZEY : integer := 10;
-G_CHAR_COUNT : integer := 8
+G_CHAR_COUNTX : integer := 8;
+G_CHAR_COUNTY : integer := 8
 );
 port(
 p_in_ram_adr  : in  std_logic_vector(11 downto 0);
@@ -72,18 +73,18 @@ signal i_font_ram_rd    : std_logic;
 signal i_nchar_out      : std_logic;
 signal sr_ram_rd        : std_logic_vector(0 to 1);
 
---signal i_font_ram_a     : std_logic_vector(11 downto 0);
 signal i_font_ram_a     : unsigned(12 downto 0);
 signal i_font_ram_a_tmp : unsigned(15 downto 0);
-signal i_text_ram_a     : std_logic_vector(11 downto 0);--signal i_text_ram_a     : unsigned(12 downto 0);
+signal i_text_ram_a     : unsigned(12 downto 0);
+signal i_text_ram_a_tmp : unsigned(15 downto 0);
 signal i_font_ram_wr    : std_logic_vector(0 downto 0);
 signal i_text_ram_wr    : std_logic_vector(0 downto 0);
 
 signal sr_char_out      : std_logic_vector(7 downto 0);
-signal i_text_ram_a_tmp : unsigned(15 downto 0);
 
 signal sr_pixen         : std_logic_vector(0 to 1) := (others => '0');
-signal i_char_out_dis   : std_logic := '0';
+signal i_char_outx_dis  : std_logic := '0';
+signal i_char_outy_dis  : std_logic := '0';
 
 signal tst_char         : std_logic_vector(i_font_dout'range) := (others => '0');
 signal tst_charen       : std_logic := '0';
@@ -106,57 +107,63 @@ begin
       i_char_cntx <= (others => '0');
       i_char_cnty <= (others => '0');
       sr_pixen <= (others => '0');
-      i_char_out_dis <= '0';
+      i_char_outx_dis <= '0';
+      i_char_outy_dis <= '0';
 
     else
+      sr_pixen <= p_in_pixen & sr_pixen(0 to 0);
+
       if p_in_vsync = '0' then
         i_font_cntx <= (others => '0');
         i_font_cnty <= (others => '0');
         i_char_cntx <= (others => '0');
         i_char_cnty <= (others => '0');
         sr_pixen <= (others => '0');
-        i_char_out_dis <= '0';
+        i_char_outx_dis <= '0';
+        i_char_outy_dis <= '0';
 
       else
 
-        sr_pixen <= p_in_pixen & sr_pixen(0 to 0);
+        if sr_pixen(0) = '0' and sr_pixen(1) = '1' and i_char_outy_dis = '0' then
+          i_char_outx_dis <= '0';
 
-      if sr_pixen(0) = '0' and sr_pixen(1) = '1' then
-        i_char_out_dis <= '0';
+        elsif i_char_outx_dis = '0' and i_char_outy_dis = '0' then
+          if p_in_pixen = '1' then
+            if i_font_cntx = TO_UNSIGNED(8, i_font_cntx'length) - 1 then
+              i_font_cntx <= (others => '0');
 
-      elsif i_char_out_dis = '0' then
-        if p_in_pixen = '1' then
-          if i_font_cntx = TO_UNSIGNED(8, i_font_cntx'length) - 1 then
-            i_font_cntx <= (others => '0');
+              if i_char_cntx = TO_UNSIGNED(G_CHAR_COUNTX, i_char_cntx'length) - 1 then
+                i_char_cntx <= (others => '0');
+                i_char_outx_dis <= '1';
 
-            if i_char_cntx = TO_UNSIGNED(G_CHAR_COUNT, i_char_cntx'length) - 1 then
-              i_char_cntx <= (others => '0');
-              i_char_out_dis <= '1';
-            else
-              i_char_cntx <= i_char_cntx + 1;
-            end if;
+                if i_font_cnty = TO_UNSIGNED(G_FONT_SIZEY, i_font_cnty'length) - 1 then
+                  i_font_cnty <= (others => '0');
 
-            if i_font_cnty = TO_UNSIGNED(G_FONT_SIZEY, i_font_cnty'length) - 1 then
-              i_font_cnty <= (others => '0');
-
-              if i_char_cntx = TO_UNSIGNED(G_CHAR_COUNT, i_char_cntx'length) - 1 then
-                if i_char_cnty = TO_UNSIGNED(G_CHAR_COUNT, i_char_cnty'length) - 1 then
-                  i_char_cnty <= ( others => '0');
+                  if i_char_cnty = TO_UNSIGNED(G_CHAR_COUNTY, i_char_cnty'length) - 1 then
+                    i_char_cnty <= ( others => '0');
+                    i_char_outy_dis <= '1';
+                  else
+                    i_char_cnty <= i_char_cnty + 1;
+                  end if;
                 else
-                  i_char_cnty <= i_char_cnty + 1;
+                  i_font_cnty <= i_font_cnty + 1;
                 end if;
+
+              else
+                i_char_cntx <= i_char_cntx + 1;
               end if;
 
             else
-              i_font_cnty <= i_font_cnty + 1;
-            end if;
+              i_font_cntx <= i_font_cntx + 1;
 
-          else
-            i_font_cntx <= i_font_cntx + 1;
+              if p_in_pixen = '1' and sr_pixen(0) = '0' then
+              i_char_cntx <= i_char_cntx + 1;
+              end if;
+            end if;
           end if;
         end if;
+
       end if;
-    end if;
 
     end if;
   end if;
@@ -169,32 +176,25 @@ begin
       sr_char_out <= (others => '0');
 
     else
-      if p_in_pixen = '0' then
+      if (p_in_pixen = '1' and (i_font_cntx = TO_UNSIGNED(8, i_font_cntx'length) - 1))
+        or (p_in_hsync = '0' and i_char_outx_dis = '0') then
+
         sr_char_out <= i_font_dout;
-      else --if p_in_pixen = '1' then
-        if i_nchar_out = '1' then
-          sr_char_out <= i_font_dout;
-        else
-          sr_char_out <= sr_char_out(sr_char_out'length - 2 downto 0) & '0'; --MSB first
-  --        sr_char_out <= '0' & sr_char_out(sr_reg'length - 1 downto 1); --LSB first
-        end if;
+      elsif p_in_pixen = '1' then
+        sr_char_out <= sr_char_out(sr_char_out'length - 2 downto 0) & '0'; --MSB first
+--        sr_char_out <= '0' & sr_char_out(sr_reg'length - 1 downto 1); --LSB first
       end if;
     end if;
   end if;
 end process;
 
-
-i_txt_ram_rd <= '1' when i_font_cntx = (TO_UNSIGNED(5, i_font_cntx'length)) else '0';
-i_font_ram_rd <= sr_ram_rd(0);
-i_nchar_out <= sr_ram_rd(1);
-
 --i_font_ram_a <= i_ascii(7 downto 0) & std_logic_vector(i_font_cnty(3 downto 0));
 i_font_ram_a_tmp <= TO_UNSIGNED(G_FONT_SIZEY, 8) * UNSIGNED(i_ascii(7 downto 0));
-i_font_ram_a <= i_font_ram_a_tmp(12 downto 0) + RESIZE(i_char_cnty, i_font_ram_a'length);
+i_font_ram_a <= i_font_ram_a_tmp(12 downto 0) + RESIZE(i_font_cnty, i_font_ram_a'length);
 
---i_text_ram_a_tmp <= TO_UNSIGNED(G_FONT_SIZEY, 8) * i_ascii(7 downto 0);
---i_text_ram_a <= i_text_ram_a_tmp(12 downto 0) + RESIZE(i_char_cnty, i_text_ram_a'length);
-i_text_ram_a <= "00000" & std_logic_vector(i_char_cnty(3 downto 0)) & std_logic_vector(i_char_cntx(2 downto 0));
+i_text_ram_a_tmp <= TO_UNSIGNED(G_CHAR_COUNTY, 8) * i_char_cnty(7 downto 0);
+i_text_ram_a <= i_text_ram_a_tmp(12 downto 0) + RESIZE(i_char_cntx, i_text_ram_a'length);
+--i_text_ram_a <= "00000" & std_logic_vector(i_char_cnty(3 downto 0)) & std_logic_vector(i_char_cntx(2 downto 0));
 
 i_text_ram_wr(0) <= p_in_ram_adr(11);
 i_font_ram_wr(0) <= p_in_ram_adr(10);
@@ -211,7 +211,7 @@ douta => open                     ,
 clkb  => p_in_clk                 ,
 enb   => '1'                      ,
 web   => (others => '0')          ,
-addrb => i_text_ram_a(11 downto 0),--std_logic_vector(i_text_ram_a(11 downto 0)),--: in  std_logic_vector(8 downto 0);
+addrb => std_logic_vector(i_text_ram_a(11 downto 0)),--i_text_ram_a(11 downto 0),--: in  std_logic_vector(8 downto 0);
 dinb  => (others => '0')          ,
 doutb => i_ascii                   --: out std_logic_vector(7 downto 0)
 );
@@ -233,21 +233,6 @@ dinb  => (others => '0')         ,
 doutb => i_font_dout              --: out std_logic_vector(7 downto 0)
 );
 
-
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-    if p_in_rst = '1' then
-      sr_ram_rd <= (others => '0');
-    else
-      if p_in_pixen = '1' then
-        sr_ram_rd <= i_txt_ram_rd & sr_ram_rd(0 to 0);
-      end if;
-    end if;
-  end if;
-end process;
-
---blend
 process(sr_char_out)
 begin
   case sr_char_out(sr_char_out'length - 1) is
@@ -265,12 +250,15 @@ begin
       tst_charen <= '0';
     else
       if p_in_pixen = '1' then
-        if i_nchar_out = '1' then
+        if (i_font_cntx = TO_UNSIGNED(8, i_font_cntx'length) - 1) then
           tst_char <= i_font_dout;
+          tst_charen <= '1';
+        else
+          tst_charen <= '0';
         end if;
+      else
+        tst_charen <= '0';
       end if;
-
-      tst_charen <= i_nchar_out;
     end if;
   end if;
 end process;

@@ -26,7 +26,8 @@ constant period_sys_clk       : time := 56.388 ns;--17,7339901477832512315270935
 component char_screen is
 generic(
 G_FONT_SIZEY : integer := 10;
-G_CHAR_COUNT : integer := 8
+G_CHAR_COUNTX : integer := 8;
+G_CHAR_COUNTY : integer := 8
 );
 port(
 p_in_ram_adr  : in  std_logic_vector(11 downto 0);
@@ -113,7 +114,8 @@ p_in_rst      => i_rst
 uut : char_screen
 generic map(
 G_FONT_SIZEY => 12,
-G_CHAR_COUNT => 3
+G_CHAR_COUNTX => 3,
+G_CHAR_COUNTY => 1
 )
 port map(
 p_in_ram_adr  => std_logic_vector(i_ram_adr(11 downto 0)),
@@ -168,7 +170,7 @@ wait until rising_edge(i_clk);
     i_ram_adr(11) <= '0';
     i_ram_adr(10) <= '1';
     i_ram_adr(9 downto 0) <= TO_UNSIGNED(384/4 + 0, 10);
-    i_ram_din <= TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#3C#, 8) & TO_UNSIGNED(16#18#, 8) & TO_UNSIGNED(16#00#, 8);
+    i_ram_din <= TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#3C#, 8) & TO_UNSIGNED(16#18#, 8) & TO_UNSIGNED(16#20#, 8);
 
 wait until rising_edge(i_clk);
     i_ram_adr(11) <= '0';
@@ -187,7 +189,7 @@ wait until rising_edge(i_clk);
     i_ram_adr(11) <= '0';
     i_ram_adr(10) <= '1';
     i_ram_adr(9 downto 0) <= TO_UNSIGNED(396/4 + 0, 10);
-    i_ram_din <= TO_UNSIGNED(16#60#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#00#, 8);
+    i_ram_din <= TO_UNSIGNED(16#60#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#21#, 8);
 
 wait until rising_edge(i_clk);
     i_ram_adr(11) <= '0';
