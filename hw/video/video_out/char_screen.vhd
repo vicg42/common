@@ -29,7 +29,7 @@ p_out_vd      : out  std_logic_vector(23 downto 0);
 p_in_vd       : in   std_logic_vector(23 downto 0);
 p_in_vsync    : in   std_logic; --Vertical Sync
 p_in_hsync    : in   std_logic; --Horizontal Sync
-p_in_den      : in   std_logic; --Pixels
+p_in_pixen    : in   std_logic; --Pixels
 
 p_out_tst     : out  std_logic_vector(31 downto 0);
 
@@ -72,14 +72,20 @@ signal i_font_ram_rd    : std_logic;
 signal i_nchar_out      : std_logic;
 signal sr_ram_rd        : std_logic_vector(0 to 1);
 
-signal i_font_ram_a     : std_logic_vector(11 downto 0);
-signal i_text_ram_a     : std_logic_vector(11 downto 0);
+--signal i_font_ram_a     : std_logic_vector(11 downto 0);
+signal i_font_ram_a     : unsigned(12 downto 0);
+signal i_font_ram_a_tmp : unsigned(15 downto 0);
+signal i_text_ram_a     : std_logic_vector(11 downto 0);--signal i_text_ram_a     : unsigned(12 downto 0);
 signal i_font_ram_wr    : std_logic_vector(0 downto 0);
 signal i_text_ram_wr    : std_logic_vector(0 downto 0);
 
 signal sr_char_out      : std_logic_vector(7 downto 0);
+signal i_text_ram_a_tmp : unsigned(15 downto 0);
 
-signal tst_char         : std_logic_vector(i_font_dout'range) := (others => '0');;
+signal sr_pixen         : std_logic_vector(0 to 1) := (others => '0');
+signal i_char_out_dis   : std_logic := '0';
+
+signal tst_char         : std_logic_vector(i_font_dout'range) := (others => '0');
 signal tst_charen       : std_logic := '0';
 
 --MAIN
@@ -99,6 +105,8 @@ begin
       i_font_cnty <= (others => '0');
       i_char_cntx <= (others => '0');
       i_char_cnty <= (others => '0');
+      sr_pixen <= (others => '0');
+      i_char_out_dis <= '0';
 
     else
       if p_in_vsync = '0' then
@@ -106,18 +114,27 @@ begin
         i_font_cnty <= (others => '0');
         i_char_cntx <= (others => '0');
         i_char_cnty <= (others => '0');
+        sr_pixen <= (others => '0');
+        i_char_out_dis <= '0';
 
       else
 
-        if p_in_den = '1' then
+        sr_pixen <= p_in_pixen & sr_pixen(0 to 0);
+
+      if sr_pixen(0) = '0' and sr_pixen(1) = '1' then
+        i_char_out_dis <= '0';
+
+      elsif i_char_out_dis = '0' then
+        if p_in_pixen = '1' then
           if i_font_cntx = TO_UNSIGNED(8, i_font_cntx'length) - 1 then
             i_font_cntx <= (others => '0');
 
-              if i_char_cntx = TO_UNSIGNED(G_CHAR_COUNT, i_char_cntx'length) - 1 then
-                i_char_cntx <= (others => '0');
-              else
-                i_char_cntx <= i_char_cntx + 1;
-              end if;
+            if i_char_cntx = TO_UNSIGNED(G_CHAR_COUNT, i_char_cntx'length) - 1 then
+              i_char_cntx <= (others => '0');
+              i_char_out_dis <= '1';
+            else
+              i_char_cntx <= i_char_cntx + 1;
+            end if;
 
             if i_font_cnty = TO_UNSIGNED(G_FONT_SIZEY, i_font_cnty'length) - 1 then
               i_font_cnty <= (others => '0');
@@ -139,6 +156,7 @@ begin
           end if;
         end if;
       end if;
+    end if;
 
     end if;
   end if;
@@ -151,7 +169,9 @@ begin
       sr_char_out <= (others => '0');
 
     else
-      if p_in_den = '1' then
+      if p_in_pixen = '0' then
+        sr_char_out <= i_font_dout;
+      else --if p_in_pixen = '1' then
         if i_nchar_out = '1' then
           sr_char_out <= i_font_dout;
         else
@@ -168,26 +188,32 @@ i_txt_ram_rd <= '1' when i_font_cntx = (TO_UNSIGNED(5, i_font_cntx'length)) else
 i_font_ram_rd <= sr_ram_rd(0);
 i_nchar_out <= sr_ram_rd(1);
 
-i_font_ram_a <= i_ascii(7 downto 0) & std_logic_vector(i_font_cnty(3 downto 0));
+--i_font_ram_a <= i_ascii(7 downto 0) & std_logic_vector(i_font_cnty(3 downto 0));
+i_font_ram_a_tmp <= TO_UNSIGNED(G_FONT_SIZEY, 8) * UNSIGNED(i_ascii(7 downto 0));
+i_font_ram_a <= i_font_ram_a_tmp(12 downto 0) + RESIZE(i_char_cnty, i_font_ram_a'length);
+
+--i_text_ram_a_tmp <= TO_UNSIGNED(G_FONT_SIZEY, 8) * i_ascii(7 downto 0);
+--i_text_ram_a <= i_text_ram_a_tmp(12 downto 0) + RESIZE(i_char_cnty, i_text_ram_a'length);
 i_text_ram_a <= "00000" & std_logic_vector(i_char_cnty(3 downto 0)) & std_logic_vector(i_char_cntx(2 downto 0));
+
 i_text_ram_wr(0) <= p_in_ram_adr(11);
 i_font_ram_wr(0) <= p_in_ram_adr(10);
 
 m_ram_txt : ram_font
 port map(
-clka  => p_in_clk                ,
-ena   => i_text_ram_wr(0)        ,
-wea   => i_text_ram_wr           ,
-addra => p_in_ram_adr(9 downto 0),--: in  std_logic_vector(6 downto 0);
-dina  => p_in_ram_din            ,--: in  std_logic_vector(31 downto 0);
-douta => open                    ,
+clka  => p_in_clk                 ,
+ena   => i_text_ram_wr(0)         ,
+wea   => i_text_ram_wr            ,
+addra => p_in_ram_adr(9 downto 0) ,--: in  std_logic_vector(6 downto 0);
+dina  => p_in_ram_din             ,--: in  std_logic_vector(31 downto 0);
+douta => open                     ,
 
-clkb  => p_in_clk                ,
-enb   => '1'                     ,
-web   => (others => '0')         ,
-addrb => i_text_ram_a            ,--: in  std_logic_vector(8 downto 0);
-dinb  => (others => '0')         ,
-doutb => i_ascii                  --: out std_logic_vector(7 downto 0)
+clkb  => p_in_clk                 ,
+enb   => '1'                      ,
+web   => (others => '0')          ,
+addrb => i_text_ram_a(11 downto 0),--std_logic_vector(i_text_ram_a(11 downto 0)),--: in  std_logic_vector(8 downto 0);
+dinb  => (others => '0')          ,
+doutb => i_ascii                   --: out std_logic_vector(7 downto 0)
 );
 
 m_ram_font : ram_font
@@ -202,7 +228,7 @@ douta => open                    ,
 clkb  => p_in_clk                ,
 enb   => '1'                     ,
 web   => (others => '0')         ,
-addrb => i_font_ram_a            ,--: in  std_logic_vector(8 downto 0);
+addrb => std_logic_vector(i_font_ram_a(11 downto 0))            ,--: in  std_logic_vector(8 downto 0);
 dinb  => (others => '0')         ,
 doutb => i_font_dout              --: out std_logic_vector(7 downto 0)
 );
@@ -214,7 +240,7 @@ begin
     if p_in_rst = '1' then
       sr_ram_rd <= (others => '0');
     else
-      if p_in_den = '1' then
+      if p_in_pixen = '1' then
         sr_ram_rd <= i_txt_ram_rd & sr_ram_rd(0 to 0);
       end if;
     end if;
@@ -238,7 +264,7 @@ begin
       tst_char <= (others => '0');
       tst_charen <= '0';
     else
-      if p_in_den = '1' then
+      if p_in_pixen = '1' then
         if i_nchar_out = '1' then
           tst_char <= i_font_dout;
         end if;
