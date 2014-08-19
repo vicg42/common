@@ -25,9 +25,12 @@ constant period_sys_clk       : time := 56.388 ns;--17,7339901477832512315270935
 
 component char_screen is
 generic(
+G_FONT_SIZEX : integer := 8;
 G_FONT_SIZEY : integer := 10;
-G_CHAR_COUNTX : integer := 8;
-G_CHAR_COUNTY : integer := 8
+G_SCR_STARTX : integer := 8; --(index pixel)
+G_SCR_STARTY : integer := 8; --(index pixel)
+G_SCR_SIZEX  : integer := 8; --(char count)
+G_SCR_SIZEY  : integer := 8  --(char count)
 );
 port(
 p_in_ram_adr  : in  std_logic_vector(11 downto 0);
@@ -36,9 +39,11 @@ p_in_ram_din  : in  std_logic_vector(31 downto 0);
 --SYNC
 p_out_vd      : out  std_logic_vector(23 downto 0);
 p_in_vd       : in   std_logic_vector(23 downto 0);
-p_in_vsync    : in  std_logic; --Vertical Sync
-p_in_hsync    : in  std_logic; --Horizontal Sync
-p_in_pixen    : in  std_logic;
+p_in_vsync    : in   std_logic; --Vertical Sync
+p_in_hsync    : in   std_logic; --Horizontal Sync
+p_in_pixen    : in   std_logic;
+p_in_pixcnt   : in   std_logic_vector(15 downto 0);
+p_in_linecnt  : in   std_logic_vector(15 downto 0);
 
 p_out_tst     : out  std_logic_vector(31 downto 0);
 
@@ -72,6 +77,8 @@ signal i_clk :  std_logic;
 signal i_vsync       : std_logic;
 signal i_hsync       : std_logic;
 signal i_pixen       : std_logic;
+signal i_pixcnt      : std_logic_vector(15 downto 0);
+signal i_linecnt     : std_logic_vector(15 downto 0);
 
 signal i_ram_adr     : unsigned(11 downto 0) := (others => '0');
 signal i_ram_din     : unsigned(31 downto 0) := (others => '0');
@@ -102,8 +109,8 @@ port map(
 p_out_vsync   => i_vsync,
 p_out_hsync   => i_hsync,
 p_out_pixen   => i_pixen,
-p_out_pixcnt  => open,
-p_out_linecnt => open,
+p_out_pixcnt  => i_pixcnt,
+p_out_linecnt => i_linecnt,
 
 --System
 p_in_clk      => i_clk,
@@ -113,9 +120,12 @@ p_in_rst      => i_rst
 
 uut : char_screen
 generic map(
+G_FONT_SIZEX => 8,
 G_FONT_SIZEY => 12,
-G_CHAR_COUNTX => 3,
-G_CHAR_COUNTY => 1
+G_SCR_STARTX => 622,
+G_SCR_STARTY => 1,
+G_SCR_SIZEX  => 3,
+G_SCR_SIZEY  => 1
 )
 port map(
 p_in_ram_adr  => std_logic_vector(i_ram_adr(11 downto 0)),
@@ -123,10 +133,12 @@ p_in_ram_din  => std_logic_vector(i_ram_din(31 downto 0)),
 
 --SYNC
 p_out_vd      => i_vd,
-p_in_vd       => (others => '0'),--p_in_vd,
+p_in_vd       => (others => '0'),
 p_in_vsync    => i_vsync,
 p_in_hsync    => i_hsync,
 p_in_pixen    => i_pixen,
+p_in_pixcnt   => i_pixcnt,
+p_in_linecnt  => i_linecnt,
 
 p_out_tst     => i_tst_out,
 
@@ -265,7 +277,6 @@ begin
           write(GUI_line, Int2StrHEX(TO_INTEGER(string_value)));
           end loop;
 
---          write(GUI_line, string'(" "));
         end if;
       end if;
     end if;
