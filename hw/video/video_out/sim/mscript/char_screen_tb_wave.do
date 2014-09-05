@@ -6,6 +6,8 @@ add wave -noupdate -radix hexadecimal /char_screen_tb/uut/p_in_ram_adr
 add wave -noupdate -radix hexadecimal /char_screen_tb/uut/p_in_ram_din
 add wave -noupdate -radix unsigned /char_screen_tb/m_vga/p_out_pixcnt
 add wave -noupdate -radix unsigned /char_screen_tb/m_vga/p_out_linecnt
+add wave -noupdate /char_screen_tb/uut/i_screen_eny
+add wave -noupdate /char_screen_tb/uut/i_screen_enx
 add wave -noupdate /char_screen_tb/uut/p_in_pixen
 add wave -noupdate /char_screen_tb/uut/p_in_vsync
 add wave -noupdate /char_screen_tb/uut/p_in_hsync
@@ -21,8 +23,10 @@ add wave -noupdate -radix hexadecimal /char_screen_tb/uut/i_font_cnty
 add wave -noupdate -radix hexadecimal /char_screen_tb/uut/i_font_dout
 add wave -noupdate -radix hexadecimal /char_screen_tb/uut/i_char_cntx
 add wave -noupdate -radix hexadecimal /char_screen_tb/uut/i_char_cnty
+add wave -noupdate -radix hexadecimal /char_screen_tb/uut/i_char_ascii
 add wave -noupdate /char_screen_tb/uut/tst_char
 add wave -noupdate /char_screen_tb/uut/tst_charen
+add wave -noupdate -radix hexadecimal /char_screen_tb/uut/p_out_vd
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
@@ -40,4 +44,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {1147702425 ps} {1151605234 ps}
+WaveRestoreZoom {6950014072 ps} {6991897724 ps}

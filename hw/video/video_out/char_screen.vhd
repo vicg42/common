@@ -14,9 +14,12 @@ use ieee.numeric_std.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.reduce_pack.all;
 
 entity char_screen is
 generic(
+G_VDWIDTH    : integer := 32;
+G_COLDWIDTH  : integer := 10;
 G_FONT_SIZEX : integer := 8;
 G_FONT_SIZEY : integer := 10;
 G_SCR_STARTX : integer := 8; --(index pixel)
@@ -29,8 +32,8 @@ p_in_ram_adr  : in  std_logic_vector(11 downto 0);
 p_in_ram_din  : in  std_logic_vector(31 downto 0);
 
 --SYNC
-p_out_vd      : out  std_logic_vector(23 downto 0);
-p_in_vd       : in   std_logic_vector(23 downto 0);
+p_out_vd      : out  std_logic_vector(G_VDWIDTH - 1 downto 0);--RBG
+p_in_vd       : in   std_logic_vector(G_VDWIDTH - 1 downto 0);
 p_in_vsync    : in   std_logic;
 p_in_hsync    : in   std_logic;
 p_in_pixen    : in   std_logic;
@@ -64,6 +67,23 @@ doutb : out std_logic_vector(7 downto 0)
 );
 end component ram_font;
 
+component ram_txt is
+port (
+clka  : in  std_logic;
+ena   : in  std_logic;
+wea   : in  std_logic_vector(0 downto 0);
+addra : in  std_logic_vector(9 downto 0);
+dina  : in  std_logic_vector(31 downto 0);
+douta : out std_logic_vector(31 downto 0);
+clkb  : in  std_logic;
+enb   : in  std_logic;
+web   : in  std_logic_vector(0 downto 0);
+addrb : in  std_logic_vector(11 downto 0);
+dinb  : in  std_logic_vector(7 downto 0);
+doutb : out std_logic_vector(7 downto 0)
+);
+end component ram_txt;
+
 signal i_screen_eny     : std_logic;
 signal i_screen_enx     : std_logic;
 signal i_screen_en      : std_logic;
@@ -88,17 +108,25 @@ signal sr_char_out      : std_logic_vector(7 downto 0);
 signal i_char_out_disx  : std_logic := '0';
 signal i_char_out_disy  : std_logic := '0';
 
-signal i_colr           : std_logic_vector(7 downto 0);
-signal i_colb           : std_logic_vector(7 downto 0);
-signal i_colg           : std_logic_vector(7 downto 0);
+signal i_colr           : std_logic_vector(G_COLDWIDTH - 1 downto 0);
+signal i_colb           : std_logic_vector(G_COLDWIDTH - 1 downto 0);
+signal i_colg           : std_logic_vector(G_COLDWIDTH - 1 downto 0);
 signal i_palette        : std_logic_vector((i_colg'length * 3) - 1 downto 0);
 
 signal tst_char         : std_logic_vector(i_font_dout'range) := (others => '0');
 signal tst_charen       : std_logic := '0';
 
+signal i_vd_out         : std_logic_vector(p_out_vd'range);
+signal tst_vd_out       : std_logic_vector(p_out_vd'range);
+signal tst_start        : std_logic;
+signal sr_tst_start     : std_logic_vector(0 to 1);
+signal tst_start_out    : std_logic;
+
+
 --MAIN
 begin
 
+p_out_tst(31) <= OR_reduce(tst_vd_out) and tst_start_out;
 p_out_tst(8) <= tst_charen;
 p_out_tst(7 downto 0) <= tst_char;
 
@@ -122,7 +150,7 @@ begin
       i_char_cnty <= (others => '0');
       sr_screen_en <= (others => '0');
       i_char_out_disx <= '0';
-      i_char_out_disy <= '0';
+      i_char_out_disy <= '0'; tst_start <= '0';
 
     else
       sr_screen_en <= i_screen_en & sr_screen_en(0 to 0);
@@ -133,7 +161,7 @@ begin
         i_char_cntx <= (others => '0');
         i_char_cnty <= (others => '0');
         i_char_out_disx <= '0';
-        i_char_out_disy <= '0';
+        i_char_out_disy <= '0'; tst_start <= '0';
 
       else
 
@@ -141,7 +169,7 @@ begin
           i_char_out_disx <= '0';
 
         else
-          if i_screen_en = '1' and i_char_out_disx = '0' and i_char_out_disy = '0' then
+          if i_screen_en = '1' and i_char_out_disx = '0' and i_char_out_disy = '0' then  tst_start <= '1';
 
             if i_font_cntx = TO_UNSIGNED(G_FONT_SIZEX, i_font_cntx'length) - 1 then
               i_font_cntx <= (others => '0');
@@ -212,7 +240,7 @@ i_text_ram_a <= i_text_ram_a_tmp(12 downto 0) + RESIZE(i_char_cntx, i_text_ram_a
 i_text_ram_wr(0) <= p_in_ram_adr(11);
 i_font_ram_wr(0) <= p_in_ram_adr(10);
 
-m_ram_txt : ram_font
+m_ram_txt : ram_txt
 port map(
 clka  => p_in_clk                 ,
 ena   => i_text_ram_wr(0)         ,
@@ -241,25 +269,26 @@ douta => open                     ,
 clkb  => p_in_clk                 ,
 enb   => '1'                      ,
 web   => (others => '0')          ,
-addrb => std_logic_vector(i_font_ram_a(11 downto 0)),--: in  std_logic_vector(8 downto 0);
+addrb => std_logic_vector(i_font_ram_a(11 downto 0)),--std_logic_vector(p_in_pixcnt(11 downto 0)),--: in  std_logic_vector(8 downto 0);
 dinb  => (others => '0')          ,
 doutb => i_font_dout
 );
 
-process(sr_char_out)
+process(sr_char_out, p_in_vd, i_palette)
 begin
-  case sr_char_out(sr_char_out'length - 1) is
-  when '0' => p_out_vd <= p_in_vd;
-  when '1' => p_out_vd <= i_palette;
+  case (sr_char_out(sr_char_out'length - 1) and i_screen_en)is
+  when '0' => i_vd_out <= p_in_vd;
+  when '1' => i_vd_out <= std_logic_vector(RESIZE(UNSIGNED(i_palette), p_out_vd'length));
   when others => null;
   end case;
 end process;
 
 i_palette <= i_colr & i_colb & i_colg;
-i_colr <= (others => '0');
-i_colb <= (others => '0');
+i_colr <= (others => '1');
+i_colb <= (others => '1');
 i_colg <= (others => '1');
 
+p_out_vd <= i_vd_out;
 
 --DBG
 process(p_in_clk)
@@ -268,6 +297,11 @@ begin
     if p_in_rst = '1' then
       tst_char <= (others => '0');
       tst_charen <= '0';
+
+      tst_vd_out <= (others => '0');
+      sr_tst_start <= (others => '0');
+      tst_start_out <= '0';
+
     else
       if i_screen_en = '1' then
         if (i_font_cntx = TO_UNSIGNED(G_FONT_SIZEX, i_font_cntx'length) - 1) then
@@ -279,6 +313,10 @@ begin
       else
         tst_charen <= '0';
       end if;
+
+      tst_vd_out <= i_vd_out;
+      sr_tst_start <= tst_start & sr_tst_start(0 to 0);
+      tst_start_out <= sr_tst_start(0) and not sr_tst_start(1);
     end if;
   end if;
 end process;

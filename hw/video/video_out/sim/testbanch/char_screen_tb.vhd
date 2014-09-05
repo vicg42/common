@@ -13,7 +13,7 @@ G_DBG : string := "OFF"
 );
 port(
 p_out_tp      : out  std_logic_vector(23 downto 0);
-p_out_vd      : out  std_logic_vector(23 downto 0);
+p_out_vd      : out  std_logic_vector(31 downto 0);
 p_out_tst     : out  std_logic_vector(31 downto 0)
 );
 end char_screen_tb;
@@ -25,6 +25,8 @@ constant period_sys_clk       : time := 56.388 ns;--17,7339901477832512315270935
 
 component char_screen is
 generic(
+G_VDWIDTH    : integer := 32;
+G_COLDWIDTH  : integer := 10;
 G_FONT_SIZEX : integer := 8;
 G_FONT_SIZEY : integer := 10;
 G_SCR_STARTX : integer := 8; --(index pixel)
@@ -37,8 +39,8 @@ p_in_ram_adr  : in  std_logic_vector(11 downto 0);
 p_in_ram_din  : in  std_logic_vector(31 downto 0);
 
 --SYNC
-p_out_vd      : out  std_logic_vector(23 downto 0);
-p_in_vd       : in   std_logic_vector(23 downto 0);
+p_out_vd      : out  std_logic_vector(G_VDWIDTH - 1 downto 0);
+p_in_vd       : in   std_logic_vector(G_VDWIDTH - 1 downto 0);
 p_in_vsync    : in   std_logic; --Vertical Sync
 p_in_hsync    : in   std_logic; --Horizontal Sync
 p_in_pixen    : in   std_logic;
@@ -86,7 +88,7 @@ signal i_vout_pixcnt : unsigned(11 downto 0) := (others => '0');
 
 signal sr_pixen      : std_logic_vector(0 to 1) := (others => '0');
 signal i_tst_out     : std_logic_vector(31 downto 0);
-signal i_vd          : std_logic_vector(23 downto 0);
+signal i_vd          : std_logic_vector(31 downto 0);
 
 begin
 
@@ -120,11 +122,13 @@ p_in_rst      => i_rst
 
 uut : char_screen
 generic map(
+G_VDWIDTH    => 32,
+G_COLDWIDTH  => 10,
 G_FONT_SIZEX => 8,
 G_FONT_SIZEY => 12,
-G_SCR_STARTX => 622,
+G_SCR_STARTX => 0,
 G_SCR_STARTY => 1,
-G_SCR_SIZEX  => 3,
+G_SCR_SIZEX  => 1,
 G_SCR_SIZEY  => 1
 )
 port map(
@@ -150,95 +154,95 @@ p_in_rst      => i_rst
 p_out_vd <= i_vd;
 p_out_tst <= i_tst_out;
 
-process
-begin
-    i_ram_adr <= (others => '0');
-    i_ram_din <= (others => '0');
-
-wait until i_rst = '0';
-
---#########################
---Load font
---#########################
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '0';
-    i_ram_adr(10) <= '1';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#00#, 10);
-    i_ram_din <= TO_UNSIGNED(16#99#, 8) & TO_UNSIGNED(16#99#, 8) & TO_UNSIGNED(16#C3#, 8) & TO_UNSIGNED(16#7E#, 8);
-
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '0';
-    i_ram_adr(10) <= '1';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#01#, 10);
-    i_ram_din <= TO_UNSIGNED(16#FF#, 8) & TO_UNSIGNED(16#E7#, 8) & TO_UNSIGNED(16#E7#, 8) & TO_UNSIGNED(16#F3#, 8);
-
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '0';
-    i_ram_adr(10) <= '1';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#02#, 10);
-    i_ram_din <= TO_UNSIGNED(16#00#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#E7#, 8) & TO_UNSIGNED(16#E7#, 8);
----
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '0';
-    i_ram_adr(10) <= '1';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(384/4 + 0, 10);
-    i_ram_din <= TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#3C#, 8) & TO_UNSIGNED(16#18#, 8) & TO_UNSIGNED(16#20#, 8);
-
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '0';
-    i_ram_adr(10) <= '1';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(384/4 + 1, 10);
-    i_ram_din <= TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#66#, 8) & TO_UNSIGNED(16#66#, 8) & TO_UNSIGNED(16#66#, 8);
-
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '0';
-    i_ram_adr(10) <= '1';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(384/4 + 2, 10);
-    i_ram_din <= TO_UNSIGNED(16#00#, 8) & TO_UNSIGNED(16#66#, 8) & TO_UNSIGNED(16#66#, 8) & TO_UNSIGNED(16#7E#, 8);
-
----
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '0';
-    i_ram_adr(10) <= '1';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(396/4 + 0, 10);
-    i_ram_din <= TO_UNSIGNED(16#60#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#21#, 8);
-
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '0';
-    i_ram_adr(10) <= '1';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(396/4 + 1, 10);
-    i_ram_din <= TO_UNSIGNED(16#60#, 8) & TO_UNSIGNED(16#78#, 8) & TO_UNSIGNED(16#78#, 8) & TO_UNSIGNED(16#60#, 8);
-
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '0';
-    i_ram_adr(10) <= '1';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(396/4 + 2, 10);
-    i_ram_din <= TO_UNSIGNED(16#00#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#60#, 8);
-
-
---#########################
---Load text
---#########################
-wait until rising_edge(i_clk);
-    i_ram_adr(11) <= '1';
-    i_ram_adr(10) <= '0';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#00#, 10);
-    i_ram_din <= TO_UNSIGNED(16#04#, 8) & TO_UNSIGNED(16#21#, 8) & TO_UNSIGNED(16#20#, 8) & TO_UNSIGNED(16#00#, 8);
-
-wait until rising_edge(i_clk);
-
-    i_ram_adr(11) <= '1';
-    i_ram_adr(10) <= '0';
-    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#01#, 10);
-    i_ram_din <= TO_UNSIGNED(16#08#, 8) & TO_UNSIGNED(16#07#, 8) & TO_UNSIGNED(16#06#, 8) & TO_UNSIGNED(16#05#, 8);
-
-wait until rising_edge(i_clk);
-
-    i_ram_adr <= (others => '0');
-    i_ram_din <= (others => '0');
-
-wait;
-end process;
+--process
+--begin
+--    i_ram_adr <= (others => '0');
+--    i_ram_din <= (others => '0');
+--
+--wait until i_rst = '0';
+--
+----#########################
+----Load font
+----#########################
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '0';
+--    i_ram_adr(10) <= '1';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#00#, 10);
+--    i_ram_din <= TO_UNSIGNED(16#99#, 8) & TO_UNSIGNED(16#99#, 8) & TO_UNSIGNED(16#C3#, 8) & TO_UNSIGNED(16#7E#, 8);
+--
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '0';
+--    i_ram_adr(10) <= '1';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#01#, 10);
+--    i_ram_din <= TO_UNSIGNED(16#FF#, 8) & TO_UNSIGNED(16#E7#, 8) & TO_UNSIGNED(16#E7#, 8) & TO_UNSIGNED(16#F3#, 8);
+--
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '0';
+--    i_ram_adr(10) <= '1';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#02#, 10);
+--    i_ram_din <= TO_UNSIGNED(16#00#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#E7#, 8) & TO_UNSIGNED(16#E7#, 8);
+-----
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '0';
+--    i_ram_adr(10) <= '1';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(384/4 + 0, 10);
+--    i_ram_din <= TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#3C#, 8) & TO_UNSIGNED(16#18#, 8) & TO_UNSIGNED(16#20#, 8);
+--
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '0';
+--    i_ram_adr(10) <= '1';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(384/4 + 1, 10);
+--    i_ram_din <= TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#66#, 8) & TO_UNSIGNED(16#66#, 8) & TO_UNSIGNED(16#66#, 8);
+--
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '0';
+--    i_ram_adr(10) <= '1';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(384/4 + 2, 10);
+--    i_ram_din <= TO_UNSIGNED(16#00#, 8) & TO_UNSIGNED(16#66#, 8) & TO_UNSIGNED(16#66#, 8) & TO_UNSIGNED(16#7E#, 8);
+--
+-----
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '0';
+--    i_ram_adr(10) <= '1';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(396/4 + 0, 10);
+--    i_ram_din <= TO_UNSIGNED(16#60#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#21#, 8);
+--
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '0';
+--    i_ram_adr(10) <= '1';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(396/4 + 1, 10);
+--    i_ram_din <= TO_UNSIGNED(16#60#, 8) & TO_UNSIGNED(16#78#, 8) & TO_UNSIGNED(16#78#, 8) & TO_UNSIGNED(16#60#, 8);
+--
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '0';
+--    i_ram_adr(10) <= '1';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(396/4 + 2, 10);
+--    i_ram_din <= TO_UNSIGNED(16#00#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#7E#, 8) & TO_UNSIGNED(16#60#, 8);
+--
+--
+----#########################
+----Load text
+----#########################
+--wait until rising_edge(i_clk);
+--    i_ram_adr(11) <= '1';
+--    i_ram_adr(10) <= '0';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#00#, 10);
+--    i_ram_din <= TO_UNSIGNED(16#04#, 8) & TO_UNSIGNED(16#21#, 8) & TO_UNSIGNED(16#20#, 8) & TO_UNSIGNED(16#00#, 8);
+--
+--wait until rising_edge(i_clk);
+--
+--    i_ram_adr(11) <= '1';
+--    i_ram_adr(10) <= '0';
+--    i_ram_adr(9 downto 0) <= TO_UNSIGNED(16#01#, 10);
+--    i_ram_din <= TO_UNSIGNED(16#08#, 8) & TO_UNSIGNED(16#07#, 8) & TO_UNSIGNED(16#06#, 8) & TO_UNSIGNED(16#05#, 8);
+--
+--wait until rising_edge(i_clk);
+--
+--    i_ram_adr <= (others => '0');
+--    i_ram_din <= (others => '0');
+--
+--wait;
+--end process;
 
 process(i_clk)
 begin
