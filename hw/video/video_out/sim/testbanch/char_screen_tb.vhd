@@ -126,9 +126,9 @@ G_VDWIDTH    => 32,
 G_COLDWIDTH  => 10,
 G_FONT_SIZEX => 8,
 G_FONT_SIZEY => 12,
-G_SCR_STARTX => 0,
-G_SCR_STARTY => 1,
-G_SCR_SIZEX  => 1,
+G_SCR_STARTX => 128,
+G_SCR_STARTY => 128,
+G_SCR_SIZEX  => 32,
 G_SCR_SIZEY  => 1
 )
 port map(
@@ -265,16 +265,16 @@ begin
   if rising_edge(i_clk) then
     sr_pixen <= i_pixen & sr_pixen(0 to 0);
 
-    if sr_pixen(0) = '1' and sr_pixen(1) = '0' then
-      write(GUI_line, string'("Line:"));
-    end if;
+--    if sr_pixen(0) = '1' and sr_pixen(1) = '0' then
+--      write(GUI_line, string'("Line:"));
+--    end if;
 
     if sr_pixen(0) = '0' and sr_pixen(1) = '1' then
       writeline(output, GUI_line);
     else
       if i_pixen = '1' then
         if i_tst_out(8) = '1' then
-          write(GUI_line, string'("0x"));
+--          write(GUI_line, string'("0x"));
 
           for y in 1 to 2 loop
           string_value := UNSIGNED(i_tst_out((8 - (4 * (y  -1))) - 1 downto (8 - (4 * y))));

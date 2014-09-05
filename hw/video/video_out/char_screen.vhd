@@ -50,6 +50,11 @@ end entity;
 
 architecture behavioral of char_screen is
 
+constant CI_FONT_SIZEX_MAX  : integer := 8;
+constant CI_FONT_SIZEY_MAX  : integer := 16;
+constant CI_CHAR_COUNTX_MAX : integer := 16;
+constant CI_CHAR_COUNTY_MAX : integer := 16;
+
 component ram_font is
 port (
 clka  : in  std_logic;
@@ -87,7 +92,6 @@ end component ram_txt;
 signal i_screen_eny     : std_logic;
 signal i_screen_enx     : std_logic;
 signal i_screen_en      : std_logic;
-signal sr_screen_en     : std_logic_vector(0 to 1) := (others => '0');
 
 signal i_font_cntx      : unsigned(2 downto 0);
 signal i_font_cnty      : unsigned(3 downto 0);
@@ -104,9 +108,9 @@ signal i_text_ram_a_tmp : unsigned(15 downto 0);
 signal i_font_ram_wr    : std_logic_vector(0 downto 0);
 signal i_text_ram_wr    : std_logic_vector(0 downto 0);
 
+signal i_char_out_ld    : std_logic;
 signal sr_char_out      : std_logic_vector(7 downto 0);
-signal i_char_out_disx  : std_logic := '0';
-signal i_char_out_disy  : std_logic := '0';
+signal i_char_out_mux   : std_logic;
 
 signal i_colr           : std_logic_vector(G_COLDWIDTH - 1 downto 0);
 signal i_colb           : std_logic_vector(G_COLDWIDTH - 1 downto 0);
@@ -121,12 +125,13 @@ signal tst_vd_out       : std_logic_vector(p_out_vd'range);
 signal tst_start        : std_logic;
 signal sr_tst_start     : std_logic_vector(0 to 1);
 signal tst_start_out    : std_logic;
-
+signal sr_screen_en     : std_logic_vector(0 to 1) := (others => '0');
+signal tst_char_out_mux : std_logic;
 
 --MAIN
 begin
 
-p_out_tst(31) <= OR_reduce(tst_vd_out) and tst_start_out;
+p_out_tst(31) <= OR_reduce(tst_vd_out) and tst_start_out and sr_screen_en(0) and tst_char_out_mux;
 p_out_tst(8) <= tst_charen;
 p_out_tst(7 downto 0) <= tst_char;
 
@@ -135,7 +140,7 @@ i_screen_eny <= '1' when (UNSIGNED(p_in_linecnt) >= TO_UNSIGNED(G_SCR_STARTY, p_
                                                                                           , p_in_linecnt'length)) else '0';
 
 i_screen_enx <= '1' when (UNSIGNED(p_in_pixcnt) >= TO_UNSIGNED(G_SCR_STARTX, p_in_pixcnt'length))
-                      and (UNSIGNED(p_in_pixcnt) <= TO_UNSIGNED(G_SCR_STARTX + (G_FONT_SIZEX * G_SCR_SIZEX)
+                      and (UNSIGNED(p_in_pixcnt) <= TO_UNSIGNED(G_SCR_STARTX + (G_FONT_SIZEX * G_SCR_SIZEX) - 1
                                                                                           , p_in_pixcnt'length)) else '0';
 
 i_screen_en <= p_in_pixen and i_screen_enx and i_screen_eny;
@@ -147,41 +152,31 @@ begin
       i_font_cntx <= (others => '0');
       i_font_cnty <= (others => '0');
       i_char_cntx <= (others => '0');
-      i_char_cnty <= (others => '0');
-      sr_screen_en <= (others => '0');
-      i_char_out_disx <= '0';
-      i_char_out_disy <= '0'; tst_start <= '0';
+      i_char_cnty <= (others => '0'); tst_start <= '0';
 
     else
-      sr_screen_en <= i_screen_en & sr_screen_en(0 to 0);
 
       if p_in_vsync = '0' then
         i_font_cntx <= (others => '0');
         i_font_cnty <= (others => '0');
         i_char_cntx <= (others => '0');
-        i_char_cnty <= (others => '0');
-        i_char_out_disx <= '0';
-        i_char_out_disy <= '0'; tst_start <= '0';
+        i_char_cnty <= (others => '0'); tst_start <= '0';
 
       else
 
-        if sr_screen_en(0) = '0' and sr_screen_en(1) = '1' and i_char_out_disy = '0' then
-          i_char_out_disx <= '0';
+          if i_screen_en = '1' then  tst_start <= '1';
 
-        else
-          if i_screen_en = '1' and i_char_out_disx = '0' and i_char_out_disy = '0' then  tst_start <= '1';
-
-            if i_font_cntx = TO_UNSIGNED(G_FONT_SIZEX, i_font_cntx'length) - 1 then
+            if i_font_cntx = TO_UNSIGNED(G_FONT_SIZEX - 1, i_font_cntx'length) then
               i_font_cntx <= (others => '0');
 
-              if i_char_cntx = TO_UNSIGNED(G_SCR_SIZEX, i_char_cntx'length) - 1 then
-                i_char_cntx <= (others => '0'); i_char_out_disx <= '1';
+              if i_char_cntx = TO_UNSIGNED(G_SCR_SIZEX, i_char_cntx'length) then
+                i_char_cntx <= (others => '0');
 
-                if i_font_cnty = TO_UNSIGNED(G_FONT_SIZEY, i_font_cnty'length) - 1 then
+                if i_font_cnty = TO_UNSIGNED(G_FONT_SIZEY - 1, i_font_cnty'length) then
                   i_font_cnty <= (others => '0');
 
-                  if i_char_cnty = TO_UNSIGNED(G_SCR_SIZEY, i_char_cnty'length) - 1 then
-                    i_char_cnty <= ( others => '0'); i_char_out_disy <= '1';
+                  if i_char_cnty = TO_UNSIGNED(G_SCR_SIZEY - 1, i_char_cnty'length) then
+                    i_char_cnty <= ( others => '0');
                   else
                     i_char_cnty <= i_char_cnty + 1;
                   end if;
@@ -189,21 +184,18 @@ begin
                   i_font_cnty <= i_font_cnty + 1;
                 end if;
 
-              else
-                i_char_cntx <= i_char_cntx + 1;
               end if;
 
             else
 
               i_font_cntx <= i_font_cntx + 1;
 
-              if i_screen_en = '1' and sr_screen_en(0) = '0' then
+              if i_font_cntx = (i_font_cntx'range => '0') then
                 i_char_cntx <= i_char_cntx + 1;
               end if;
 
             end if;
           end if;
-        end if;
 
       end if;
 
@@ -211,6 +203,9 @@ begin
   end if;
 end process;
 
+
+i_char_out_ld <= '1' when (i_screen_en = '1' and (i_font_cntx = TO_UNSIGNED(G_FONT_SIZEX - 1, i_font_cntx'length)))
+                            or (p_in_hsync = '0') else '0';
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
@@ -218,14 +213,14 @@ begin
       sr_char_out <= (others => '0');
 
     else
-      if (i_screen_en = '1' and (i_font_cntx = TO_UNSIGNED(G_FONT_SIZEX, i_font_cntx'length) - 1))
-        or (p_in_hsync = '0' and i_char_out_disx = '0') then
-
+      if i_char_out_ld = '1' then
         sr_char_out <= i_font_dout;
 
-      elsif i_screen_en = '1' then
-        sr_char_out <= sr_char_out(sr_char_out'length - 2 downto 0) & '0'; --MSB first
---        sr_char_out <= '0' & sr_char_out(sr_reg'length - 1 downto 1); --LSB first
+      else
+        if i_screen_en = '1' then
+          sr_char_out <= sr_char_out(sr_char_out'length - 2 downto 0) & '0'; --MSB first
+--          sr_char_out <= '0' & sr_char_out(sr_reg'length - 1 downto 1); --LSB first
+        end if;
       end if;
     end if;
   end if;
@@ -274,9 +269,11 @@ dinb  => (others => '0')          ,
 doutb => i_font_dout
 );
 
-process(sr_char_out, p_in_vd, i_palette)
+i_char_out_mux <= i_screen_en and sr_char_out(sr_char_out'length - 1);
+
+process(sr_char_out, p_in_vd, i_palette, i_char_out_mux)
 begin
-  case (sr_char_out(sr_char_out'length - 1) and i_screen_en)is
+  case (i_char_out_mux)is
   when '0' => i_vd_out <= p_in_vd;
   when '1' => i_vd_out <= std_logic_vector(RESIZE(UNSIGNED(i_palette), p_out_vd'length));
   when others => null;
@@ -297,14 +294,16 @@ begin
     if p_in_rst = '1' then
       tst_char <= (others => '0');
       tst_charen <= '0';
-
+      sr_screen_en <= (others => '0');
       tst_vd_out <= (others => '0');
       sr_tst_start <= (others => '0');
-      tst_start_out <= '0';
+      tst_start_out <= '0'; tst_char_out_mux <= '0';
 
     else
+      sr_screen_en <= i_screen_en & sr_screen_en(0 to 0);
+
       if i_screen_en = '1' then
-        if (i_font_cntx = TO_UNSIGNED(G_FONT_SIZEX, i_font_cntx'length) - 1) then
+        if (i_font_cntx = (i_font_cntx'range => '0')) then
           tst_char <= i_font_dout;
           tst_charen <= '1';
         else
@@ -313,7 +312,7 @@ begin
       else
         tst_charen <= '0';
       end if;
-
+      tst_char_out_mux <= i_char_out_mux;
       tst_vd_out <= i_vd_out;
       sr_tst_start <= tst_start & sr_tst_start(0 to 0);
       tst_start_out <= sr_tst_start(0) and not sr_tst_start(1);

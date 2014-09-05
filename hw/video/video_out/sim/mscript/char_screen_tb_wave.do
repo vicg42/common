@@ -16,6 +16,7 @@ add wave -noupdate -radix hexadecimal /char_screen_tb/uut/i_text_ram_a
 add wave -noupdate -radix unsigned /char_screen_tb/uut/i_font_ram_a
 add wave -noupdate -radix hexadecimal /char_screen_tb/uut/i_font_dout
 add wave -noupdate -radix hexadecimal /char_screen_tb/uut/sr_char_out
+add wave -noupdate /char_screen_tb/uut/sr_char_out(7)
 add wave -noupdate /char_screen_tb/uut/i_char_out_disx
 add wave -noupdate /char_screen_tb/uut/i_char_out_disy
 add wave -noupdate -radix hexadecimal /char_screen_tb/uut/i_font_cntx
@@ -28,8 +29,8 @@ add wave -noupdate /char_screen_tb/uut/tst_char
 add wave -noupdate /char_screen_tb/uut/tst_charen
 add wave -noupdate -radix hexadecimal /char_screen_tb/uut/p_out_vd
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
-quietly wave cursor active 0
+WaveRestoreCursors {{Cursor 1} {7025183562 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 291
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -44,4 +45,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {6950014072 ps} {6991897724 ps}
+WaveRestoreZoom {1112284495 ps} {1115746418 ps}
