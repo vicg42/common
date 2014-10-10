@@ -15,8 +15,7 @@
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 library work;
 use work.mem_wr_pkg.all;
@@ -78,7 +77,7 @@ end entity mem_wr;
 
 architecture behavioral of mem_wr is
 
-type fsm_state is (
+type TFsm_state is (
 S_IDLE,
 S_MEM_REMAIN_SIZE_CALC,
 S_MEM_TRN_LEN_CALC,
@@ -89,28 +88,28 @@ S_MEM_TRN,
 S_MEM_TRN_END,
 S_EXIT
 );
-signal fsm_state_cs        : fsm_state;
+signal fsm_state_cs        : TFsm_state;
 
-signal i_mem_adr           : std_logic_vector(G_MEM_BANK_L_BIT - 1 downto 0);
+signal i_mem_adr           : unsigned(G_MEM_BANK_L_BIT - 1 downto 0);
 signal i_mem_dir           : std_logic;
 signal i_mem_wr            : std_logic;
 signal i_mem_rd            : std_logic;
-signal i_mem_term          : std_logic:='0';
-signal i_mem_dlen_remain   : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
-signal i_mem_dlen_used     : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
+signal i_mem_term          : std_logic := '0';
+signal i_mem_dlen_remain   : unsigned(p_in_cfg_mem_dlen_rq'range);
+signal i_mem_dlen_used     : unsigned(p_in_cfg_mem_dlen_rq'range);
 signal i_mem_trn_work      : std_logic;
-signal i_mem_trn_len       : std_logic_vector(p_in_cfg_mem_trn_len'range);
+signal i_mem_trn_len       : unsigned(p_in_cfg_mem_trn_len'range);
 signal i_mem_done          : std_logic;
 
 signal i_axiw_rready       : std_logic;
 signal i_axiw_avalid       : std_logic;
 signal i_axir_avalid       : std_logic;
-signal i_axi_trnlen        : std_logic_vector(p_in_cfg_mem_trn_len'range);
+signal i_axi_trnlen        : unsigned(p_in_cfg_mem_trn_len'range);
 
-signal i_cfg_mem_dlen_rq   : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
-signal i_cfg_mem_trn_len   : std_logic_vector(p_in_cfg_mem_trn_len'range);
+signal i_cfg_mem_dlen_rq   : unsigned(p_in_cfg_mem_dlen_rq'range);
+signal i_cfg_mem_trn_len   : unsigned(p_in_cfg_mem_trn_len'range);
 
-signal tst_fsm_cs,tst_fsm_cs_dly  : std_logic_vector(3 downto 0);
+signal tst_fsm_cs,tst_fsm_cs_dly  : unsigned(3 downto 0);
 
 
 --MAIN
@@ -121,9 +120,9 @@ begin
 --------------------------------------
 p_out_tst(0) <= '0';--i_mem_term;
 p_out_tst(1) <= '0';--sr_mem_term_out;
-p_out_tst(5 downto 2) <= tst_fsm_cs_dly;
+p_out_tst(5 downto 2) <= std_logic_vector(tst_fsm_cs_dly);
 p_out_tst(15 downto 6) <= (others=>'0');
-p_out_tst(31 downto 16) <= i_mem_trn_len;
+p_out_tst(31 downto 16) <= std_logic_vector(i_mem_trn_len);
 
 process(p_in_clk)
 begin
@@ -132,15 +131,15 @@ begin
   end if;
 end process;
 
-tst_fsm_cs <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_REMAIN_SIZE_CALC     else
-              CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_LEN_CALC         else
-              CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_SET_RQ               else
-              CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_WAIT_RQ_EN           else
-              CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_START            else
-              CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN                  else
-              CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_END              else
-              CONV_STD_LOGIC_VECTOR(16#08#, tst_fsm_cs'length) when fsm_state_cs = S_EXIT                     else
-              CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length);--when fsm_state_cs = S_IDLE                     else
+tst_fsm_cs <= TO_UNSIGNED(16#01#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_REMAIN_SIZE_CALC else
+              TO_UNSIGNED(16#02#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_LEN_CALC     else
+              TO_UNSIGNED(16#03#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_SET_RQ           else
+              TO_UNSIGNED(16#04#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_WAIT_RQ_EN       else
+              TO_UNSIGNED(16#05#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_START        else
+              TO_UNSIGNED(16#06#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN              else
+              TO_UNSIGNED(16#07#, tst_fsm_cs'length) when fsm_state_cs = S_MEM_TRN_END          else
+              TO_UNSIGNED(16#08#, tst_fsm_cs'length) when fsm_state_cs = S_EXIT                 else
+              TO_UNSIGNED(16#00#, tst_fsm_cs'length);--when fsm_state_cs = S_IDLE                 else
 
 
 -------------------------------
@@ -157,18 +156,18 @@ p_out_usr_rxbuf_din <= p_in_mem.axir.data(p_out_usr_rxbuf_din'range);
 --------------------------------------------------
 p_out_mem.clk        <= p_in_clk;
 --WAddr Port(usr_buf->mem)
-p_out_mem.axiw.aid    <= CONV_STD_LOGIC_VECTOR(G_MEM_IDW_NUM, p_out_mem.axiw.aid'length);
-p_out_mem.axiw.adr    <= EXT(i_mem_adr, p_out_mem.axiw.adr'length);
-p_out_mem.axiw.trnlen <= i_axi_trnlen(p_out_mem.axiw.trnlen'range);
-p_out_mem.axiw.dbus   <= CONV_STD_LOGIC_VECTOR(log2(G_MEM_DWIDTH/8), p_out_mem.axiw.dbus'length); --2/3/... - BusData=32bit/64bit/...
-p_out_mem.axiw.burst  <= CONV_STD_LOGIC_VECTOR(1, p_out_mem.axiw.burst'length);--0/1 - Fixed( FIFO-type)/INCR (Normal sequential memory)
-p_out_mem.axiw.lock   <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.lock'length);
+p_out_mem.axiw.aid    <= std_logic_vector(TO_UNSIGNED(G_MEM_IDW_NUM, p_out_mem.axiw.aid'length));
+p_out_mem.axiw.adr    <= std_logic_vector(RESIZE(i_mem_adr, p_out_mem.axiw.adr'length));
+p_out_mem.axiw.trnlen <= std_logic_vector(i_axi_trnlen(p_out_mem.axiw.trnlen'range));
+p_out_mem.axiw.dbus   <= std_logic_vector(TO_UNSIGNED(log2(G_MEM_DWIDTH / 8), p_out_mem.axiw.dbus'length)); --2/3/... - BusData=32bit/64bit/...
+p_out_mem.axiw.burst  <= std_logic_vector(TO_UNSIGNED(1, p_out_mem.axiw.burst'length));--0/1 - Fixed( FIFO-type)/INCR (Normal sequential memory)
+p_out_mem.axiw.lock   <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axiw.lock'length));
 p_out_mem.axiw.cache  <= "00" & G_USR_OPT(0) & '0';
-p_out_mem.axiw.prot   <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.prot'length);
-p_out_mem.axiw.qos    <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.qos'length);
+p_out_mem.axiw.prot   <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axiw.prot'length));
+p_out_mem.axiw.qos    <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axiw.qos'length));
 p_out_mem.axiw.avalid <= i_axiw_avalid;
 --WData Port
-p_out_mem.axiw.data  <= EXT(p_in_usr_txbuf_dout, p_out_mem.axiw.data'length);
+p_out_mem.axiw.data  <= std_logic_vector(RESIZE(UNSIGNED(p_in_usr_txbuf_dout), p_out_mem.axiw.data'length));
 gen_wbe : for i in 0 to p_out_mem.axiw.dbe'length - 1 generate
 p_out_mem.axiw.dbe(i) <= i_mem_wr;
 end generate gen_wbe;
@@ -178,15 +177,15 @@ p_out_mem.axiw.dvalid <= i_mem_wr;
 p_out_mem.axiw.rready <= i_axiw_rready;
 
 --RAddr Port(usr_buf<-mem)
-p_out_mem.axir.aid    <= CONV_STD_LOGIC_VECTOR(G_MEM_IDR_NUM, p_out_mem.axir.aid'length);
-p_out_mem.axir.adr    <= EXT(i_mem_adr, p_out_mem.axir.adr'length);
-p_out_mem.axir.trnlen <= i_axi_trnlen(p_out_mem.axir.trnlen'range);
-p_out_mem.axir.dbus   <= CONV_STD_LOGIC_VECTOR(log2(G_MEM_DWIDTH/8), p_out_mem.axir.dbus'length); --2/3/... - BusData=32bit/64bit/...
-p_out_mem.axir.burst  <= CONV_STD_LOGIC_VECTOR(1, p_out_mem.axir.burst'length);--0/1 - Fixed( FIFO-type)/INCR (Normal sequential memory)
-p_out_mem.axir.lock   <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.lock'length);
-p_out_mem.axir.cache  <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.cache'length);
-p_out_mem.axir.prot   <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.prot'length);
-p_out_mem.axir.qos    <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.qos'length);
+p_out_mem.axir.aid    <= std_logic_vector(TO_UNSIGNED(G_MEM_IDR_NUM, p_out_mem.axir.aid'length));
+p_out_mem.axir.adr    <= std_logic_vector(RESIZE(i_mem_adr, p_out_mem.axir.adr'length));
+p_out_mem.axir.trnlen <= std_logic_vector(i_axi_trnlen(p_out_mem.axir.trnlen'range));
+p_out_mem.axir.dbus   <= std_logic_vector(TO_UNSIGNED(log2(G_MEM_DWIDTH / 8), p_out_mem.axir.dbus'length)); --2/3/... - BusData=32bit/64bit/...
+p_out_mem.axir.burst  <= std_logic_vector(TO_UNSIGNED(1, p_out_mem.axir.burst'length));--0/1 - Fixed( FIFO-type)/INCR (Normal sequential memory)
+p_out_mem.axir.lock   <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axir.lock'length));
+p_out_mem.axir.cache  <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axir.cache'length));
+p_out_mem.axir.prot   <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axir.prot'length));
+p_out_mem.axir.qos    <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axir.qos'length));
 p_out_mem.axir.avalid <= i_axir_avalid;
 --RData Port
 p_out_mem.axir.rready <= i_mem_trn_work when i_mem_dir = C_MEMWR_READ else '0';
@@ -198,7 +197,7 @@ begin
 
     --Формируем сигнал последнего данного в текущей транзакции записи ОЗУ
     if i_mem_dir = C_MEMWR_WRITE then
-      if (i_mem_wr = '1' or fsm_state_cs = S_MEM_WAIT_RQ_EN) and i_mem_trn_len = CONV_STD_LOGIC_VECTOR(1, i_mem_trn_len'length) then
+      if (i_mem_wr = '1' or fsm_state_cs = S_MEM_WAIT_RQ_EN) and i_mem_trn_len = TO_UNSIGNED(1, i_mem_trn_len'length) then
         i_mem_term <= '1';
       elsif i_mem_wr = '1' and i_mem_trn_len = (i_mem_trn_len'range => '0') then
         i_mem_term <= '0';
@@ -221,7 +220,7 @@ i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty
 
 --Логика работы автомата
 fsm : process(p_in_clk)
-  variable update_addr: std_logic_vector(i_mem_trn_len'length + log2(G_MEM_DWIDTH/8) - 1 downto 0);
+  variable update_addr: unsigned(i_mem_trn_len'length + log2(G_MEM_DWIDTH / 8) - 1 downto 0);
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
@@ -256,10 +255,10 @@ if rising_edge(p_in_clk) then
       --Ждем сигнала запуска операции
       --------------------------------------
         if p_in_cfg_mem_start = '1' then
-          i_mem_adr <= p_in_cfg_mem_adr(G_MEM_BANK_L_BIT - 1 downto 0);
+          i_mem_adr <= UNSIGNED(p_in_cfg_mem_adr(G_MEM_BANK_L_BIT - 1 downto 0));
           i_mem_dir <= p_in_cfg_mem_wr;
-          i_cfg_mem_dlen_rq <= p_in_cfg_mem_dlen_rq;
-          i_cfg_mem_trn_len <= p_in_cfg_mem_trn_len;
+          i_cfg_mem_dlen_rq <= UNSIGNED(p_in_cfg_mem_dlen_rq);
+          i_cfg_mem_trn_len <= UNSIGNED(p_in_cfg_mem_trn_len);
 
           fsm_state_cs <= S_MEM_REMAIN_SIZE_CALC;
         end if;
@@ -269,7 +268,8 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_MEM_REMAIN_SIZE_CALC =>
 
-        i_mem_dlen_remain <= EXT(i_cfg_mem_dlen_rq, i_mem_dlen_remain'length) - EXT(i_mem_dlen_used, i_mem_dlen_remain'length);
+        i_mem_dlen_remain <= RESIZE(i_cfg_mem_dlen_rq, i_mem_dlen_remain'length)
+                              - RESIZE(i_mem_dlen_used, i_mem_dlen_remain'length);
         fsm_state_cs <= S_MEM_TRN_LEN_CALC;
 
       --------------------------------------
@@ -277,7 +277,7 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_MEM_TRN_LEN_CALC =>
 
-        if i_mem_dlen_remain >= EXT(i_cfg_mem_trn_len, i_mem_dlen_remain'length) then
+        if i_mem_dlen_remain >= RESIZE(i_cfg_mem_trn_len, i_mem_dlen_remain'length) then
           i_mem_trn_len <= i_cfg_mem_trn_len;
           i_axi_trnlen <= i_cfg_mem_trn_len - 1;
         else
@@ -285,6 +285,7 @@ if rising_edge(p_in_clk) then
           i_axi_trnlen <= i_mem_dlen_remain(i_axi_trnlen'range) - 1;
         end if;
 
+        --wait when txbuf or rxbuf is ready
         if ((i_mem_dir = C_MEMWR_READ) and p_in_usr_rxbuf_full = '0')
           or ((i_mem_dir = C_MEMWR_WRITE) and p_in_usr_txbuf_empty = '0') then
 
@@ -364,8 +365,8 @@ if rising_edge(p_in_clk) then
       when S_MEM_TRN_END =>
 
         --Вычисляем значение для обнавления адреса ОЗУ
-        update_addr(log2(G_MEM_DWIDTH/8) - 1 downto 0) := (others=>'0');
-        update_addr(update_addr'high downto log2(G_MEM_DWIDTH/8)) := i_cfg_mem_trn_len;
+        update_addr(log2(G_MEM_DWIDTH / 8) - 1 downto 0) := (others=>'0');
+        update_addr(update_addr'high downto log2(G_MEM_DWIDTH / 8)) := i_cfg_mem_trn_len;
 
         if (p_in_mem.axiw.rvalid = '1' and i_mem_dir = C_MEMWR_WRITE) or i_mem_dir = C_MEMWR_READ then
           i_axiw_rready <= '0';
@@ -374,7 +375,7 @@ if rising_edge(p_in_clk) then
             fsm_state_cs <= S_EXIT;
           else
             --Вычисляем следующий адрес ОЗУ
-            i_mem_adr<=i_mem_adr + EXT(update_addr, i_mem_adr'length);
+            i_mem_adr<=i_mem_adr + RESIZE(update_addr, i_mem_adr'length);
 
             --Переход к следующей транзакции write/read ОЗУ
             fsm_state_cs <= S_MEM_REMAIN_SIZE_CALC;
