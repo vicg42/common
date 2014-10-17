@@ -188,7 +188,7 @@ p_out_mem.axir.prot   <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axir.prot'len
 p_out_mem.axir.qos    <= std_logic_vector(TO_UNSIGNED(0, p_out_mem.axir.qos'length));
 p_out_mem.axir.avalid <= i_axir_avalid;
 --RData Port
-p_out_mem.axir.rready <= i_mem_trn_work when i_mem_dir = C_MEMWR_READ else '0';
+p_out_mem.axir.rready <= i_mem_trn_work and not p_in_usr_rxbuf_full when i_mem_dir = C_MEMWR_READ else '0';
 
 
 mem_term : process(p_in_clk)
@@ -215,7 +215,7 @@ end process mem_term;
 p_out_cfg_mem_done <= i_mem_done;
 
 --Стробы записи/чтения ОЗУ
-i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid when i_mem_dir = C_MEMWR_READ  else '0';
+i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and not p_in_usr_rxbuf_full when i_mem_dir = C_MEMWR_READ  else '0';
 i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty when i_mem_dir = C_MEMWR_WRITE else '0';
 
 --Логика работы автомата
