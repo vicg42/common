@@ -31,7 +31,7 @@ p_out_linecnt : out  std_logic_vector(15 downto 0);
 p_in_clk      : in   std_logic;
 p_in_rst      : in   std_logic
 );
-end entity;
+end entity vga_gen;
 
 architecture behavioral of vga_gen is
 
@@ -75,8 +75,7 @@ signal i_pixcnt             : unsigned(15 downto 0) := (others => '0');
 signal i_linecnt            : unsigned(15 downto 0) := (others => '0');
 
 
---MAIN
-begin
+begin --architecture behavioral
 
 
 ------------------------------------
@@ -171,5 +170,4 @@ begin
 end process;
 
 
---END MAIN
-end architecture;
+end architecture behavioral;

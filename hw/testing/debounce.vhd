@@ -38,7 +38,7 @@ signal i_debcnt           : unsigned(log2(G_DEBVAL) downto 0) := (others => '0')
 signal i_btn              : std_logic := not G_PUSH_LEVEL;
 signal i_btn_push         : std_logic := '0';
 
-begin
+begin --architecture behavioral
 
 p_out_btn <= i_btn_push;
 
@@ -68,4 +68,3 @@ end process;
 
 
 end architecture behavioral;
-

@@ -26,13 +26,11 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 entity timer_v01 is
-generic
-(
+generic (
 G_T05us : integer:=10#1000# -- кол-во периодов частоты порта p_in_clk
                             -- укладывающихся в 1/2 периода 1us
 );
-port
-(
+port (
 p_in_start        : in std_logic;                    --//Внешний запуск таймера
 
 p_in_time_discret : in std_logic_vector(1 downto 0); --//Выбора дискрета времини для таймера (соответствие кода к времени см. выше)
@@ -47,17 +45,15 @@ p_out_done        : out std_logic;                   --//Работа модуля завершена
 p_in_clk     : in    std_logic;
 p_in_rst     : in    std_logic
 );
-end timer_v01;
+end entity timer_v01;
 
 architecture behavioral of timer_v01 is
 
 component time_gen
-generic
-(
+generic (
 G_T05us      : integer:=10#1000#
 );
-port
-(
+port (
 p_out_en05us : out   std_logic;
 p_out_en1us  : out   std_logic;
 p_out_en1ms  : out   std_logic;
@@ -70,7 +66,7 @@ p_out_en1min : out   std_logic;
 p_in_rst     : in    std_logic;
 p_in_clk     : in    std_logic
 );
-end component;
+end component time_gen;
 
 signal i_done                   : std_logic;
 
@@ -84,8 +80,8 @@ signal i_tmr_en                 : std_logic;
 signal i_tmr_work               : std_logic;
 signal i_tmr_work_inv           : std_logic;
 
---MAIN
-begin
+
+begin --architecture behavioral
 
 
 p_out_work<=i_tmr_work;
@@ -165,5 +161,4 @@ begin
   end if;
 end process;
 
---END MAIN
-end behavioral;
+end architecture behavioral;

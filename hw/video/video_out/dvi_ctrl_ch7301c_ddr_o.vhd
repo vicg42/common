@@ -26,13 +26,11 @@ C  : in    std_logic;
 R  : in    std_logic;
 S  : in    std_logic
 );
-end entity;
+end entity dvi_ctrl_ddr_o;
 
 architecture behavioral of dvi_ctrl_ddr_o is
 
-
---MAIN
-begin
+begin --architecture behavioral
 
 m_ddr : ODDR
 port map(
@@ -45,8 +43,6 @@ R  => R ,
 S  => S
 );
 
-
---END MAIN
-end architecture;
+end architecture behavioral;
 
 

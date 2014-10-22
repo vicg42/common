@@ -152,6 +152,6 @@ p_out_tst            : out   std_logic_vector(31 downto 0);
 p_in_clk             : in    std_logic;
 p_in_rst             : in    std_logic
 );
-end component;
+end component mem_wr;
 
-end;
+end package mem_wr_pkg;

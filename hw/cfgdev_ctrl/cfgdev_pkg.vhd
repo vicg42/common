@@ -13,8 +13,6 @@
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
 
 
 package cfgdev_pkg is
@@ -91,7 +89,7 @@ p_out_tst            : out    std_logic_vector(31 downto 0);
 -------------------------------
 p_in_rst             : in     std_logic
 );
-end component;
+end component cfgdev_uart;
 
 
 component cfgdev_ftdi
@@ -144,7 +142,7 @@ p_out_tst            : out    std_logic_vector(31 downto 0);
 -------------------------------
 p_in_rst             : in     std_logic
 );
-end component;
+end component cfgdev_ftdi;
 
 
 component cfgdev_host
@@ -202,12 +200,6 @@ p_out_tst            : out    std_logic_vector(31 downto 0);
 -------------------------------
 p_in_rst             : in     std_logic
 );
-end component;
+end component cfgdev_host;
 
-end cfgdev_pkg;
-
-
-package body cfgdev_pkg is
-
-end cfgdev_pkg;
-
+end package cfgdev_pkg;

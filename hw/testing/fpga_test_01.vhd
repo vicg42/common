@@ -62,7 +62,7 @@ p_out_en1min : out   std_logic;
 p_in_clk     : in    std_logic;
 p_in_rst     : in    std_logic
 );
-end component;
+end component time_gen;
 
 
 signal i_discret_1us            : std_logic;
@@ -73,8 +73,8 @@ signal i_count_sec              : std_logic_vector(1 downto 0);
 signal i_test_led               : std_logic;
 signal i_test_done              : std_logic;
 
---MAIN
-begin
+
+begin --architecture behavioral
 
 
 p_out_test_led <=i_test_led;
@@ -137,6 +137,5 @@ if p_in_clk'event and p_in_clk='1' then
 end if;
 end process;
 
---END MAIN
-end architecture behavioral;
 
+end architecture behavioral;

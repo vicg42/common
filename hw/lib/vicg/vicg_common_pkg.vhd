@@ -14,10 +14,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
----- need conversion function to convert reals/integers to std logic vectors
---use ieee.std_logic_arith.conv_std_logic_vector;
---use ieee.std_logic_arith.all;
---use ieee.std_logic_unsigned.all;
 
 library std;
 use std.textio.all;
@@ -134,7 +130,7 @@ constant StrHEX2Int : TChar2Int :=
 --'F'
 --);
 
-end vicg_common_pkg;
+end package vicg_common_pkg;
 
 package body vicg_common_pkg is
 -------------------------------------------------------------------------------

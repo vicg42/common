@@ -46,7 +46,7 @@ p_out_tst     : out  std_logic_vector(31 downto 0);
 p_in_clk      : in   std_logic;
 p_in_rst      : in   std_logic
 );
-end entity;
+end entity char_screen;
 
 architecture behavioral of char_screen is
 
@@ -124,8 +124,7 @@ signal tst_charen       : std_logic := '0';
 --signal tst_start        : std_logic;
 
 
---MAIN
-begin
+begin --architecture behavioral
 
 p_out_tst(31) <= '0';--tst_start;
 p_out_tst(8) <= tst_charen;
@@ -317,5 +316,4 @@ begin
 end process;
 
 
---END MAIN
-end architecture;
+end architecture behavioral;

@@ -78,7 +78,7 @@ p_in_clk_en: in std_logic;
 p_in_clk   : in std_logic;
 p_in_rst   : in std_logic
 );
-end entity;
+end entity tv_gen;
 
 architecture behavior of tv_gen is
 
@@ -104,8 +104,8 @@ signal i_pixen    : std_logic;
 --signal test_row: integer:=0;--  Тестовый счетчик. Тестирует кол-во строк в кадре
 --signal APRT: std_logic;
 
---  MAIN
-begin
+
+begin --architecture behavior
 
 p_out_tv_field <= i_field;
 p_out_tv_kci <= i_kci;
@@ -382,5 +382,4 @@ p_out_den <= i_pixen;
 --    end if;
 --  end process;
 
---  END MAIN
-end architecture;
+end architecture behavior;

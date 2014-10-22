@@ -22,4 +22,4 @@ constant C_MEMWR_IDWIDTH_MAX: integer:=32;
 
 constant C_MEMCH_COUNT_MAX  : integer:=8;
 
-end;
+end package mem_glob_pkg;

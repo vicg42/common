@@ -57,7 +57,7 @@ p_out_tst     : out   std_logic_vector(31 downto 0);
 p_in_clk      : in    std_logic; --100MHz!!!!
 p_in_rst      : in    std_logic
 );
-end entity;
+end entity dvi_ctrl;
 
 architecture behavioral of dvi_ctrl is
 
@@ -233,7 +233,7 @@ p_out_tst   : out   std_logic_vector(31 downto 0);
 p_in_clk    : in    std_logic;
 p_in_rst    : in    std_logic
 );
-end component;
+end component i2c_core_master;
 
 component dvi_ctrl_dcm
 port(
@@ -244,7 +244,7 @@ p_out_gclk    : out   std_logic_vector(0 downto 0);
 p_in_clk      : in    std_logic;
 p_in_rst      : in    std_logic
 );
-end component;
+end component dvi_ctrl_dcm;
 
 component dvi_ctrl_ddr_o
 port(
@@ -256,7 +256,7 @@ C  : in    std_logic;
 R  : in    std_logic;
 S  : in    std_logic
 );
-end component;
+end component dvi_ctrl_ddr_o;
 
 type TRegWR_state is (
 S_IDLE,
@@ -338,8 +338,8 @@ signal tst_dvi_de            : std_logic;
 attribute keep : string;
 attribute keep of g_clk_pix : signal is "true";
 
---MAIN
-begin
+
+begin --architecture behavioral
 
 
 ------------------------------------
@@ -830,8 +830,4 @@ R  => p_in_rst,
 S  => '0'
 );
 
-
---END MAIN
-end architecture;
-
-
+end architecture behavioral;

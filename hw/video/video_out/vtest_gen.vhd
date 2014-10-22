@@ -75,8 +75,7 @@ signal sr_vs                : std_logic := CI_VSYN_NACTIVE;
 signal sr_vd_out            : std_logic_vector(G_VD_WIDTH - 1 downto 0) := (others => '0');
 
 
---MAIN
-begin
+begin --architecture behavioral
 
 ------------------------------------
 --Технологические сигналы
@@ -273,5 +272,4 @@ i_vd_out((i_vd(i)'length * (i + 1)) - 1 downto (i_vd(i)'length * i)) <= std_logi
 end generate gen_vd;
 
 
---END MAIN
 end architecture behavioral;

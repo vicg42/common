@@ -21,13 +21,11 @@ library work;
 use work.vicg_common_pkg.all;
 
 entity time_gen is
-generic
-(
+generic (
 G_T05us : integer:=10#1000# -- кол-во периодов частоты порта p_in_clk
                             -- укладывающиеся в 1/2 периода 1us
 );
-port
-(
+port (
 p_out_en05us : out   std_logic;--//Стробы временных интервалов:0.5us, 1us, 1ms, 1sec, 1min
 p_out_en1us  : out   std_logic;
 p_out_en1ms  : out   std_logic;
@@ -40,7 +38,7 @@ p_out_en1min : out   std_logic;
 p_in_clk     : in    std_logic;
 p_in_rst     : in    std_logic
 );
-end time_gen;
+end entity time_gen;
 
 architecture behavioral of time_gen is
 
@@ -58,8 +56,8 @@ signal i_en1ms                  : std_logic;
 signal i_en1sec                 : std_logic;
 signal i_en1min                 : std_logic;
 
---MAIN
-begin
+
+begin --architecture behavioral
 
 
 process(p_in_rst,p_in_clk)
@@ -127,5 +125,5 @@ end process;
 --  end if;
 --end process;
 
---END MAIN
-end Behavioral;
+
+end architecture behavioral;

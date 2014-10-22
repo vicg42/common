@@ -59,7 +59,7 @@ end record;
 Type TMemINCh is array (0 to C_MEMCH_COUNT_MAX-1) of TMemIN;
 Type TMemOUTCh is array (0 to C_MEMCH_COUNT_MAX-1) of TMemOUT;
 
---//Режимы работы - запись/чтение
+--Режимы работы - запись/чтение
 constant C_MEMWR_WRITE   : std_logic:='1';
 constant C_MEMWR_READ    : std_logic:='0';
 
@@ -117,7 +117,7 @@ p_out_tst            : out   std_logic_vector(31 downto 0);
 p_in_clk             : in    std_logic;
 p_in_rst             : in    std_logic
 );
-end component;
+end component mem_wr;
 
 
-end;
+end package mem_wr_pkg;

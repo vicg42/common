@@ -24,7 +24,7 @@ use work.mem_wr_pkg.all;
 
 entity mem_wr is
 generic(
-G_MEM_BANK_M_BIT : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
+G_MEM_BANK_M_BIT : integer:=29;--биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
 G_MEM_BANK_L_BIT : integer:=28;
 G_MEM_AWIDTH     : integer:=32;
 G_MEM_DWIDTH     : integer:=32
@@ -33,12 +33,12 @@ port(
 -------------------------------
 --Конфигурирование
 -------------------------------
-p_in_cfg_mem_adr     : in    std_logic_vector(31 downto 0);--//Адрес ОЗУ (в BYTE)
-p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);--//Размер одиночной MEM_TRN (в DWORD)
-p_in_cfg_mem_dlen_rq : in    std_logic_vector(15 downto 0);--//Размер запрашиваемых данных записи/чтения (в DWORD)
-p_in_cfg_mem_wr      : in    std_logic;                    --//Тип операции
-p_in_cfg_mem_start   : in    std_logic;                    --//Строб: Пуск операции
-p_out_cfg_mem_done   : out   std_logic;                    --//Строб: Операции завершена
+p_in_cfg_mem_adr     : in    std_logic_vector(31 downto 0);--Адрес ОЗУ (в BYTE)
+p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);--Размер одиночной MEM_TRN (в DWORD)
+p_in_cfg_mem_dlen_rq : in    std_logic_vector(15 downto 0);--Размер запрашиваемых данных записи/чтения (в DWORD)
+p_in_cfg_mem_wr      : in    std_logic;                    --Тип операции
+p_in_cfg_mem_start   : in    std_logic;                    --Строб: Пуск операции
+p_out_cfg_mem_done   : out   std_logic;                    --Строб: Операции завершена
 
 -------------------------------
 --Связь с пользовательскими буферами
@@ -71,7 +71,7 @@ p_out_tst            : out   std_logic_vector(31 downto 0);
 p_in_clk             : in    std_logic;
 p_in_rst             : in    std_logic
 );
-end mem_wr;
+end entity mem_wr;
 
 architecture behavioral of mem_wr is
 
@@ -106,12 +106,11 @@ signal i_cfg_mem_trn_len   : std_logic_vector(p_out_mem.cmd_bl'length downto 0);
 signal tst_fsm_cs          : std_logic_vector(2 downto 0);
 
 
---MAIN
-begin
+begin --architecture behavioral
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 --p_out_tst<=(others=>'0');
 p_out_tst(0)<=p_in_cfg_mem_start;
 p_out_tst(1)<=i_mem_done;
@@ -127,21 +126,21 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_state_cs=S_
             CONV_STD_LOGIC_VECTOR(16#03#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_START         else
             CONV_STD_LOGIC_VECTOR(16#04#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN               else
             CONV_STD_LOGIC_VECTOR(16#05#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_END           else
-            CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --//when fsm_state_cs=S_IDLE               else
+            CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --when fsm_state_cs=S_IDLE               else
 
 
---//-----------------------------
---//Связь с пользовательскими буферами
---//-----------------------------
+-------------------------------
+--Связь с пользовательскими буферами
+-------------------------------
 p_out_usr_txbuf_rd <=i_mem_wr;
 
 p_out_usr_rxbuf_wd <=i_mem_rd;
 p_out_usr_rxbuf_din<=p_in_mem.rxd(p_out_usr_rxbuf_din'range);
 
 
---//----------------------------------------------
---//Связь с контроллером памяти
---//----------------------------------------------
+------------------------------------------------
+--Связь с контроллером памяти
+------------------------------------------------
 p_out_mem.clk   <=p_in_clk;
 p_out_mem.req   <='0';
 p_out_mem.req_type<=i_mem_dir;
@@ -156,9 +155,9 @@ p_out_mem.adr   <=EXT(i_mem_adr, p_out_mem.adr'length);
 p_out_mem.txd   <=EXT(p_in_usr_txbuf_dout, p_out_mem.txd'length);
 
 
---//----------------------------------------------
---//Автомат записи/чтения данных ОЗУ
---//----------------------------------------------
+------------------------------------------------
+--Автомат записи/чтения данных ОЗУ
+------------------------------------------------
 --Текущая операция выполнена
 p_out_cfg_mem_done<=i_mem_done;
 
@@ -236,7 +235,7 @@ begin
                                                                             --беру только такой диапозон p_out_mem.cmd_bl'range
           i_mem_dlen_remain<=(others=>'0');
 
-          --//Назначаем банк ОЗУ
+          --Назначаем банк ОЗУ
           for i in 0 to i_mem_bank'high loop
             if p_in_cfg_mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT)= i then
               i_mem_bank(i) <= '1';
@@ -299,7 +298,7 @@ begin
             fsm_state_cs <= S_IDLE;
             i_mem_done<='1';
           else
-            --//Вычисляем следующий адрес ОЗУ
+            --Вычисляем следующий адрес ОЗУ
             i_mem_adr<=i_mem_adr + i_mem_adr_update;
             fsm_state_cs <= S_MEM_REMAIN_SIZE_CALC;
 
@@ -341,5 +340,5 @@ begin
   end if;
 end process;
 
---END MAIN
-end behavioral;
+
+end architecture behavioral;

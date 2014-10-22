@@ -59,7 +59,7 @@ p_out_tst   : out   std_logic_vector(31 downto 0);
 p_in_clk    : in    std_logic;
 p_in_rst    : in    std_logic
 );
-end i2c_core_master;
+end entity i2c_core_master;
 
 architecture behavioral of i2c_core_master is
 
@@ -111,8 +111,7 @@ signal i_txd          : std_logic_vector(7 downto 0); --ADEV or user data
 signal tst_fms_cs_dly,tst_fms_cs    : std_logic_vector(4 downto 0);
 
 
---MAIN
-begin
+begin --architecture behavioral
 
 ------------------------------------
 --Технологические сигналы
@@ -527,5 +526,5 @@ begin
   end if;
 end process;
 
---END MAIN
-end behavioral;
+
+end architecture behavioral;

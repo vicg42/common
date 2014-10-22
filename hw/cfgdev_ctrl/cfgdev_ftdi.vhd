@@ -84,7 +84,7 @@ p_out_tst            : out    std_logic_vector(31 downto 0);
 -------------------------------
 p_in_rst             : in     std_logic
 );
-end cfgdev_ftdi;
+end entity cfgdev_ftdi;
 
 architecture behavioral of cfgdev_ftdi is
 
@@ -132,8 +132,7 @@ signal sr_dv_rdy                        : std_logic_vector(0 to 2):=(others=>'0'
 signal tst_dv_rdy_edge                  : std_logic:='0';
 
 
---MAIN
-begin
+begin --architecture behavioral
 
 ------------------------------------
 --Технологические сигналы
@@ -509,6 +508,4 @@ end if;
 end process;
 
 
-
---END MAIN
-end behavioral;
+end architecture behavioral;
