@@ -28,7 +28,7 @@ use unisim.vcomponents.all;
 
 entity vcoldemosaic_main_tb is
 generic(
-G_DOUT_WIDTH : integer:=32
+G_DOUT_WIDTH : integer:=8
 );
 end vcoldemosaic_main_tb;
 

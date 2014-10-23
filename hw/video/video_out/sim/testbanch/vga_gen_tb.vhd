@@ -27,7 +27,9 @@ port(
 --SYNC
 p_out_vsync   : out  std_logic; --Vertical Sync
 p_out_hsync   : out  std_logic; --Horizontal Sync
-p_out_den     : out  std_logic; --Pixels
+p_out_pixen   : out  std_logic; --Pixels
+p_out_pixcnt  : out  std_logic_vector(15 downto 0);
+p_out_linecnt : out  std_logic_vector(15 downto 0);
 
 --System
 p_in_clk      : in   std_logic;
@@ -63,8 +65,9 @@ port map(
 --SYNC
 p_out_vsync   => i_video_vs,
 p_out_hsync   => i_video_hs,
-p_out_den     => i_video_den,
-
+p_out_pixen   => i_video_den,
+p_out_pixcnt  => open,
+p_out_linecnt => open,
 --System
 p_in_clk      => i_clk,
 p_in_rst      => i_rst
