@@ -20,6 +20,6 @@ package vfilter_core_pkg is
 constant C_VFILTER_RANG : integer := 3;
 
 type TMatrix_X is array (0 to C_VFILTER_RANG - 1) of unsigned(7 downto 0);
-type TMatrix is array (C_VFILTER_RANG - 1 downto 0) of TMatrix_X;
+type TMatrix is array (0 to C_VFILTER_RANG - 1) of TMatrix_X;
 
 end package vfilter_core_pkg;

@@ -5,10 +5,15 @@
 -- Create Date : 24.10.2014 10:28:44
 -- Module Name : vfilter_core
 --
--- Назначение/Описание :
+-- Expample :
+-- LINI0 : PIX(0)=2 , PIX(1)=4 , PIX(2)=6
+-- LINI1 : PIX(0)=14, PIX(1)=16, PIX(2)=18
+-- LINI2 : PIX(0)=26, PIX(1)=28, PIX(2)=2A
+-- ====================
+-- matrix(0)(0)=2 , matrix(0)(1)=4 , matrix(0)(2)=6
+-- matrix(1)(0)=14, matrix(1)(1)=16, matrix(1)(2)=18
+-- matrix(2)(0)=26, matrix(2)(1)=28, matrix(2)(2)=2A
 --
--- Revision:
--- Revision 0.01 - File Created
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -209,7 +214,7 @@ begin
           else
             if i_dly_eof_on = '1' then
               if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
-                if i_dly_cntline = TO_UNSIGNED(CI_DLY_LINE - 1, i_dly_cntline'length) then
+                if i_dly_cntline = TO_UNSIGNED(CI_DLY_LINE, i_dly_cntline'length) then
                   i_dly_cntline <= ( others => '0');
                   i_dout_en_y <= '0'; i_dly_eof_on <= '0';  dout_eof := '1';
                   i_dout_en_y1 <= '0';
@@ -271,33 +276,33 @@ begin
 
           if i_dly_eof_on = '1' then
 
-            if    i_buf_adr = TO_UNSIGNED(0, i_buf_adr'length) then i_matrix(2)(0) <= (others => '0');
-            elsif i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(2)(1) <= UNSIGNED(i_buf_do(2));
-            elsif i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(2)(2) <= UNSIGNED(i_buf_do(2));
+            if    i_buf_adr = TO_UNSIGNED(0, i_buf_adr'length) then i_matrix(0)(0) <= UNSIGNED(i_buf_do(2));
+            elsif i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(0)(1) <= UNSIGNED(i_buf_do(2));
+            elsif i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(0)(2) <= (others => '0');
             end if;
-
-            if    i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(1)(0) <= (others => '0');
-            elsif i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(1)(1) <= UNSIGNED(i_buf_do(1));
-            elsif i_buf_adr = TO_UNSIGNED(3, i_buf_adr'length) then i_matrix(1)(2) <= UNSIGNED(i_buf_do(1));
-            end if;
-
-            i_matrix(0)(0) <= (others => '0');
-            i_matrix(0)(1) <= (others => '0');
-            i_matrix(0)(2) <= (others => '0');
-
-          elsif i_dout_en_y = '1' and i_dout_en_y1 = '0' then
-            i_matrix(2)(0) <= (others => '0');
-            i_matrix(2)(1) <= (others => '0');
-            i_matrix(2)(2) <= (others => '0');
 
             if    i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(1)(0) <= UNSIGNED(i_buf_do(1));
             elsif i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(1)(1) <= UNSIGNED(i_buf_do(1));
             elsif i_buf_adr = TO_UNSIGNED(3, i_buf_adr'length) then i_matrix(1)(2) <= (others => '0');
             end if;
 
-            if    i_buf_adr = TO_UNSIGNED(0, i_buf_adr'length) then i_matrix(0)(0) <= UNSIGNED(i_buf_do(0));
-            elsif i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(0)(1) <= UNSIGNED(i_buf_do(0));
-            elsif i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(0)(2) <= (others => '0');
+            i_matrix(2)(0) <= (others => '0');
+            i_matrix(2)(1) <= (others => '0');
+            i_matrix(2)(2) <= (others => '0');
+
+          elsif i_dout_en_y = '1' and i_dout_en_y1 = '0' then
+            i_matrix(0)(0) <= (others => '0');
+            i_matrix(0)(1) <= (others => '0');
+            i_matrix(0)(2) <= (others => '0');
+
+            if    i_buf_adr = TO_UNSIGNED(3, i_buf_adr'length) then i_matrix(1)(0) <= (others => '0');
+            elsif i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(1)(1) <= UNSIGNED(i_buf_do(1));
+            elsif i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(1)(2) <= UNSIGNED(i_buf_do(1));
+            end if;
+
+            if    i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(2)(0) <= (others => '0');
+            elsif i_buf_adr = TO_UNSIGNED(0, i_buf_adr'length) then i_matrix(2)(1) <= UNSIGNED(i_buf_do(0));
+            elsif i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(2)(2) <= UNSIGNED(i_buf_do(0));
             end if;
 
           elsif i_dout_en_y = '1' and i_dout_en_y1 = '1' then

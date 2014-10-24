@@ -17,7 +17,7 @@ vcom -work work ../testbanch/bayer_main_tb.vhd
 
 
 vsim -t ps -L unisim work.bayer_main_tb
-#do ccd_vita25K_tb_wave.do
+do bayer_main_tb_wave.do
 
 run 1000ns
 
