@@ -72,8 +72,6 @@ end entity vfilter_core;
 
 architecture behavioral of vfilter_core is
 
-constant dly : time := 1 ps;
-
 component vbufpr
 port(
 --read first
@@ -102,20 +100,33 @@ signal i_gnd_dinb          : std_logic_vector(p_in_upp_data'range);
 constant CI_DLY_LINE : integer := 1;
 
 signal i_buf_adr           : unsigned(G_BRAM_AWIDTH - 1 downto 0);
-type TBufs is array (0 to C_VFILTER_RANG - 1) of std_logic_vector(p_in_upp_data'range);
-signal i_buf_do            : TBufs;
+type TDBufs is array (0 to C_VFILTER_RANG - 1) of std_logic_vector(p_in_upp_data'range);
+signal i_buf_do            : TDBufs;
 signal i_buf_wr            : std_logic;
 
-signal i_dly_cntline       : unsigned(CI_DLY_LINE - 1 downto 0);
-signal i_dout_en_y         : std_logic;
-signal i_dout_en_y1        : std_logic;
-signal i_dout_en_x         : std_logic;
-signal i_dout_eof          : std_logic;
-signal i_dly_eof_on        : std_logic;
+type TSR2 is array (0 to C_VFILTER_RANG - 2 + 0) of std_logic_vector(p_in_upp_data'range);
+type TSR3 is array (0 to C_VFILTER_RANG - 2 + 1) of std_logic_vector(p_in_upp_data'range);
+type TSR4 is array (0 to C_VFILTER_RANG - 2 + 2) of std_logic_vector(p_in_upp_data'range);
+signal sr_buf0_do          : TSR4 := ((others => '0'), (others => '0'), (others => '0'), (others => '0'));
+signal sr_buf1_do          : TSR3 := ((others => '0'), (others => '0'), (others => '0'));
+signal sr_buf2_do          : TSR2 := ((others => '0'), (others => '0'));
+
+signal i_sol               : std_logic := '0';
+signal sr_sol              : std_logic_vector(0 to C_VFILTER_RANG - 1) := (others => '0');
+signal i_eol               : std_logic := '0';
+signal sr_eol              : std_logic_vector(0 to C_VFILTER_RANG - 1) := (others => '0');
+
+signal i_dwnp_en           : std_logic;
+signal i_sof_n             : std_logic;
+signal i_eof_en            : std_logic;
+signal i_eof               : std_logic;
+signal i_cnteof            : unsigned(CI_DLY_LINE - 1 downto 0);
 
 signal i_matrix            : TMatrix;
-signal i_matrix_wr         : std_logic;
+signal i_matrix_wr         : std_logic := '0';
 
+signal i_pix_evod          : std_logic;
+signal i_line_evod         : std_logic;
 
 
 
@@ -124,7 +135,7 @@ begin --architecture behavioral
 ------------------------------------
 --Технологические сигналы
 ------------------------------------
-p_out_tst(0) <= i_dout_en_y or i_dout_en_x or i_dout_en_y1
+p_out_tst(0) <= i_dwnp_en or i_sof_n or sr_eol(2) or sr_sol(2) or i_line_evod or i_pix_evod
 or OR_reduce(std_logic_vector(i_matrix(0)(0)))
 or OR_reduce(std_logic_vector(i_matrix(0)(1)))
 or OR_reduce(std_logic_vector(i_matrix(0)(2)))
@@ -137,24 +148,22 @@ or OR_reduce(std_logic_vector(i_matrix(2)(2)));
 p_out_tst(31 downto 1) <= (others=>'0');
 
 
-
-
 p_out_matrix <= i_matrix;
-p_out_dwnp_wr <= i_matrix_wr;
-p_out_dwnp_eof <= i_matrix_wr and i_dly_eof_on;
+p_out_dwnp_wr <= i_matrix_wr and i_buf_wr;
+p_out_dwnp_eof <= i_matrix_wr and i_eof and not p_in_dwnp_rdy_n;
 
 --------------------------------------------------------
---RAM Строк видео информации
+--
 --------------------------------------------------------
 i_gnd_adrb <= (others => '0');
 i_gnd_dinb <= (others => '0');
 
-p_out_upp_rdy_n <= i_dly_eof_on;
+p_out_upp_rdy_n <= i_eof_en;
 
 --Буфера строк:
 --lineN : Текущая строка
 i_buf_do(0) <= p_in_upp_data;
-i_buf_wr <= (p_in_upp_wr or i_dly_eof_on) and not p_in_dwnp_rdy_n;
+i_buf_wr <= (p_in_upp_wr or i_eof_en) and not p_in_dwnp_rdy_n;
 
 gen_buf : for i in 0 to C_VFILTER_RANG - 2 generate begin
 m_buf : vbufpr
@@ -177,20 +186,63 @@ web  => "0",
 clkb => p_in_clk,
 rstb => p_in_rst
 );
+
 end generate gen_buf;
 
+i_sol <= not OR_reduce(i_buf_adr);
+i_eol <= '1' when i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) else '0';
 
 process(p_in_clk)
-variable dout_eof : std_logic;
+begin
+  if rising_edge(p_in_clk) then
+    if p_in_dwnp_rdy_n = '0' then
+      if i_buf_wr = '1' then
+        sr_buf0_do <= i_buf_do(0) & sr_buf0_do(0 to sr_buf0_do'high - 1);
+        sr_buf1_do <= i_buf_do(1) & sr_buf1_do(0 to sr_buf1_do'high - 1);
+        sr_buf2_do <= i_buf_do(2) & sr_buf2_do(0 to sr_buf2_do'high - 1);
+
+        sr_sol <= i_sol & sr_sol(0 to C_VFILTER_RANG - 2);
+        sr_eol <= i_eol & sr_eol(0 to C_VFILTER_RANG - 2);
+      end if;
+    end if;
+  end if;
+end process;
+
+i_matrix(0)(2) <= UNSIGNED(i_buf_do(2))  ;
+i_matrix(0)(1) <= UNSIGNED(sr_buf2_do(0));
+i_matrix(0)(0) <= UNSIGNED(sr_buf2_do(1));
+
+i_matrix(1)(2) <= UNSIGNED(sr_buf1_do(0));
+i_matrix(1)(1) <= UNSIGNED(sr_buf1_do(1));
+i_matrix(1)(0) <= UNSIGNED(sr_buf1_do(2));
+
+i_matrix(2)(2) <= UNSIGNED(sr_buf0_do(1));
+i_matrix(2)(1) <= UNSIGNED(sr_buf0_do(2));
+i_matrix(2)(0) <= UNSIGNED(sr_buf0_do(3));
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    if p_in_dwnp_rdy_n = '0' then
+      if i_buf_wr = '1' then
+        if i_eof_en = '1' and sr_eol(2) = '1' and i_cnteof = TO_UNSIGNED(CI_DLY_LINE, i_cnteof'length) then
+        i_matrix_wr <= '0';
+        elsif i_dwnp_en = '1' and sr_eol(2) = '1' then
+        i_matrix_wr <= '1';
+        end if;
+      end if;
+    end if;
+  end if;
+end process;
+
+process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
     if p_in_rst = '1' then
       i_buf_adr <= (others => '0');
-      i_dly_cntline <= ( others => '0');
-      i_dout_en_y <= '0'; i_dly_eof_on <= '0';
-      i_dout_en_y1 <= '0';
-      dout_eof := '0'; i_dout_eof <= '0';
-      i_dout_en_x <= '0';
+      i_eof_en <= '0'; i_eof <= '0'; i_cnteof <= (others => '0');
+      i_sof_n <= '0';
+      i_dwnp_en <= '0';
 
     else
       if p_in_dwnp_rdy_n = '0' then
@@ -201,142 +253,70 @@ begin
           else
             i_buf_adr <= i_buf_adr + 1;
           end if;
-        end if;
 
+          if i_sof_n = '1' then
+            if p_in_upp_eof = '1' then
+              i_eof_en <= '1';
 
-        dout_eof := '0';
+            else
+              if i_eof_en = '1' then
+                if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
+                  if i_cnteof = TO_UNSIGNED(CI_DLY_LINE, i_cnteof'length) then
+                    i_cnteof <= ( others => '0');
+                    i_dwnp_en <= '0'; i_eof_en <= '0'; i_eof <= '0';
+                    i_sof_n <= '0';
+                  else
+                    i_cnteof <= i_cnteof + 1;
 
-      if i_buf_wr = '1' then
-        if i_dout_en_y1 = '1' then
-          if p_in_upp_eof = '1' then
-            i_dly_eof_on <= '1';
+                    if i_cnteof = TO_UNSIGNED(CI_DLY_LINE - 1, i_cnteof'length) then
+                    i_eof <= '1';
+                    end if;
 
-          else
-            if i_dly_eof_on = '1' then
-              if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
-                if i_dly_cntline = TO_UNSIGNED(CI_DLY_LINE, i_dly_cntline'length) then
-                  i_dly_cntline <= ( others => '0');
-                  i_dout_en_y <= '0'; i_dly_eof_on <= '0';  dout_eof := '1';
-                  i_dout_en_y1 <= '0';
-                else
-                  i_dly_cntline <= i_dly_cntline + 1;
+                  end if;
+
                 end if;
               end if;
             end if;
-          end if;
 
-        else
+          else
 
-          if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
-            if i_dly_cntline = TO_UNSIGNED(CI_DLY_LINE - 1, i_dly_cntline'length) then
-              i_dly_cntline <= (others => '0');
-              i_dout_en_y <= '1';
-              i_dout_en_y1 <= i_dout_en_y;
-            else
-              i_dly_cntline <= i_dly_cntline + 1;
+            if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
+              if i_cnteof = TO_UNSIGNED(CI_DLY_LINE - 1, i_cnteof'length) then
+                i_cnteof <= (others => '0');
+                i_dwnp_en <= '1';
+                i_sof_n <= i_dwnp_en;
+              else
+                i_cnteof <= i_cnteof + 1;
+              end if;
             end if;
+
           end if;
 
-        end if;
-
-        i_dout_eof <= dout_eof;
-
-      end if;
+        end if; --if i_buf_wr = '1' then
     end if;
 
   end if;
   end if;
 end process;
-
-
 
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
-    if p_in_rst = '1' then
-      for x in 0 to C_VFILTER_RANG - 1 loop
-        for y in 0 to C_VFILTER_RANG - 1 loop
-        i_matrix(y)(x) <= (others => '0');
-        end loop;
-      end loop;
-      i_matrix_wr <= '0';
+  if p_in_rst = '1' then
+    i_pix_evod <= '0';
+    i_line_evod <= '0';
+  else
+    if p_in_dwnp_rdy_n = '0' then
+      if i_matrix_wr = '1' and i_buf_wr = '1' then
+        i_pix_evod <= not i_pix_evod;
 
-    else
-      if p_in_dwnp_rdy_n = '0' then
-        if i_buf_wr = '1' then
-
---          for x in 0 to C_VFILTER_RANG - 1 loop
---            for y in 0 to C_VFILTER_RANG - 1 loop
---              if i_buf_adr = x + y then
---              i_matrix(y)(x) <= UNSIGNED(i_buf_do(y));
---              end if;
---            end loop;
---          end loop;
-
-
-          if i_dly_eof_on = '1' then
-
-            if    i_buf_adr = TO_UNSIGNED(0, i_buf_adr'length) then i_matrix(0)(0) <= UNSIGNED(i_buf_do(2));
-            elsif i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(0)(1) <= UNSIGNED(i_buf_do(2));
-            elsif i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(0)(2) <= (others => '0');
-            end if;
-
-            if    i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(1)(0) <= UNSIGNED(i_buf_do(1));
-            elsif i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(1)(1) <= UNSIGNED(i_buf_do(1));
-            elsif i_buf_adr = TO_UNSIGNED(3, i_buf_adr'length) then i_matrix(1)(2) <= (others => '0');
-            end if;
-
-            i_matrix(2)(0) <= (others => '0');
-            i_matrix(2)(1) <= (others => '0');
-            i_matrix(2)(2) <= (others => '0');
-
-          elsif i_dout_en_y = '1' and i_dout_en_y1 = '0' then
-            i_matrix(0)(0) <= (others => '0');
-            i_matrix(0)(1) <= (others => '0');
-            i_matrix(0)(2) <= (others => '0');
-
-            if    i_buf_adr = TO_UNSIGNED(3, i_buf_adr'length) then i_matrix(1)(0) <= (others => '0');
-            elsif i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(1)(1) <= UNSIGNED(i_buf_do(1));
-            elsif i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(1)(2) <= UNSIGNED(i_buf_do(1));
-            end if;
-
-            if    i_buf_adr = TO_UNSIGNED(2, i_buf_adr'length) then i_matrix(2)(0) <= (others => '0');
-            elsif i_buf_adr = TO_UNSIGNED(0, i_buf_adr'length) then i_matrix(2)(1) <= UNSIGNED(i_buf_do(0));
-            elsif i_buf_adr = TO_UNSIGNED(1, i_buf_adr'length) then i_matrix(2)(2) <= UNSIGNED(i_buf_do(0));
-            end if;
-
-          elsif i_dout_en_y = '1' and i_dout_en_y1 = '1' then
-            for x in 0 to C_VFILTER_RANG - 1 loop
-              for y in 0 to C_VFILTER_RANG - 1 loop
-                if i_buf_adr = x + y then
-                i_matrix(y)(x) <= UNSIGNED(i_buf_do(y));
-                end if;
-              end loop;
-            end loop;
-
-          elsif i_dout_en_y = '0' and i_dout_en_y1 = '0' then
-              for x in 0 to C_VFILTER_RANG - 1 loop
-                for y in 0 to C_VFILTER_RANG - 1 loop
-                i_matrix(y)(x) <= (others => '0');
-                end loop;
-              end loop;
-
-          end if;
-
-        if i_dout_en_y = '1' and i_buf_adr = (TO_UNSIGNED(C_VFILTER_RANG + 1, i_buf_adr'length)) then
-          i_matrix_wr <= i_buf_wr;
-        else
-          i_matrix_wr <= '0';
+        if sr_eol(2) = '1' then
+          i_line_evod <= not i_line_evod;
         end if;
-
       end if;
     end if;
   end if;
   end if;
 end process;
 
-
 end architecture behavioral;
-
-
-

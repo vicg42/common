@@ -24,7 +24,7 @@ use std.textio.all;
 entity bayer_main_tb is
 generic(
 G_VFR_PIX_COUNT : integer := 9;
-G_VFR_LINE_COUNT : integer := 6
+G_VFR_LINE_COUNT : integer := 3
 );
 port(
 p_out_do      : out std_logic_vector(7 downto 0);
