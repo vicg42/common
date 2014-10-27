@@ -12,12 +12,13 @@ add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_adr
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_di
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_do
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_dir
-add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_ena
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_enb
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_read_en
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_out_dwnp_data
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_out_dwnp_wr
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_in_dwnp_rdy_n
+add wave -noupdate /vmirx_main_tb/m_vmirx/p_out_dwnp_eol
+add wave -noupdate /vmirx_main_tb/m_vmirx/p_out_dwnp_eof
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
@@ -35,4 +36,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {1907027 ps} {2537027 ps}
+WaveRestoreZoom {0 ps} {5018624 ps}

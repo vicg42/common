@@ -21,36 +21,39 @@ use work.vicg_common_pkg.all;
 
 entity vmirx_main is
 generic(
-G_BRAM_AWIDTH : integer:=8;
-G_DWIDTH : integer:=8
+G_BRAM_SIZE_BYTE : integer := 8;
+G_DI_WIDTH : integer := 8;
+G_DO_WIDTH : integer := 8
 );
 port(
 -------------------------------
--- Управление
+--CFG
 -------------------------------
-p_in_cfg_mirx       : in    std_logic;                    --1/0 - Вкл./Выкл отзеркаливание строки видеоданных
-p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--Кол-во пиксел в byte
+p_in_cfg_mirx       : in    std_logic;                    --1/0 - mirx ON/OFF
+p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--Count byte
 
-p_out_cfg_mirx_done : out   std_logic;                    --Обработка завершена.
+p_out_cfg_mirx_done : out   std_logic;
 
 ----------------------------
---Upstream Port (входные данные)
+--Upstream Port (IN)
 ----------------------------
 --p_in_upp_clk        : in    std_logic;
-p_in_upp_data       : in    std_logic_vector(G_DWIDTH - 1 downto 0);
-p_in_upp_wr         : in    std_logic;                    --Запись данных в модуль vmirx_main.vhd
-p_out_upp_rdy_n     : out   std_logic;                    --0 - Модуль vmirx_main.vhd готов к приему данных
+p_in_upp_data       : in    std_logic_vector(G_DI_WIDTH - 1 downto 0);
+p_in_upp_wr         : in    std_logic;
+p_out_upp_rdy_n     : out   std_logic;
 
 ----------------------------
---Downstream Port (результат)
+--Downstream Port (OUT)
 ----------------------------
 --p_in_dwnp_clk       : in    std_logic;
-p_out_dwnp_data     : out   std_logic_vector(7 downto 0);
-p_out_dwnp_wr       : out   std_logic;                    --Запись данных в приемник
-p_in_dwnp_rdy_n     : in    std_logic;                    --0 - порт приемника готов к приему даннвх
+p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
+p_out_dwnp_wr       : out   std_logic;
+p_in_dwnp_rdy_n     : in    std_logic;
+p_out_dwnp_eol      : out   std_logic;
+p_out_dwnp_eof      : out   std_logic;
 
 -------------------------------
---Технологический
+--DBG
 -------------------------------
 p_in_tst            : in    std_logic_vector(31 downto 0);
 p_out_tst           : out   std_logic_vector(31 downto 0);
@@ -69,17 +72,17 @@ constant dly : time := 1 ps;
 
 component mirx_bram
 port(
-addra: in  std_logic_vector(10 downto 0);--(G_BRAM_AWIDTH - 1 downto 0);
-dina : in  std_logic_vector(G_DWIDTH - 1 downto 0);
-douta: out std_logic_vector(G_DWIDTH - 1 downto 0);
+addra: in  std_logic_vector(log2(G_BRAM_SIZE_BYTE / (G_DI_WIDTH / 8)) - 1 downto 0);
+dina : in  std_logic_vector(G_DI_WIDTH - 1 downto 0);
+douta: out std_logic_vector(G_DI_WIDTH - 1 downto 0);
 ena  : in  std_logic;
 wea  : in  std_logic_vector(0 downto 0);
 clka : in  std_logic;
 rsta : in  std_logic;
 
-addrb: in  std_logic_vector(12 downto 0);--(G_BRAM_AWIDTH - 1 downto 0);
-dinb : in  std_logic_vector(7 downto 0);--(G_DWIDTH - 1 downto 0);
-doutb: out std_logic_vector(7 downto 0);--(G_DWIDTH - 1 downto 0);
+addrb: in  std_logic_vector(log2(G_BRAM_SIZE_BYTE / (G_DO_WIDTH / 8)) - 1 downto 0);
+dinb : in  std_logic_vector(G_DO_WIDTH - 1 downto 0);
+doutb: out std_logic_vector(G_DO_WIDTH - 1 downto 0);
 enb  : in  std_logic;
 web  : in  std_logic_vector(0 downto 0);
 clkb : in  std_logic;
@@ -98,18 +101,19 @@ S_BUF_RD_EOF
 );
 signal i_fsm_cs          : TFsm_state;
 
-signal i_pix_count_in    : unsigned(p_in_cfg_pix_count'range);
+signal i_pix_count       : unsigned(p_in_cfg_pix_count'range);
 signal i_mirx_done       : std_logic;
 
 signal i_buf_adr         : unsigned(p_in_cfg_pix_count'range);
+signal i_buf_adrw        : unsigned(log2(G_BRAM_SIZE_BYTE / (G_DI_WIDTH / 8)) - 1 downto 0);
 signal i_buf_di          : std_logic_vector(p_in_upp_data'range);
 signal i_buf_do          : std_logic_vector(p_out_dwnp_data'range);
 signal i_buf_dir         : std_logic;
-signal i_buf_ena         : std_logic;
+signal i_buf_wea         : std_logic_vector(0 downto 0);
 signal i_buf_enb         : std_logic;
 signal i_read_en         : std_logic;
 
-signal i_gnd             : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_gnd             : std_logic_vector(max2(G_DI_WIDTH, G_DO_WIDTH) - 1 downto 0);
 
 signal tst_fsmstate     : unsigned(1 downto 0);
 signal tst_fsmstate_out : std_logic_vector(1 downto 0);
@@ -118,12 +122,6 @@ signal tst_hbufo_pfull : std_logic;
 
 
 begin --architecture behavioral
-
---assert ( not (TO_UNSIGNED((pwr(2, (p_in_cfg_pix_count'length / (G_DWIDTH/8))) - 1), p_in_cfg_pix_count'length)) >
---         TO_UNSIGNED((pwr(2, G_BRAM_AWIDTH) - 1), p_in_cfg_pix_count'length) )
---report "ERROR: BRAM Mirror DEPTH is small"
---severity error;
-
 
 i_gnd <= (others=>'0');
 
@@ -149,33 +147,36 @@ tst_fsmstate <= TO_UNSIGNED(16#01#, tst_fsmstate'length) when i_fsm_cs = S_BUF_R
 
 
 ------------------------------------------------
---Связь с Upstream Port
+--
 ------------------------------------------------
 p_out_upp_rdy_n <= i_buf_dir;
 
 -------------------------------
---Вывод результата
+--
 -------------------------------
 p_out_dwnp_data <= i_buf_do;
 p_out_dwnp_wr <= not p_in_dwnp_rdy_n and i_buf_dir;
-
-
--------------------------------
---Инициализация
--------------------------------
-i_pix_count_in <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DWIDTH / 8)))
-                                                                    , i_pix_count_in'length)
-               + (TO_UNSIGNED(0, i_pix_count_in'length - 2)
-                  & OR_reduce(p_in_cfg_pix_count(log2(G_DWIDTH / 8) - 1 downto 0)));
+p_out_dwnp_eol <= not p_in_dwnp_rdy_n and i_buf_dir when i_fsm_cs = S_BUF_RD_EOF else '0';
+p_out_dwnp_eof <= '0';
 
 -------------------------------
---Статус
+--
+-------------------------------
+--i_pix_count <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DI_WIDTH / 8)))
+--                                                                    , i_pix_count'length)
+--               + (TO_UNSIGNED(0, i_pix_count'length - 2)
+--                  & OR_reduce(p_in_cfg_pix_count(log2(G_DI_WIDTH / 8) - 1 downto 0)));
+
+i_pix_count <= UNSIGNED(p_in_cfg_pix_count);
+
+-------------------------------
+--
 -------------------------------
 p_out_cfg_mirx_done <= i_mirx_done;
 
 
 --------------------------------------
---Запись/Чтение Буфера строки
+--
 --------------------------------------
 process(p_in_clk)
 begin
@@ -194,23 +195,22 @@ if rising_edge(p_in_clk) then
     case i_fsm_cs is
 
       --------------------------------------
-      --Запись данных строки в буфер
+      --
       --------------------------------------
       when S_BUF_WR =>
         i_mirx_done <= '0';
 
         if p_in_upp_wr = '1' then
-          if i_buf_adr = (UNSIGNED(p_in_cfg_pix_count)) then --(i_pix_count_in - 1) then
+--          if i_buf_adr = (i_pix_count - 1) then
+          if i_buf_adr = i_pix_count then
             if p_in_cfg_mirx = '0' then
               i_buf_adr <= (others=>'0');
-            else
-            i_buf_adr <= i_buf_adr + (p_in_upp_data'length / 8);
             end if;
             i_read_en <= '1';
 
             i_fsm_cs <= S_BUF_RD_SOF;
           else
-            i_buf_adr <= i_buf_adr + (p_in_upp_data'length / 8);
+            i_buf_adr <= i_buf_adr + (p_in_upp_data'length / p_out_dwnp_data'length);
           end if;
         end if;
 
@@ -218,7 +218,7 @@ if rising_edge(p_in_clk) then
       --
       --------------------------------------
       when S_BUF_RD_SOF =>
-        i_buf_dir <= '1';--Переключаемся на чтение m_row_buf
+        i_buf_dir <= '1';--Set read mode
 
         if p_in_cfg_mirx = '0' then
           i_buf_adr <= i_buf_adr + 1;
@@ -228,14 +228,14 @@ if rising_edge(p_in_clk) then
         i_fsm_cs <= S_BUF_RD;
 
       --------------------------------------
-      --Чтение данных из буфера строки
+      --
       --------------------------------------
       when S_BUF_RD =>
 
         if p_in_dwnp_rdy_n = '0' then
 
-            --Отзеркаливание по Х: ЕСТЬ
-            if (p_in_cfg_mirx = '0' and i_buf_adr = (UNSIGNED(p_in_cfg_pix_count) - 1)) or
+            --if (p_in_cfg_mirx = '0' and i_buf_adr = (i_pix_count - 1)) or
+            if (p_in_cfg_mirx = '0' and i_buf_adr = i_pix_count) or
                (p_in_cfg_mirx = '1' and i_buf_adr = (i_buf_adr'range => '0')) then
 
               i_fsm_cs <= S_BUF_RD_EOF;
@@ -255,7 +255,7 @@ if rising_edge(p_in_clk) then
       when S_BUF_RD_EOF =>
         if p_in_dwnp_rdy_n = '0' then
           i_mirx_done <= '1';
-          i_buf_dir <= '0';--Переключаемся на Запись m_row_buf
+          i_buf_dir <= '0';--Set write mode
           i_read_en <= '0';
           if p_in_cfg_mirx = '0' then
             i_buf_adr <= (others=>'0');
@@ -274,26 +274,28 @@ gen_swap : for i in 0 to p_in_upp_data'length / 8 - 1 generate
 i_upp_data_swap((i_upp_data_swap'length - (8 * i)) - 1 downto
                 (i_upp_data_swap'length - (8 * (i + 1)))) <= p_in_upp_data((8 * (i + 1) - 1) downto (8 * i));
 end generate gen_swap;
+--i_buf_adrw <=
+--i_buf_di <= i_upp_data_swap when p_in_cfg_mirx = '1' else p_in_upp_data;--
 
---Запись данных
-i_buf_di <= i_upp_data_swap when p_in_cfg_mirx = '1' else p_in_upp_data;
-i_buf_ena <= not i_buf_dir and p_in_upp_wr;
+i_buf_adrw <= i_buf_adr(log2(G_BRAM_SIZE_BYTE / (G_DO_WIDTH / 8)) - 1 downto log2(p_in_upp_data'length / 8));
+i_buf_di <= p_in_upp_data;
 
---Чтение данных
+i_buf_wea(0) <= not i_buf_dir and p_in_upp_wr;
+
 i_buf_enb <= (not p_in_dwnp_rdy_n or not i_buf_dir) and i_read_en;
 
 m_buf : mirx_bram
 port map(
-addra => std_logic_vector(i_buf_adr(10 downto 0)),
+addra => std_logic_vector(i_buf_adrw),
 dina  => i_buf_di,
 douta => open,
-ena   => i_buf_ena,
-wea   => "1",
+ena   => '1',
+wea   => i_buf_wea,
 clka  => p_in_clk,
 rsta  => p_in_rst,
 
-addrb => std_logic_vector(i_buf_adr(12 downto 0)),
-dinb  => i_gnd(7 downto 0),
+addrb => std_logic_vector(i_buf_adr(log2(G_BRAM_SIZE_BYTE / (G_DO_WIDTH / 8)) - 1 downto 0)),
+dinb  => i_gnd(p_out_dwnp_data'range),
 doutb => i_buf_do,
 enb   => i_buf_enb,
 web   => "0",

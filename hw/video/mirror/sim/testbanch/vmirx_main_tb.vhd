@@ -22,12 +22,17 @@ entity vmirx_main_tb is
 generic(
 G_VFR_PIX_COUNT : integer := 16;
 G_VFR_LINE_COUNT : integer := 3;
-G_MIRX : std_logic := '1'
+G_MIRX : std_logic := '0';
+G_BRAM_SIZE_BYTE : integer := 8192;
+G_DI_WIDTH : integer := 32;
+G_DO_WIDTH : integer := 8
 );
 port(
 p_out_cfg_mirx_done : out   std_logic;
-p_out_dwnp_data     : out   std_logic_vector(7 downto 0);
-p_out_dwnp_wr       : out   std_logic
+p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
+p_out_dwnp_wr       : out   std_logic;
+p_out_dwnp_eol      : out   std_logic;
+p_out_dwnp_eof      : out   std_logic
 );
 end entity vmirx_main_tb;
 
@@ -37,36 +42,39 @@ constant i_clk_period : TIME := 6.6 ns; --150MHz
 
 component vmirx_main
 generic(
-G_BRAM_AWIDTH : integer:=8;
-G_DWIDTH : integer:=8
+G_BRAM_SIZE_BYTE : integer := 8;
+G_DI_WIDTH : integer := 8;
+G_DO_WIDTH : integer := 8
 );
 port(
 -------------------------------
--- Управление
+--CFG
 -------------------------------
-p_in_cfg_mirx       : in    std_logic;                    --1/0 - Вкл./Выкл отзеркаливание строки видеоданных
-p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--Кол-во пиксел в byte
+p_in_cfg_mirx       : in    std_logic;                    --1/0 - mirx ON/OFF
+p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--Count byte
 
-p_out_cfg_mirx_done : out   std_logic;                    --Обработка завершена.
+p_out_cfg_mirx_done : out   std_logic;
 
 ----------------------------
---Upstream Port (входные данные)
+--Upstream Port (IN)
 ----------------------------
 --p_in_upp_clk        : in    std_logic;
-p_in_upp_data       : in    std_logic_vector(31 downto 0);
-p_in_upp_wr         : in    std_logic;                    --Запись данных в модуль vmirx_main.vhd
-p_out_upp_rdy_n     : out   std_logic;                    --0 - Модуль vmirx_main.vhd готов к приему данных
+p_in_upp_data       : in    std_logic_vector(G_DI_WIDTH - 1 downto 0);
+p_in_upp_wr         : in    std_logic;
+p_out_upp_rdy_n     : out   std_logic;
 
 ----------------------------
---Downstream Port (результат)
+--Downstream Port (OUT)
 ----------------------------
 --p_in_dwnp_clk       : in    std_logic;
-p_out_dwnp_data     : out   std_logic_vector(7 downto 0);
-p_out_dwnp_wr       : out   std_logic;                    --Запись данных в приемник
-p_in_dwnp_rdy_n     : in    std_logic;                    --0 - порт приемника готов к приему даннвх
+p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
+p_out_dwnp_wr       : out   std_logic;
+p_in_dwnp_rdy_n     : in    std_logic;
+p_out_dwnp_eol      : out   std_logic;
+p_out_dwnp_eof      : out   std_logic;
 
 -------------------------------
---Технологический
+--DBG
 -------------------------------
 p_in_tst            : in    std_logic_vector(31 downto 0);
 p_out_tst           : out   std_logic_vector(31 downto 0);
@@ -104,7 +112,7 @@ signal i_vfr_busy           : std_logic := '0';
 signal i_cntpix             : unsigned(7 downto 0) := (others => '0');
 signal i_cntline            : unsigned(7 downto 0) := (others => '0');
 
-signal i_di                 : unsigned(31 downto 0) := (others => '0');
+signal i_di                 : unsigned(G_DI_WIDTH - 1 downto 0) := (others => '0');
 signal i_di_wr              : std_logic := '0';
 signal i_di_eof             : std_logic := '0';
 signal i_di_rdy_n           : std_logic;
@@ -126,8 +134,9 @@ end process clkgen;
 
 m_vmirx: vmirx_main
 generic map(
-G_BRAM_AWIDTH => 8,
-G_DWIDTH => 32
+G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
+G_DI_WIDTH => G_DI_WIDTH,
+G_DO_WIDTH => G_DO_WIDTH
 )
 port map
 (
@@ -154,6 +163,8 @@ p_out_upp_rdy_n     => i_di_rdy_n,
 p_out_dwnp_data     => p_out_dwnp_data,
 p_out_dwnp_wr       => p_out_dwnp_wr  ,
 p_in_dwnp_rdy_n     => i_do_rdy_n,
+p_out_dwnp_eol      => p_out_dwnp_eol,
+p_out_dwnp_eof      => p_out_dwnp_eof,
 
 -------------------------------
 --Технологический

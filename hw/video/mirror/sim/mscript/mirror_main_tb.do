@@ -14,7 +14,7 @@ vcom -work work ../testbanch/vmirx_main_tb.vhd
 
 
 vsim -t ps -L unisim work.vmirx_main_tb
-#do bayer_main_tb_wave.do
+do mirror_main_tb_wave.do
 
 run 1000ns
 
