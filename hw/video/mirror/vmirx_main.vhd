@@ -99,7 +99,10 @@ S_BUF_RD_EOF
 );
 signal i_fsm_cs          : TFsm_state;
 
-signal i_pix_count       : unsigned(p_in_cfg_pix_count'range);
+signal i_pix_count_wr_tmp: unsigned(p_in_cfg_pix_count'range);
+signal i_pix_count_wr    : unsigned(p_in_cfg_pix_count'range);
+signal i_pix_count_rd_tmp: unsigned(p_in_cfg_pix_count'range);
+signal i_pix_count_rd    : unsigned(p_in_cfg_pix_count'range);
 signal i_mirx_done       : std_logic;
 
 signal i_buf_adr         : unsigned(p_in_cfg_pix_count'range);
@@ -122,53 +125,32 @@ begin --architecture behavioral
 
 i_gnd <= (others=>'0');
 
-------------------------------------
---Технологические сигналы
-------------------------------------
-p_out_tst(0) <= OR_reduce(tst_fsmstate_out) or tst_buf_enb or tst_hbufo_pfull;
-p_out_tst(31 downto 1) <= (others=>'0');
+p_out_cfg_mirx_done <= i_mirx_done;
 
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-    tst_fsmstate_out <= std_logic_vector(tst_fsmstate);
-    tst_buf_enb <= i_buf_enb;
-    tst_hbufo_pfull <= p_in_dwnp_rdy_n;
-  end if;
-end process;
-
-tst_fsmstate <= TO_UNSIGNED(16#02#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD      else
-                TO_UNSIGNED(16#03#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD_EOF  else
-                TO_UNSIGNED(16#00#, tst_fsmstate'length); --i_fsm_cs = S_BUF_WR          else
-
-
-------------------------------------------------
---
-------------------------------------------------
 p_out_upp_rdy_n <= i_read_en;
 
--------------------------------
---
--------------------------------
 p_out_dwnp_data <= i_buf_do;
 p_out_dwnp_wr <= not p_in_dwnp_rdy_n and i_read_en;
 p_out_dwnp_eol <= not p_in_dwnp_rdy_n and i_read_en when i_fsm_cs = S_BUF_RD_EOF else '0';
 p_out_dwnp_eof <= p_in_upp_eof;
 
--------------------------------
---
--------------------------------
---i_pix_count <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DI_WIDTH / 8)))
---                                                                    , i_pix_count'length)
---               + (TO_UNSIGNED(0, i_pix_count'length - 2)
+----if p_in_upp_data'length = p_out_dwnp_data'length > 8
+--i_pix_count_wr_tmp <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DI_WIDTH / 8)))
+--                                                                    , i_pix_count_wr'length)
+--               + (TO_UNSIGNED(0, i_pix_count_wr'length - 2)
 --                  & OR_reduce(p_in_cfg_pix_count(log2(G_DI_WIDTH / 8) - 1 downto 0)));
+--i_pix_count_wr <= i_pix_count_wr_tmp - 1;
+--i_pix_count_rd <= i_pix_count_wr_tmp - 1;
 
-i_pix_count <= UNSIGNED(p_in_cfg_pix_count);
+----if p_in_upp_data'length = p_out_dwnp_data'length = 8
+--i_pix_count_wr <= UNSIGNED(p_in_cfg_pix_count) - 1;
+--i_pix_count_rd <= UNSIGNED(p_in_cfg_pix_count) - 1;
 
--------------------------------
---
--------------------------------
-p_out_cfg_mirx_done <= i_mirx_done;
+
+--if p_in_upp_data'length > 8 and p_out_dwnp_data'length = 8
+i_pix_count_wr <= UNSIGNED(p_in_cfg_pix_count);
+i_pix_count_rd_tmp <= UNSIGNED(p_in_cfg_pix_count) + (p_in_upp_data'length / p_out_dwnp_data'length);
+i_pix_count_rd <= i_pix_count_rd_tmp - 1;
 
 
 --------------------------------------
@@ -196,8 +178,7 @@ if rising_edge(p_in_clk) then
         i_mirx_done <= '0';
 
         if p_in_upp_wr = '1' then
---          if i_buf_adr = (i_pix_count - 1) then
-          if i_buf_adr = i_pix_count then
+          if i_buf_adr = i_pix_count_wr then
             if p_in_cfg_mirx = '0' then
               i_buf_adr <= (others=>'0');
             end if;
@@ -217,8 +198,7 @@ if rising_edge(p_in_clk) then
 
         if p_in_dwnp_rdy_n = '0' then
 
-            --if (p_in_cfg_mirx = '0' and i_buf_adr = (i_pix_count - 1)) or
-            if (p_in_cfg_mirx = '0' and i_buf_adr = i_pix_count) or
+            if (p_in_cfg_mirx = '0' and i_buf_adr = i_pix_count_rd) or
                (p_in_cfg_mirx = '1' and i_buf_adr = (i_buf_adr'range => '0')) then
 
               i_fsm_cs <= S_BUF_RD_EOF;
@@ -284,5 +264,25 @@ web   => "0",
 clkb  => p_in_clk,
 rstb  => p_in_rst
 );
+
+
+--##################################
+--DBG
+--##################################
+p_out_tst(0) <= OR_reduce(tst_fsmstate_out) or tst_buf_enb or tst_hbufo_pfull;
+p_out_tst(31 downto 1) <= (others=>'0');
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    tst_fsmstate_out <= std_logic_vector(tst_fsmstate);
+    tst_buf_enb <= i_buf_enb;
+    tst_hbufo_pfull <= p_in_dwnp_rdy_n;
+  end if;
+end process;
+
+tst_fsmstate <= TO_UNSIGNED(16#02#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD      else
+                TO_UNSIGNED(16#03#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD_EOF  else
+                TO_UNSIGNED(16#00#, tst_fsmstate'length); --i_fsm_cs = S_BUF_WR          else
 
 end architecture behavioral;

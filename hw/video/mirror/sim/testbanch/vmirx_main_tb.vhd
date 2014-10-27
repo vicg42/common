@@ -20,7 +20,7 @@ use work.vicg_common_pkg.all;
 
 entity vmirx_main_tb is
 generic(
-G_VFR_PIX_COUNT : integer := 32;
+G_VFR_PIX_COUNT : integer := 16;
 G_VFR_LINE_COUNT : integer := 3;
 G_MIRX : std_logic := '0';
 G_BRAM_SIZE_BYTE : integer := 8192;
@@ -207,7 +207,10 @@ begin
     i_cntpix <= (others => '0');
     i_cntline <= (others => '0');
 
-    i_di <= TO_UNSIGNED(16#04030201# ,i_di'length);
+    for i in 0 to (i_di'length / 8) - 1 loop
+    i_di(8 * (i + 1) - 1 downto (8 * i)) <= TO_UNSIGNED((i + 1) ,8);
+    end loop;
+
     i_di_wr <= '0';
     i_di_eof <= '0';
     i_di_eof <= '0';
@@ -248,10 +251,9 @@ begin
       end if;
 
       i_di_wr <= not i_di_wr;
-      i_di((8 * 4) - 1 downto 8 * 3) <= i_di((8 * 4) - 1 downto 8 * 3) + 4;
-      i_di((8 * 3) - 1 downto 8 * 2) <= i_di((8 * 3) - 1 downto 8 * 2) + 4;
-      i_di((8 * 2) - 1 downto 8 * 1) <= i_di((8 * 2) - 1 downto 8 * 1) + 4;
-      i_di((8 * 1) - 1 downto 8 * 0) <= i_di((8 * 1) - 1 downto 8 * 0) + 4;
+      for i in 0 to (i_di'length / 8) - 1 loop
+      i_di(8 * (i + 1) - 1 downto (8 * i)) <= i_di(8 * (i + 1) - 1 downto (8 * i)) + (i_di'length / 8);
+      end loop;
 
     else
       i_di_wr <= '0';

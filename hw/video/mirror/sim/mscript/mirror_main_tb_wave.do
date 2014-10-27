@@ -8,7 +8,6 @@ add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_in_upp_data
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_in_upp_wr
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_out_upp_rdy_n
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_fsm_cs
-add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_pix_count
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_mirx_done
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_adr
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_di
@@ -37,4 +36,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {6300 ns}
+WaveRestoreZoom {2183037 ps} {2231320 ps}
