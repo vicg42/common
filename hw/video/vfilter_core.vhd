@@ -35,13 +35,13 @@ G_SIM : string:="OFF"
 );
 port(
 -------------------------------
--- Управление
+--CFG
 -------------------------------
 p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);--Кол-во пиксел/4 т.к p_in_upp_data=32bit
 p_in_cfg_init      : in    std_logic;                    --Инициализация. Сброс счетчика адреса BRAM
 
 ----------------------------
---Upstream Port (входные данные)
+--Upstream Port (IN)
 ----------------------------
 p_in_upp_data      : in    std_logic_vector(7 downto 0);
 p_in_upp_wr        : in    std_logic;
@@ -50,7 +50,7 @@ p_in_upp_eof       : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
 
 ----------------------------
---Downstream Port (результат)
+--Downstream Port (OUT)
 ----------------------------
 p_out_matrix       : out   TMatrix;
 p_out_dwnp_wr      : out   std_logic;
@@ -60,7 +60,7 @@ p_in_dwnp_rdy_n    : in    std_logic;
 --p_out_pix_evod     : out   std_logic;
 
 -------------------------------
---Технологический
+--DBG
 -------------------------------
 p_in_tst           : in    std_logic_vector(31 downto 0);
 p_out_tst          : out   std_logic_vector(31 downto 0);
@@ -134,12 +134,6 @@ signal i_matrix_wr         : std_logic := '0';
 
 
 begin --architecture behavioral
-
-------------------------------------
---Технологические сигналы
-------------------------------------
-p_out_tst(31 downto 1) <= (others=>'0');
-p_out_tst(0) <= sr_sol(2) or i_line_evod or i_pix_evod;
 
 
 p_out_matrix <= i_matrix;
@@ -320,5 +314,12 @@ end process;
 --  end if;
 --  end if;
 --end process;
+
+
+--##################################
+--DBG
+--##################################
+p_out_tst(31 downto 1) <= (others=>'0');
+p_out_tst(0) <= sr_sol(2) or i_line_evod or i_pix_evod;
 
 end architecture behavioral;
