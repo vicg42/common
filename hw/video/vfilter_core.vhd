@@ -45,6 +45,7 @@ p_in_cfg_init      : in    std_logic;                    --Инициализация. Сброс 
 ----------------------------
 p_in_upp_data      : in    std_logic_vector(7 downto 0);
 p_in_upp_wr        : in    std_logic;
+p_in_upp_eol       : in    std_logic;
 p_in_upp_eof       : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
 
@@ -55,6 +56,8 @@ p_out_matrix       : out   TMatrix;
 p_out_dwnp_wr      : out   std_logic;
 p_out_dwnp_eof     : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
+--p_out_line_evod    : out   std_logic;
+--p_out_pix_evod     : out   std_logic;
 
 -------------------------------
 --Технологический
@@ -125,8 +128,8 @@ signal i_cnteof            : unsigned(CI_DLY_LINE - 1 downto 0);
 signal i_matrix            : TMatrix;
 signal i_matrix_wr         : std_logic := '0';
 
-signal i_pix_evod          : std_logic;
-signal i_line_evod         : std_logic;
+--signal i_pix_evod          : std_logic;
+--signal i_line_evod         : std_logic;
 
 
 
@@ -135,22 +138,16 @@ begin --architecture behavioral
 ------------------------------------
 --Технологические сигналы
 ------------------------------------
-p_out_tst(0) <= i_dwnp_en or i_sof_n or sr_eol(2) or sr_sol(2) or i_line_evod or i_pix_evod
-or OR_reduce(std_logic_vector(i_matrix(0)(0)))
-or OR_reduce(std_logic_vector(i_matrix(0)(1)))
-or OR_reduce(std_logic_vector(i_matrix(0)(2)))
-or OR_reduce(std_logic_vector(i_matrix(1)(0)))
-or OR_reduce(std_logic_vector(i_matrix(1)(1)))
-or OR_reduce(std_logic_vector(i_matrix(1)(2)))
-or OR_reduce(std_logic_vector(i_matrix(2)(0)))
-or OR_reduce(std_logic_vector(i_matrix(2)(1)))
-or OR_reduce(std_logic_vector(i_matrix(2)(2)));
 p_out_tst(31 downto 1) <= (others=>'0');
+p_out_tst(0) <= sr_sol(2) or i_line_evod or i_pix_evod;
 
 
 p_out_matrix <= i_matrix;
-p_out_dwnp_wr <= i_matrix_wr and i_buf_wr;
-p_out_dwnp_eof <= i_matrix_wr and i_eof and not p_in_dwnp_rdy_n;
+p_out_dwnp_wr <= i_matrix_wr and not p_in_dwnp_rdy_n;--i_matrix_wr and i_buf_wr;
+p_out_dwnp_eof <= i_matrix_wr and i_eof and sr_eol(2) and not p_in_dwnp_rdy_n;
+--p_out_line_evod <= i_line_evod;
+--p_out_pix_evod  <= i_pix_evod;
+
 
 --------------------------------------------------------
 --
@@ -190,7 +187,7 @@ rstb => p_in_rst
 end generate gen_buf;
 
 i_sol <= not OR_reduce(i_buf_adr);
-i_eol <= '1' when i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) else '0';
+i_eol <= p_in_upp_eol; --'1' when i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) else '0';
 
 process(p_in_clk)
 begin
@@ -248,7 +245,7 @@ begin
       if p_in_dwnp_rdy_n = '0' then
 
         if i_buf_wr = '1' then
-          if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
+          if p_in_upp_eol = '1' then --i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
             i_buf_adr <= (others => '0');
           else
             i_buf_adr <= i_buf_adr + 1;
@@ -260,7 +257,7 @@ begin
 
             else
               if i_eof_en = '1' then
-                if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
+                if p_in_upp_eol = '1' then --i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
                   if i_cnteof = TO_UNSIGNED(CI_DLY_LINE, i_cnteof'length) then
                     i_cnteof <= ( others => '0');
                     i_dwnp_en <= '0'; i_eof_en <= '0'; i_eof <= '0';
@@ -280,7 +277,7 @@ begin
 
           else
 
-            if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
+            if p_in_upp_eol = '1' then --i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
               if i_cnteof = TO_UNSIGNED(CI_DLY_LINE - 1, i_cnteof'length) then
                 i_cnteof <= (others => '0');
                 i_dwnp_en <= '1';
@@ -299,24 +296,29 @@ begin
   end if;
 end process;
 
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-  if p_in_rst = '1' then
-    i_pix_evod <= '0';
-    i_line_evod <= '0';
-  else
-    if p_in_dwnp_rdy_n = '0' then
-      if i_matrix_wr = '1' and i_buf_wr = '1' then
-        i_pix_evod <= not i_pix_evod;
-
-        if sr_eol(2) = '1' then
-          i_line_evod <= not i_line_evod;
-        end if;
-      end if;
-    end if;
-  end if;
-  end if;
-end process;
+--process(p_in_clk)
+--begin
+--  if rising_edge(p_in_clk) then
+--  if p_in_rst = '1' then
+--    i_pix_evod <= '0';
+--    i_line_evod <= '0';
+--  else
+--    if p_in_dwnp_rdy_n = '0' then
+--      if i_dwnp_en = '0' then
+--        i_pix_evod <= '0';
+--        i_line_evod <= '0';
+--      else
+--        if i_matrix_wr = '1' and i_buf_wr = '1' then
+--          i_pix_evod <= not i_pix_evod;
+--
+--          if sr_eol(2) = '1' then
+--            i_line_evod <= not i_line_evod;
+--          end if;
+--        end if;
+--      end if;
+--    end if;
+--  end if;
+--  end if;
+--end process;
 
 end architecture behavioral;

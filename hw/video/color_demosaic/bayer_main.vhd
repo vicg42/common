@@ -50,6 +50,8 @@ p_out_dwnp_data    : out   std_logic_vector(7 downto 0);
 p_out_dwnp_wr      : out   std_logic;
 p_out_dwnp_eof     : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
+p_out_line_evod    : out   std_logic;
+p_out_pix_evod     : out   std_logic;
 
 -------------------------------
 --Технологический
@@ -113,7 +115,8 @@ signal i_matrix            : TMatrix;
 signal i_matrix_wr         : std_logic;
 signal i_dwnp_eof          : std_logic;
 
-
+--signal i_line_evod         : std_logic;
+--signal i_pix_evod          : std_logic;
 
 
 begin --architecture behavioral

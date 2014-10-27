@@ -98,7 +98,7 @@ S_BUF_RD_EOF
 );
 signal i_fsm_cs          : TFsm_state;
 
-signal i_pix_count       : unsigned(p_in_cfg_pix_count'range);
+signal i_pix_count_in    : unsigned(p_in_cfg_pix_count'range);
 signal i_mirx_done       : std_logic;
 
 signal i_buf_adr         : unsigned(p_in_cfg_pix_count'range);
@@ -163,9 +163,9 @@ p_out_dwnp_wr <= not p_in_dwnp_rdy_n and i_buf_dir;
 -------------------------------
 --Инициализация
 -------------------------------
-i_pix_count <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DWIDTH / 8)))
-                                                                    , i_pix_count'length)
-               + (TO_UNSIGNED(0, i_pix_count'length - 2)
+i_pix_count_in <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DWIDTH / 8)))
+                                                                    , i_pix_count_in'length)
+               + (TO_UNSIGNED(0, i_pix_count_in'length - 2)
                   & OR_reduce(p_in_cfg_pix_count(log2(G_DWIDTH / 8) - 1 downto 0)));
 
 -------------------------------
@@ -200,9 +200,11 @@ if rising_edge(p_in_clk) then
         i_mirx_done <= '0';
 
         if p_in_upp_wr = '1' then
-          if i_buf_adr = (i_pix_count - 1) then
+          if i_buf_adr = (UNSIGNED(p_in_cfg_pix_count)) then --(i_pix_count_in - 1) then
             if p_in_cfg_mirx = '0' then
               i_buf_adr <= (others=>'0');
+            else
+            i_buf_adr <= i_buf_adr + (p_in_upp_data'length / 8);
             end if;
             i_read_en <= '1';
 
@@ -233,7 +235,7 @@ if rising_edge(p_in_clk) then
         if p_in_dwnp_rdy_n = '0' then
 
             --Отзеркаливание по Х: ЕСТЬ
-            if (p_in_cfg_mirx = '0' and i_buf_adr = (i_pix_count - 1)) or
+            if (p_in_cfg_mirx = '0' and i_buf_adr = (UNSIGNED(p_in_cfg_pix_count) - 1)) or
                (p_in_cfg_mirx = '1' and i_buf_adr = (i_buf_adr'range => '0')) then
 
               i_fsm_cs <= S_BUF_RD_EOF;
