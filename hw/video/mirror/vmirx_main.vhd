@@ -132,7 +132,7 @@ p_out_upp_rdy_n <= i_read_en;
 p_out_dwnp_data <= i_buf_do;
 p_out_dwnp_wr <= not p_in_dwnp_rdy_n and i_read_en;
 p_out_dwnp_eol <= not p_in_dwnp_rdy_n and i_read_en when i_fsm_cs = S_BUF_RD_EOF else '0';
-p_out_dwnp_eof <= p_in_upp_eof;
+p_out_dwnp_eof <= not p_in_dwnp_rdy_n and i_read_en and p_in_upp_eof when i_fsm_cs = S_BUF_RD_EOF else '0';
 
 ----if p_in_upp_data'length = p_out_dwnp_data'length > 8
 --i_pix_count_wr_tmp <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DI_WIDTH / 8)))
