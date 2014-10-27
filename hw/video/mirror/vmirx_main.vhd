@@ -37,15 +37,14 @@ p_out_cfg_mirx_done : out   std_logic;
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
---p_in_upp_clk        : in    std_logic;
 p_in_upp_data       : in    std_logic_vector(G_DI_WIDTH - 1 downto 0);
 p_in_upp_wr         : in    std_logic;
 p_out_upp_rdy_n     : out   std_logic;
+p_in_upp_eof        : in    std_logic;
 
 ----------------------------
 --Downstream Port (OUT)
 ----------------------------
---p_in_dwnp_clk       : in    std_logic;
 p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
 p_out_dwnp_wr       : out   std_logic;
 p_in_dwnp_rdy_n     : in    std_logic;
@@ -95,7 +94,6 @@ signal i_upp_data_swap   : std_logic_vector(p_in_upp_data'range);
 
 type TFsm_state is (
 S_BUF_WR,
-S_BUF_RD_SOF,
 S_BUF_RD,
 S_BUF_RD_EOF
 );
@@ -108,7 +106,6 @@ signal i_buf_adr         : unsigned(p_in_cfg_pix_count'range);
 signal i_buf_adrw        : unsigned(log2(G_BRAM_SIZE_BYTE / (G_DI_WIDTH / 8)) - 1 downto 0);
 signal i_buf_di          : std_logic_vector(p_in_upp_data'range);
 signal i_buf_do          : std_logic_vector(p_out_dwnp_data'range);
-signal i_buf_dir         : std_logic;
 signal i_buf_wea         : std_logic_vector(0 downto 0);
 signal i_buf_enb         : std_logic;
 signal i_read_en         : std_logic;
@@ -140,8 +137,7 @@ begin
   end if;
 end process;
 
-tst_fsmstate <= TO_UNSIGNED(16#01#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD_SOF  else
-                TO_UNSIGNED(16#02#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD      else
+tst_fsmstate <= TO_UNSIGNED(16#02#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD      else
                 TO_UNSIGNED(16#03#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD_EOF  else
                 TO_UNSIGNED(16#00#, tst_fsmstate'length); --i_fsm_cs = S_BUF_WR          else
 
@@ -149,15 +145,15 @@ tst_fsmstate <= TO_UNSIGNED(16#01#, tst_fsmstate'length) when i_fsm_cs = S_BUF_R
 ------------------------------------------------
 --
 ------------------------------------------------
-p_out_upp_rdy_n <= i_buf_dir;
+p_out_upp_rdy_n <= i_read_en;
 
 -------------------------------
 --
 -------------------------------
 p_out_dwnp_data <= i_buf_do;
-p_out_dwnp_wr <= not p_in_dwnp_rdy_n and i_buf_dir;
-p_out_dwnp_eol <= not p_in_dwnp_rdy_n and i_buf_dir when i_fsm_cs = S_BUF_RD_EOF else '0';
-p_out_dwnp_eof <= '0';
+p_out_dwnp_wr <= not p_in_dwnp_rdy_n and i_read_en;
+p_out_dwnp_eol <= not p_in_dwnp_rdy_n and i_read_en when i_fsm_cs = S_BUF_RD_EOF else '0';
+p_out_dwnp_eof <= p_in_upp_eof;
 
 -------------------------------
 --
@@ -185,7 +181,6 @@ if rising_edge(p_in_clk) then
 
     i_fsm_cs <= S_BUF_WR;
 
-    i_buf_dir <= '0';
     i_buf_adr <= (others=>'0');
     i_mirx_done <= '1';
     i_read_en <= '0';
@@ -206,9 +201,8 @@ if rising_edge(p_in_clk) then
             if p_in_cfg_mirx = '0' then
               i_buf_adr <= (others=>'0');
             end if;
-            i_read_en <= '1';
 
-            i_fsm_cs <= S_BUF_RD_SOF;
+            i_fsm_cs <= S_BUF_RD;
           else
             i_buf_adr <= i_buf_adr + (p_in_upp_data'length / p_out_dwnp_data'length);
           end if;
@@ -217,20 +211,9 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       --
       --------------------------------------
-      when S_BUF_RD_SOF =>
-        i_buf_dir <= '1';--Set read mode
-
-        if p_in_cfg_mirx = '0' then
-          i_buf_adr <= i_buf_adr + 1;
-        else
-          i_buf_adr <= i_buf_adr - 1;
-        end if;
-        i_fsm_cs <= S_BUF_RD;
-
-      --------------------------------------
-      --
-      --------------------------------------
       when S_BUF_RD =>
+
+        i_read_en <= '1';
 
         if p_in_dwnp_rdy_n = '0' then
 
@@ -255,7 +238,6 @@ if rising_edge(p_in_clk) then
       when S_BUF_RD_EOF =>
         if p_in_dwnp_rdy_n = '0' then
           i_mirx_done <= '1';
-          i_buf_dir <= '0';--Set write mode
           i_read_en <= '0';
           if p_in_cfg_mirx = '0' then
             i_buf_adr <= (others=>'0');
@@ -280,9 +262,9 @@ end generate gen_swap;
 i_buf_adrw <= i_buf_adr(log2(G_BRAM_SIZE_BYTE / (G_DO_WIDTH / 8)) - 1 downto log2(p_in_upp_data'length / 8));
 i_buf_di <= p_in_upp_data;
 
-i_buf_wea(0) <= not i_buf_dir and p_in_upp_wr;
+i_buf_wea(0) <= not i_read_en and p_in_upp_wr;
 
-i_buf_enb <= (not p_in_dwnp_rdy_n or not i_buf_dir) and i_read_en;
+i_buf_enb <= (not p_in_dwnp_rdy_n);
 
 m_buf : mirx_bram
 port map(

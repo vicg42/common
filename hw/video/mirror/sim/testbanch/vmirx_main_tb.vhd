@@ -20,7 +20,7 @@ use work.vicg_common_pkg.all;
 
 entity vmirx_main_tb is
 generic(
-G_VFR_PIX_COUNT : integer := 16;
+G_VFR_PIX_COUNT : integer := 32;
 G_VFR_LINE_COUNT : integer := 3;
 G_MIRX : std_logic := '0';
 G_BRAM_SIZE_BYTE : integer := 8192;
@@ -58,15 +58,14 @@ p_out_cfg_mirx_done : out   std_logic;
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
---p_in_upp_clk        : in    std_logic;
 p_in_upp_data       : in    std_logic_vector(G_DI_WIDTH - 1 downto 0);
 p_in_upp_wr         : in    std_logic;
 p_out_upp_rdy_n     : out   std_logic;
+p_in_upp_eof        : in    std_logic;
 
 ----------------------------
 --Downstream Port (OUT)
 ----------------------------
---p_in_dwnp_clk       : in    std_logic;
 p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
 p_out_dwnp_wr       : out   std_logic;
 p_in_dwnp_rdy_n     : in    std_logic;
@@ -151,15 +150,14 @@ p_out_cfg_mirx_done => p_out_cfg_mirx_done,
 ----------------------------
 --Upstream Port (входные данные)
 ----------------------------
---p_in_upp_clk        : in    std_logic;
 p_in_upp_data       => std_logic_vector(i_di),
 p_in_upp_wr         => i_di_wr,
 p_out_upp_rdy_n     => i_di_rdy_n,
+p_in_upp_eof        => '0',
 
 ----------------------------
 --Downstream Port (результат)
 ----------------------------
---p_in_dwnp_clk       : in    std_logic;
 p_out_dwnp_data     => p_out_dwnp_data,
 p_out_dwnp_wr       => p_out_dwnp_wr  ,
 p_in_dwnp_rdy_n     => i_do_rdy_n,
@@ -225,7 +223,7 @@ begin
     if i_di_rdy_n = '0' and i_vfr_busy = '1' then
 
       if i_di_wr = '1' then
-        if i_cntpix = TO_UNSIGNED(G_VFR_PIX_COUNT - 1 ,i_cntpix'length) then
+        if i_cntpix = TO_UNSIGNED(G_VFR_PIX_COUNT ,i_cntpix'length) then
           i_cntpix <= (others => '0');
           if i_cntline = TO_UNSIGNED(G_VFR_LINE_COUNT - 1 ,i_cntline'length) then
             i_cntline <= (others => '0');
@@ -235,7 +233,7 @@ begin
             i_cntline <= i_cntline + 1;
           end if;
         else
-          i_cntpix <= i_cntpix + 1;
+          i_cntpix <= i_cntpix + (i_di'length / 8);
 
         end if;
 

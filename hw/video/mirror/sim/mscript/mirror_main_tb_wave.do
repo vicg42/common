@@ -2,6 +2,8 @@ onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_in_cfg_mirx
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_in_cfg_pix_count
+add wave -noupdate -radix hexadecimal /vmirx_main_tb/i_cntpix
+add wave -noupdate -radix hexadecimal /vmirx_main_tb/i_cntline
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_in_upp_data
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_in_upp_wr
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_out_upp_rdy_n
@@ -11,7 +13,6 @@ add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_mirx_done
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_adr
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_di
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_do
-add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_dir
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_buf_enb
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/i_read_en
 add wave -noupdate -radix hexadecimal /vmirx_main_tb/m_vmirx/p_out_dwnp_data
@@ -36,4 +37,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {5018624 ps}
+WaveRestoreZoom {0 ps} {6300 ns}
