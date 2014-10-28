@@ -41,36 +41,41 @@ constant i_clk_period : TIME := 6.6 ns; --150MHz
 
 component bayer_main
 generic(
+--G_BRAM_AWIDTH : integer := 12;
 G_SIM : string:="OFF"
 );
 port(
 -------------------------------
--- Óïğàâëåíèå
+--CFG
 -------------------------------
-p_in_cfg_bypass    : in    std_logic;                    --0/1 - Upstream Port -> Downstream Port Îáğàáàòûâàòü/Íå îáğàáàòûâàòü
-p_in_cfg_colorfst  : in    std_logic_vector(1 downto 0); --Ïåğâûé ïèêñåëü 0/1/2 - R/G/B
-p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);--Êîë-âî ïèêñåë/4 ò.ê p_in_upp_data=32bit
-p_in_cfg_row_count : in    std_logic_vector(15 downto 0);--Êîë-âî ñòğîê
-p_in_cfg_init      : in    std_logic;                    --Èíèöèàëèçàöèÿ. Ñáğîñ ñ÷åò÷èêà àäğåñà BRAM
+p_in_cfg_bypass    : in    std_logic;                    --
+p_in_cfg_colorfst  : in    std_logic_vector(1 downto 0); --First pix 0/1/2 - R/G/B
+p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);
+--p_in_cfg_row_count : in    std_logic_vector(15 downto 0);
+p_in_cfg_init      : in    std_logic;
 
 ----------------------------
---Upstream Port (âõîäíûå äàííûå)
+--Upstream Port (IN)
 ----------------------------
 p_in_upp_data      : in    std_logic_vector(7 downto 0);
 p_in_upp_wr        : in    std_logic;
-p_in_upp_eof       : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
+p_in_upp_eol       : in    std_logic;
+p_in_upp_eof       : in    std_logic;
 
 ----------------------------
---Downstream Port (ğåçóëüòàò)
+--Downstream Port (OUT)
 ----------------------------
 p_out_dwnp_data    : out   std_logic_vector(7 downto 0);
 p_out_dwnp_wr      : out   std_logic;
-p_out_dwnp_eof     : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
+p_out_dwnp_eol     : out   std_logic;
+p_out_dwnp_eof     : out   std_logic;
+--p_out_line_evod    : out   std_logic;
+--p_out_pix_evod     : out   std_logic;
 
 -------------------------------
---Òåõíîëîãè÷åñêèé
+--DBG
 -------------------------------
 p_in_tst           : in    std_logic_vector(31 downto 0);
 p_out_tst          : out   std_logic_vector(31 downto 0);
@@ -122,16 +127,16 @@ G_SIM => "ON"
 )
 port map(
 -------------------------------
--- Óïğàâëåíèå
+--CFG
 -------------------------------
 p_in_cfg_bypass    => '0',
 p_in_cfg_colorfst  => "00",
 p_in_cfg_pix_count => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
-p_in_cfg_row_count => std_logic_vector(TO_UNSIGNED(G_VFR_LINE_COUNT ,16)),
+--p_in_cfg_row_count => std_logic_vector(TO_UNSIGNED(G_VFR_LINE_COUNT ,16)),
 p_in_cfg_init      => '0',
 
 ----------------------------
---Upstream Port
+--Upstream Port (IN)
 ----------------------------
 p_in_upp_data      => std_logic_vector(i_di),
 p_in_upp_wr        => i_di_wr,
@@ -139,7 +144,7 @@ p_in_upp_eof       => i_di_eof,
 p_out_upp_rdy_n    => i_di_rdy_n,
 
 ----------------------------
---Downstream Port
+--Downstream Port (OUT)
 ----------------------------
 p_out_dwnp_data    => p_out_do,
 p_out_dwnp_wr      => p_out_do_wr,
@@ -147,7 +152,7 @@ p_out_dwnp_eof     => p_out_do_eof,
 p_in_dwnp_rdy_n    => i_do_rdy_n,
 
 -------------------------------
---Òåõíîëîãè÷åñêèé
+--DBG
 -------------------------------
 p_in_tst           => (others => '0'),
 p_out_tst          => p_out_tst,

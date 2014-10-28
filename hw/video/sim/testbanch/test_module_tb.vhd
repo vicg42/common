@@ -18,7 +18,7 @@ use ieee.numeric_std.all;
 
 use work.vicg_common_pkg.all;
 
-entity vmirx_main_tb is
+entity test_module_tb is
 generic(
 G_VFR_PIX_COUNT : integer := 16;
 G_VFR_LINE_COUNT : integer := 4;
@@ -28,14 +28,13 @@ G_DI_WIDTH : integer := 32;
 G_DO_WIDTH : integer := 8
 );
 port(
---p_out_cfg_mirx_done : out   std_logic;
 p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
 p_out_dwnp_wr       : out   std_logic;
 p_out_dwnp_eof      : out   std_logic
 );
-end entity vmirx_main_tb;
+end entity test_module_tb;
 
-architecture behavior of vmirx_main_tb is
+architecture behavior of test_module_tb is
 
 constant i_clk_period : TIME := 6.6 ns; --150MHz
 
@@ -174,7 +173,6 @@ signal i_do_rdy_n           : std_logic;
 
 signal i_mir_do             : std_logic_vector(7 downto 0);
 signal i_mir_wr             : std_logic;
-signal i_mir_eol            : std_logic;
 signal i_mir_eof            : std_logic;
 signal i_bayer_rdy_n        : std_logic;
 
@@ -283,74 +281,7 @@ p_in_rst           => i_rst
 
 
 --Генератор тестовых данных
---process(i_rst, i_clk)
---variable di_eof : std_logic;
---begin
---  if i_rst = '1' then
---    i_vfr_busy <= '0';
---
---    i_cntpix <= (others => '0');
---    i_cntline <= (others => '0');
---
---    for i in 0 to (i_di'length / 8) - 1 loop
---    i_di(8 * (i + 1) - 1 downto (8 * i)) <= TO_UNSIGNED((i + 1) ,8);
---    end loop;
---
---    i_di_wr <= '0';
---    i_di_eof <= '0';
---    i_di_eof <= '0';
---
---  elsif rising_edge(i_clk) then
---
---  if i_vfr_start = '1' then
---    i_vfr_busy <= '1';
---    i_di_wr <= '1';
---
---  else
---
---    if i_di_rdy_n = '0' and i_vfr_busy = '1' then
---
---      if i_di_wr = '1' then
---        if i_cntpix = TO_UNSIGNED(G_VFR_PIX_COUNT ,i_cntpix'length) then
---          i_cntpix <= (others => '0');
---          if i_cntline = TO_UNSIGNED(G_VFR_LINE_COUNT - 1 ,i_cntline'length) then
---            i_cntline <= (others => '0');
---            i_vfr_busy <= '0';
---            i_di_wr <= '0';
---          else
---            i_cntline <= i_cntline + 1;
---          end if;
---        else
---          i_cntpix <= i_cntpix + (i_di'length / 8);
---
---        end if;
---
---      end if;
---
---      i_di_wr <= not i_di_wr;
---      for i in 0 to (i_di'length / 8) - 1 loop
---      i_di(8 * (i + 1) - 1 downto (8 * i)) <= i_di(8 * (i + 1) - 1 downto (8 * i)) + (i_di'length / 8);
---      end loop;
---
---    else
---      i_di_wr <= '0';
---
---    end if;
---
---    if i_cntline = TO_UNSIGNED(G_VFR_LINE_COUNT - 1 ,i_cntline'length) then
---        i_di_eof <= '1';
---    else
---        i_di_eof <= '0';
---    end if;
---
---  end if;
---  end if;
---
---end process;
-
 i_do_rdy_n <= '0';
-
-
 
 process(i_clk)
 begin
@@ -364,7 +295,7 @@ if rising_edge(i_clk) then
     i_di_eof <= '0';
 
     for i in 0 to (i_di'length / 8) - 1 loop
-    i_di(8 * (i + 1) - 1 downto (8 * i)) <= (others => '0');
+    i_di(8 * (i + 1) - 1 downto (8 * i)) <= TO_UNSIGNED((i + 1), 8);
     end loop;
 
   else
@@ -387,7 +318,7 @@ if rising_edge(i_clk) then
 
         if i_di_rdy_n = '0' then
           if i_di_wr = '1' then
-            if i_cntpix = TO_UNSIGNED(G_VFR_PIX_COUNT ,i_cntpix'length) then
+            if i_cntpix = TO_UNSIGNED(G_VFR_PIX_COUNT - (i_di'length / 8),i_cntpix'length) then
               i_cntpix <= (others => '0');
               i_di_wr <= '0';
               i_fsm_cs <= S_LINE_COUNT;

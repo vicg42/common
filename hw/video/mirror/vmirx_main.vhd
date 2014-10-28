@@ -48,7 +48,6 @@ p_in_upp_eof        : in    std_logic;
 p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
 p_out_dwnp_wr       : out   std_logic;
 p_in_dwnp_rdy_n     : in    std_logic;
-p_out_dwnp_eol      : out   std_logic;
 p_out_dwnp_eof      : out   std_logic;
 
 -------------------------------
@@ -131,7 +130,6 @@ p_out_upp_rdy_n <= i_read_en;
 
 p_out_dwnp_data <= i_buf_do;
 p_out_dwnp_wr <= not p_in_dwnp_rdy_n and i_read_en;
-p_out_dwnp_eol <= not p_in_dwnp_rdy_n and i_read_en when i_fsm_cs = S_BUF_RD_EOF else '0';
 p_out_dwnp_eof <= not p_in_dwnp_rdy_n and i_read_en and p_in_upp_eof when i_fsm_cs = S_BUF_RD_EOF else '0';
 
 ----if p_in_upp_data'length = p_out_dwnp_data'length > 8
@@ -148,8 +146,8 @@ p_out_dwnp_eof <= not p_in_dwnp_rdy_n and i_read_en and p_in_upp_eof when i_fsm_
 
 
 --if p_in_upp_data'length > 8 and p_out_dwnp_data'length = 8
-i_pix_count_wr <= UNSIGNED(p_in_cfg_pix_count);
-i_pix_count_rd_tmp <= UNSIGNED(p_in_cfg_pix_count) + (p_in_upp_data'length / p_out_dwnp_data'length);
+i_pix_count_wr <= UNSIGNED(p_in_cfg_pix_count) - (p_in_upp_data'length / p_out_dwnp_data'length);
+i_pix_count_rd_tmp <= UNSIGNED(p_in_cfg_pix_count);
 i_pix_count_rd <= i_pix_count_rd_tmp - 1;
 
 

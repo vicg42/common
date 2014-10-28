@@ -32,7 +32,7 @@ port(
 p_in_cfg_bypass    : in    std_logic;                    --
 p_in_cfg_colorfst  : in    std_logic_vector(1 downto 0); --First pix 0/1/2 - R/G/B
 p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);
-p_in_cfg_row_count : in    std_logic_vector(15 downto 0);
+--p_in_cfg_row_count : in    std_logic_vector(15 downto 0);
 p_in_cfg_init      : in    std_logic;
 
 ----------------------------
@@ -41,7 +41,6 @@ p_in_cfg_init      : in    std_logic;
 p_in_upp_data      : in    std_logic_vector(7 downto 0);
 p_in_upp_wr        : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
-p_in_upp_eol       : in    std_logic;
 p_in_upp_eof       : in    std_logic;
 
 ----------------------------
@@ -50,7 +49,6 @@ p_in_upp_eof       : in    std_logic;
 p_out_dwnp_data    : out   std_logic_vector(7 downto 0);
 p_out_dwnp_wr      : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
-p_out_dwnp_eol     : out   std_logic;
 p_out_dwnp_eof     : out   std_logic;
 --p_out_line_evod    : out   std_logic;
 --p_out_pix_evod     : out   std_logic;
@@ -89,7 +87,6 @@ p_in_cfg_init      : in    std_logic;
 p_in_upp_data      : in    std_logic_vector(7 downto 0);
 p_in_upp_wr        : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
-p_in_upp_eol       : in    std_logic;
 p_in_upp_eof       : in    std_logic;
 
 ----------------------------
@@ -98,7 +95,6 @@ p_in_upp_eof       : in    std_logic;
 p_out_matrix       : out   TMatrix;
 p_out_dwnp_wr      : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
-p_out_dwnp_eol     : out   std_logic;
 p_out_dwnp_eof     : out   std_logic;
 --p_out_line_evod    : out   std_logic;
 --p_out_pix_evod     : out   std_logic;
@@ -119,7 +115,6 @@ end component vfilter_core;
 
 signal i_matrix            : TMatrix;
 signal i_matrix_wr         : std_logic;
-signal i_dwnp_eol          : std_logic;
 signal i_dwnp_eof          : std_logic;
 
 --signal i_line_evod         : std_logic;
@@ -130,7 +125,6 @@ begin --architecture behavioral
 
 p_out_dwnp_data <= std_logic_vector(i_matrix(1)(1));
 p_out_dwnp_wr <= i_matrix_wr;
-p_out_dwnp_eol <= i_dwnp_eol;
 p_out_dwnp_eof <= i_dwnp_eof;
 
 
@@ -152,7 +146,6 @@ p_in_cfg_init      => p_in_cfg_init,
 p_in_upp_data      => p_in_upp_data  ,
 p_in_upp_wr        => p_in_upp_wr    ,
 p_out_upp_rdy_n    => p_out_upp_rdy_n,
-p_in_upp_eol       => p_in_upp_eol   ,
 p_in_upp_eof       => p_in_upp_eof   ,
 
 ----------------------------
@@ -161,7 +154,6 @@ p_in_upp_eof       => p_in_upp_eof   ,
 p_out_matrix       => i_matrix  ,
 p_out_dwnp_wr      => i_matrix_wr ,
 p_in_dwnp_rdy_n    => p_in_dwnp_rdy_n,
-p_out_dwnp_eol     => i_dwnp_eol,
 p_out_dwnp_eof     => i_dwnp_eof,
 
 -------------------------------

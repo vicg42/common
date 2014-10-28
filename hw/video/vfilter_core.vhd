@@ -46,7 +46,6 @@ p_in_cfg_init      : in    std_logic;
 p_in_upp_data      : in    std_logic_vector(7 downto 0);
 p_in_upp_wr        : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
-p_in_upp_eol       : in    std_logic;
 p_in_upp_eof       : in    std_logic;
 
 ----------------------------
@@ -55,7 +54,6 @@ p_in_upp_eof       : in    std_logic;
 p_out_matrix       : out   TMatrix;
 p_out_dwnp_wr      : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
-p_out_dwnp_eol     : out   std_logic;
 p_out_dwnp_eof     : out   std_logic;
 --p_out_line_evod    : out   std_logic;
 --p_out_pix_evod     : out   std_logic;
@@ -140,7 +138,6 @@ begin --architecture behavioral
 p_out_matrix <= i_matrix;
 p_out_dwnp_wr <= i_matrix_wr and not p_in_dwnp_rdy_n;--i_matrix_wr and i_buf_wr;
 p_out_dwnp_eof <= i_matrix_wr and i_eof and sr_eol(2) and not p_in_dwnp_rdy_n;
-p_out_dwnp_eol <= i_eof and sr_eol(2) and not p_in_dwnp_rdy_n;
 --p_out_line_evod <= i_line_evod;
 --p_out_pix_evod  <= i_pix_evod;
 
@@ -182,8 +179,8 @@ rstb => p_in_rst
 
 end generate gen_buf;
 
-i_sol <= not OR_reduce(i_buf_adr);
-i_eol <= '1' when i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) else '0';--p_in_upp_eol; --
+i_sol <= not OR_reduce(i_buf_adr) and i_buf_wr;
+i_eol <= i_buf_wr when i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) else '0';
 
 process(p_in_clk)
 begin
@@ -241,7 +238,7 @@ begin
       if p_in_dwnp_rdy_n = '0' then
 
         if i_buf_wr = '1' then
-          if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then --p_in_upp_eol = '1' then --
+          if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
             i_buf_adr <= (others => '0');
           else
             i_buf_adr <= i_buf_adr + 1;
@@ -253,7 +250,7 @@ begin
 
             else
               if i_eof_en = '1' then
-                if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then --p_in_upp_eol = '1' then --
+                if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
                   if i_cnteof = TO_UNSIGNED(CI_DLY_LINE, i_cnteof'length) then
                     i_cnteof <= ( others => '0');
                     i_dwnp_en <= '0'; i_eof_en <= '0'; i_eof <= '0';
@@ -273,7 +270,7 @@ begin
 
           else
 
-            if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then --p_in_upp_eol = '1' then --
+            if i_buf_adr = RESIZE((UNSIGNED(p_in_cfg_pix_count) - 1), i_buf_adr'length) then
               if i_cnteof = TO_UNSIGNED(CI_DLY_LINE - 1, i_cnteof'length) then
                 i_cnteof <= (others => '0');
                 i_dwnp_en <= '1';
