@@ -20,8 +20,8 @@ use work.vicg_common_pkg.all;
 
 entity test_module_tb is
 generic(
-G_VFR_PIX_COUNT : integer := 16;
-G_VFR_LINE_COUNT : integer := 4;
+G_VFR_PIX_COUNT : integer := 8;
+G_VFR_LINE_COUNT : integer := 5;
 G_MIRX : std_logic := '0';
 G_BRAM_SIZE_BYTE : integer := 8192;
 G_DI_WIDTH : integer := 32;
@@ -322,15 +322,14 @@ if rising_edge(i_clk) then
               i_cntpix <= (others => '0');
               i_di_wr <= '0';
               i_fsm_cs <= S_LINE_COUNT;
-
             else
               i_cntpix <= i_cntpix + (i_di'length / 8);
-
-              for i in 0 to (i_di'length / 8) - 1 loop
-              i_di(8 * (i + 1) - 1 downto (8 * i)) <= i_di(8 * (i + 1) - 1 downto (8 * i)) + (i_di'length / 8);
-              end loop;
-
             end if;
+
+            for i in 0 to (i_di'length / 8) - 1 loop
+            i_di(8 * (i + 1) - 1 downto (8 * i)) <= i_di(8 * (i + 1) - 1 downto (8 * i)) + (i_di'length / 8);
+            end loop;
+
           end if;
 
           i_di_wr <= not i_di_wr;
