@@ -269,6 +269,7 @@ begin
         i_matrix_wr <= '0';
 
       elsif i_dwnp_en = '1' and i_buf_wr = '1' and i_buf_adr = TO_UNSIGNED((C_VFILTER_RANG - 2) * 2, i_buf_adr'length) then --TO_UNSIGNED(2, i_buf_adr'length) --3x3
+--      elsif i_dwnp_en = '1' and i_buf_wr = '1' and i_buf_adr = TO_UNSIGNED(5, i_buf_adr'length) then --TO_UNSIGNED(2, i_buf_adr'length) --5x5
         i_matrix_wr <= '1';
       end if;
     end if;
@@ -305,7 +306,7 @@ begin
             i_eol_en <= '1';
           end if;
         else
-          if i_cntdly_pix = TO_UNSIGNED(C_VFILTER_RANG - 1, i_cntdly_pix'length) then --3x3
+          if i_cntdly_pix = TO_UNSIGNED(sr_eol'high, i_cntdly_pix'length) then --3x3
             i_cntdly_pix <= ( others => '0');
             i_eol_en <= '0';
           else
@@ -354,7 +355,8 @@ begin
           i_eof <= '0'; sr_dwnp_en <= '0';
 
           if sr_eol(sr_eol'high) = '1' then
-            if i_cntdly_line = TO_UNSIGNED((C_VFILTER_RANG - 2) - 1, i_cntdly_line'length) then --3x3 --
+            if i_cntdly_line = TO_UNSIGNED((C_VFILTER_RANG - 2) - 1, i_cntdly_line'length) then --3x3 --TO_UNSIGNED(0, i_cntdly_line'length) then --
+--            if i_cntdly_line = TO_UNSIGNED(1, i_cntdly_line'length) then --5x5 --
               i_cntdly_line <= (others => '0');
               i_dwnp_en <= '1';
             else
