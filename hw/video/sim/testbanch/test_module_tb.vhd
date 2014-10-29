@@ -20,11 +20,11 @@ use work.vicg_common_pkg.all;
 
 entity test_module_tb is
 generic(
-G_VFR_PIX_COUNT : integer := 8;
+G_VFR_PIX_COUNT : integer := 16;
 G_VFR_LINE_COUNT : integer := 5;
 G_MIRX : std_logic := '0';
 G_BRAM_SIZE_BYTE : integer := 8192;
-G_DI_WIDTH : integer := 32;
+G_DI_WIDTH : integer := 64;
 G_DO_WIDTH : integer := 8
 );
 port(
