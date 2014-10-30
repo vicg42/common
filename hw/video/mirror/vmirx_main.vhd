@@ -192,9 +192,9 @@ if rising_edge(p_in_clk) then
       --------------------------------------
       when S_BUF_RD =>
 
-        i_read_en <= '1';
-
         if p_in_dwnp_rdy_n = '0' then
+
+            i_read_en <= '1';
 
             if (p_in_cfg_mirx = '0' and i_buf_adr = i_pix_count_rd) or
                (p_in_cfg_mirx = '1' and i_buf_adr = (i_buf_adr'range => '0')) then
