@@ -280,7 +280,7 @@ end process;
 i_gnd_adrb <= (others => '0');
 i_gnd_dinb <= (others => '0');
 
-p_out_upp_rdy_n <= i_eof_en or i_eol_en;
+p_out_upp_rdy_n <= i_eof_en or i_eol_en or p_in_dwnp_rdy_n;
 
 i_buf_wr <= (p_in_upp_wr or (i_eof_en and not i_eol_en));
 
