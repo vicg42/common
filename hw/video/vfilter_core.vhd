@@ -167,20 +167,9 @@ end generate gen_matrix_y0;
 
 gen_matrix_y : for y in 1 to G_VFILTER_RANG - 1 generate begin
 gen_matrix_x : for x in 0 to G_VFILTER_RANG - 1 generate begin
-i_matrix(y)(G_VFILTER_RANG - 1 - x) <= UNSIGNED(sr_buf(y).do(y -  1 + x));
+i_matrix(y)(G_VFILTER_RANG - 1 - x) <= UNSIGNED(sr_buf(y).do(y - 1 + x));
 end generate gen_matrix_x;
 end generate gen_matrix_y;
-
---i_matrix(0)(G_VFILTER_RANG - 1) <= UNSIGNED(i_buf_do(0))  ;
---gen_matrix_y0 : for x in 0 to G_VFILTER_RANG - 2 generate begin
---i_matrix(0)(G_VFILTER_RANG - 2 - x) <= UNSIGNED(sr_buf(0).do(x));
---end generate gen_matrix_y0;
---
---gen_matrix_y : for y in 1 to G_VFILTER_RANG - 1 generate begin
---gen_matrix_x : for x in 0 to G_VFILTER_RANG - 1 generate begin
---i_matrix(y)(x) <= UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
---end generate gen_matrix_x;
---end generate gen_matrix_y;
 
 ----------------------------------------------------
 --gen_matrix_y0 : for y in 0 to 0 generate begin
@@ -201,35 +190,35 @@ end generate gen_matrix_y;
 ----------------------------------------------------
 --gen_matrix_y : for y in 1 to G_VFILTER_RANG - 2 generate begin
 --gen_matrix_x0 : for x in 0 to 0 generate begin
---i_matrix(y)(x) <= (others => '0') when sr_sol(sr_sol'high) = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
+--i_matrix(y)(G_VFILTER_RANG - 1 - x) <= (others => '0') when sr_sol(sr_sol'high) = '1' else
+--  UNSIGNED(sr_buf(y).do(y - 1 + x);
 --end generate gen_matrix_x0;
 --
 --gen_matrix_x : for x in 1 to G_VFILTER_RANG - 2 generate begin
---i_matrix(y)(x) <= UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
+--i_matrix(y)(G_VFILTER_RANG - 1 - x) <= UNSIGNED(sr_buf(y).do(y - 1 + x);
 --end generate gen_matrix_x;
 --
 --gen_matrix_xmax : for x in G_VFILTER_RANG - 1 to G_VFILTER_RANG - 1 generate begin
---i_matrix(y)(x) <= (others => '0') when sr_eol(sr_eol'high) = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
+--i_matrix(y)(G_VFILTER_RANG - 1 - x) <= (others => '0') when sr_eol(sr_eol'high) = '1' else
+--  UNSIGNED(sr_buf(y).do(y - 1 + x);
 --end generate gen_matrix_xmax;
 --end generate gen_matrix_y;
 --
 ----------------------------------------------------
 --gen_matrix_ymax : for y in G_VFILTER_RANG - 1 to G_VFILTER_RANG - 1 generate begin
 --gen_matrix_x0 : for x in 0 to 0 generate begin
---i_matrix(y)(x) <= (others => '0') when sr_sol(sr_sol'high) = '1' or i_eof = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
+--i_matrix(y)(G_VFILTER_RANG - 1 - x) <= (others => '0') when sr_sol(sr_sol'high) = '1' or i_eof = '1' else
+--  UNSIGNED(sr_buf(y).do(y - 1 + x);
 --end generate gen_matrix_x0;
 --
 --gen_matrix_x : for x in 1 to G_VFILTER_RANG - 2 generate begin
---i_matrix(y)(x) <= (others => '0') when i_eof = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
+--i_matrix(y)(G_VFILTER_RANG - 1 - x) <= (others => '0') when i_eof = '1' else
+--  UNSIGNED(sr_buf(y).do(y - 1 + x);
 --end generate gen_matrix_x;
 --
 --gen_matrix_xmax : for x in G_VFILTER_RANG - 1 to G_VFILTER_RANG - 1 generate begin
---i_matrix(y)(x) <= (others => '0') when sr_eol(sr_eol'high) = '1' or i_eof = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
+--i_matrix(y)(G_VFILTER_RANG - 1 - x) <= (others => '0') when sr_eol(sr_eol'high) = '1' or i_eof = '1' else
+--  UNSIGNED(sr_buf(y).do(y - 1 + x);
 --end generate gen_matrix_xmax;
 --end generate gen_matrix_ymax;
 ----------------------------------------------------
