@@ -55,8 +55,9 @@ p_out_matrix       : out   TMatrix;
 p_out_dwnp_wr      : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
 p_out_dwnp_eof     : out   std_logic;
---p_out_line_evod    : out   std_logic;
---p_out_pix_evod     : out   std_logic;
+p_out_dwnp_eol     : out   std_logic;
+p_out_line_evod    : out   std_logic;
+p_out_pix_evod     : out   std_logic;
 
 -------------------------------
 --DBG
@@ -113,7 +114,7 @@ type TSR_adr is array (0 to C_VFILTER_RANG - 1) of unsigned(i_buf_adr'range);
 signal sr_buf_adr          : TSR_adr;
 signal sr_buf_wr           : std_logic_vector(C_VFILTER_RANG - 1 downto 0);
 
-type TSR is array (0 to C_VFILTER_RANG + CI_OPT + 1) of std_logic_vector(p_in_upp_data'range);
+type TSR is array (0 to C_VFILTER_RANG + (2 * CI_OPT)) of std_logic_vector(p_in_upp_data'range);
 type TBuf_do is record do : TSR; end record;
 type TSR_bufs is array (0 to C_VFILTER_RANG - 1) of TBuf_do;
 signal sr_buf              : TSR_bufs;
@@ -144,24 +145,41 @@ S_EOF_LINE
 );
 signal i_fsm_ctrl          : TFsm_state;
 
+signal i_pix_evod          : std_logic;
+signal i_line_evod         : std_logic;
+
 
 begin --architecture behavioral
 
+p_out_line_evod <= i_line_evod;
+p_out_pix_evod  <= i_pix_evod;
 
 p_out_matrix <= i_matrix;
 p_out_dwnp_wr <= i_dwnp_en and sr_matrix_wr(selval(0, sr_matrix_wr'high, CI_OPT = 0)) and not p_in_dwnp_rdy_n;
-p_out_dwnp_eof <= sr_matrix_wr(selval(0, sr_matrix_wr'high, CI_OPT = 0)) and not p_in_dwnp_rdy_n and sr_eol(sr_eol'high) and i_eof;
+p_out_dwnp_eof <= not p_in_dwnp_rdy_n and sr_eol(sr_eol'high) and i_eof;
+p_out_dwnp_eol <= not p_in_dwnp_rdy_n and sr_eol(sr_eol'high) and i_dwnp_en;
 
-i_matrix(0)(C_VFILTER_RANG - 1) <= UNSIGNED(i_buf_do(0))  ;
+i_matrix(0)(C_VFILTER_RANG - 1) <= UNSIGNED(i_buf_do(0));
 gen_matrix_y0 : for x in 0 to C_VFILTER_RANG - 2 generate begin
 i_matrix(0)(C_VFILTER_RANG - 2 - x) <= UNSIGNED(sr_buf(0).do(x));
 end generate gen_matrix_y0;
 
 gen_matrix_y : for y in 1 to C_VFILTER_RANG - 1 generate begin
 gen_matrix_x : for x in 0 to C_VFILTER_RANG - 1 generate begin
-i_matrix(y)(x) <= UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (C_VFILTER_RANG - 1  - y)  - x));
+i_matrix(y)(C_VFILTER_RANG - 1 - x) <= UNSIGNED(sr_buf(y).do(y -  1 + x));
 end generate gen_matrix_x;
 end generate gen_matrix_y;
+
+--i_matrix(0)(C_VFILTER_RANG - 1) <= UNSIGNED(i_buf_do(0))  ;
+--gen_matrix_y0 : for x in 0 to C_VFILTER_RANG - 2 generate begin
+--i_matrix(0)(C_VFILTER_RANG - 2 - x) <= UNSIGNED(sr_buf(0).do(x));
+--end generate gen_matrix_y0;
+--
+--gen_matrix_y : for y in 1 to C_VFILTER_RANG - 1 generate begin
+--gen_matrix_x : for x in 0 to C_VFILTER_RANG - 1 generate begin
+--i_matrix(y)(x) <= UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (C_VFILTER_RANG - 1  - y)  - x));
+--end generate gen_matrix_x;
+--end generate gen_matrix_y;
 
 ----------------------------------------------------
 --gen_matrix_y0 : for y in 0 to 0 generate begin
@@ -228,7 +246,6 @@ end generate gen_matrix_y;
 --i_matrix(2)(2) <= (others => '0') when sr_eol(sr_eol'high) = '1' or i_eof = '1' else UNSIGNED(sr_buf(2).do(1));
 --i_matrix(2)(1) <= (others => '0') when                              i_eof = '1' else UNSIGNED(sr_buf(2).do(2));
 --i_matrix(2)(0) <= (others => '0') when sr_sol(sr_sol'high) = '1' or i_eof = '1' else UNSIGNED(sr_buf(2).do(3));
-
 
 --i_matrix(0)(2) <= UNSIGNED(i_buf_do(0))    ;
 --i_matrix(0)(1) <= UNSIGNED(sr_buf(0).do(0));
@@ -394,7 +411,7 @@ if rising_edge(p_in_clk) then
     i_eof_en <= '0';
     i_eof_line_en <= '0';
     i_dwnp_en <= '0';
-    i_dwnp_eof_en <= '0';
+    i_dwnp_eof_en <= '0'; i_line_evod <= '0';
 
   else
     if p_in_dwnp_rdy_n = '0' then
@@ -424,7 +441,7 @@ if rising_edge(p_in_clk) then
         when S_EOF_WAIT =>
 
           if sr_eol(sr_eol'high) = '1' then
-            sr_dwnp_en <= '1';
+            sr_dwnp_en <= '1'; i_line_evod <= not i_line_evod;
           end if;
 
           if p_in_upp_wr = '1' and p_in_upp_eof = '1' then
@@ -438,11 +455,11 @@ if rising_edge(p_in_clk) then
             if i_cntline = TO_UNSIGNED(CI_OPT + 1, i_cntline'length) then
               i_cntline <= (others => '0');
               i_eof_en <= '0';
-              i_dwnp_en <= '0'; sr_dwnp_en <= '0';
+              i_dwnp_en <= '0'; sr_dwnp_en <= '0'; i_line_evod <= '0';
               i_dwnp_eof_en <= '0';
               i_fsm_ctrl <= S_SOF_WAIT;
             else
-              i_eof_line_en <= '1';
+              i_eof_line_en <= '1'; i_line_evod <= not i_line_evod;
               i_cntline <= i_cntline + 1;
             end if;
           end if;
@@ -456,11 +473,33 @@ end process;
 i_eof <= '1' when i_fsm_ctrl = S_EOF_LINE and i_cntline = TO_UNSIGNED(CI_OPT + 1, i_cntline'length) else '0';
 
 
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+  if p_in_rst = '1' then
+    i_pix_evod <= '0';
+  else
+    if p_in_dwnp_rdy_n = '0' then
+      if i_dwnp_en = '0' then
+        i_pix_evod <= '0';
+      else
+        if sr_matrix_wr(selval(0, sr_matrix_wr'high, CI_OPT = 0)) = '1' then
+          i_pix_evod <= not i_pix_evod;
+        end if;
+      end if;
+    end if;
+  end if;
+end if;
+end process;
+
+
 --##################################
 --DBG
 --##################################
-p_out_tst(31 downto 1) <= (others=>'0');
-p_out_tst(0) <= sr_sol(sr_sol'high) or i_eol_en or sr_dwnp_en;
+p_out_tst(0) <= i_pix_evod;
+p_out_tst(1) <= i_line_evod;
+p_out_tst(30 downto 2) <= (others=>'0');
+p_out_tst(31) <= sr_sol(sr_sol'high) or sr_dwnp_en;
 
 
 end architecture behavioral;
