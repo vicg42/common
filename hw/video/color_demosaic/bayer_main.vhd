@@ -69,6 +69,7 @@ architecture behavioral of bayer_main is
 
 component vfilter_core is
 generic(
+G_VFILTER_RANG : integer := 3;
 G_BRAM_AWIDTH : integer := 12;
 G_SIM : string:="OFF"
 );
@@ -133,6 +134,7 @@ p_out_dwnp_eof <= sr_dwnp_eof(0);
 
 m_core : vfilter_core
 generic map(
+G_VFILTER_RANG => 3,
 G_BRAM_AWIDTH => G_BRAM_AWIDTH,
 G_SIM => G_SIM
 )

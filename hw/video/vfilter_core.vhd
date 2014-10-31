@@ -30,6 +30,7 @@ use work.vfilter_core_pkg.all;
 
 entity vfilter_core is
 generic(
+G_VFILTER_RANG : integer := 3;
 G_BRAM_AWIDTH : integer := 12;
 G_SIM : string:="OFF"
 );
@@ -100,23 +101,23 @@ end component vbufpr;
 --constant CI_OPT : integer := 0; --3x3
 --constant CI_OPT : integer := 1; --5x5
 --constant CI_OPT : integer := 2; --7x7
-constant CI_OPT : integer := selval(0, selval(1, 2, C_VFILTER_RANG = 5), C_VFILTER_RANG = 3);
+constant CI_OPT : integer := selval(0, selval(1, 2, G_VFILTER_RANG = 5), G_VFILTER_RANG = 3);
 
 signal i_gnd_adrb          : std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
 signal i_gnd_dinb          : std_logic_vector(p_in_upp_data'range);
 
 signal i_buf_adr           : unsigned(G_BRAM_AWIDTH - 1 downto 0);
-type TDBufs is array (0 to C_VFILTER_RANG - 1) of std_logic_vector(p_in_upp_data'range);
+type TDBufs is array (0 to G_VFILTER_RANG - 1) of std_logic_vector(p_in_upp_data'range);
 signal i_buf_do            : TDBufs;
 signal i_buf_wr            : std_logic;
-signal i_buf_en            : std_logic_vector(0 to C_VFILTER_RANG - 1);
-type TSR_adr is array (0 to C_VFILTER_RANG - 1) of unsigned(i_buf_adr'range);
+signal i_buf_en            : std_logic_vector(0 to G_VFILTER_RANG - 1);
+type TSR_adr is array (0 to G_VFILTER_RANG - 1) of unsigned(i_buf_adr'range);
 signal sr_buf_adr          : TSR_adr;
-signal sr_buf_wr           : std_logic_vector(C_VFILTER_RANG - 1 downto 0);
+signal sr_buf_wr           : std_logic_vector(G_VFILTER_RANG - 1 downto 0);
 
-type TSR is array (0 to C_VFILTER_RANG + (2 * CI_OPT)) of std_logic_vector(p_in_upp_data'range);
+type TSR is array (0 to G_VFILTER_RANG + (2 * CI_OPT)) of std_logic_vector(p_in_upp_data'range);
 type TBuf_do is record do : TSR; end record;
-type TSR_bufs is array (0 to C_VFILTER_RANG - 1) of TBuf_do;
+type TSR_bufs is array (0 to G_VFILTER_RANG - 1) of TBuf_do;
 signal sr_buf              : TSR_bufs;
 
 signal i_dwnp_en           : std_logic;
@@ -132,8 +133,8 @@ signal i_cntline           : unsigned(1 downto 0);
 signal i_matrix            : TMatrix;
 signal sr_matrix_wr        : std_logic_vector(0 to (selval(1, CI_OPT, CI_OPT = 0)));
 
-signal sr_sol              : std_logic_vector(0 to C_VFILTER_RANG - 1 + CI_OPT);
-signal sr_eol              : std_logic_vector(0 to C_VFILTER_RANG - 1 + CI_OPT);
+signal sr_sol              : std_logic_vector(0 to G_VFILTER_RANG - 1 + CI_OPT);
+signal sr_eol              : std_logic_vector(0 to G_VFILTER_RANG - 1 + CI_OPT);
 signal i_eol_en            : std_logic;
 signal i_eol               : std_logic;
 
@@ -159,76 +160,76 @@ p_out_dwnp_wr <= i_dwnp_en and sr_matrix_wr(selval(0, sr_matrix_wr'high, CI_OPT 
 p_out_dwnp_eof <= not p_in_dwnp_rdy_n and sr_eol(sr_eol'high) and i_eof;
 p_out_dwnp_eol <= not p_in_dwnp_rdy_n and sr_eol(sr_eol'high) and i_dwnp_en;
 
-i_matrix(0)(C_VFILTER_RANG - 1) <= UNSIGNED(i_buf_do(0));
-gen_matrix_y0 : for x in 0 to C_VFILTER_RANG - 2 generate begin
-i_matrix(0)(C_VFILTER_RANG - 2 - x) <= UNSIGNED(sr_buf(0).do(x));
+i_matrix(0)(G_VFILTER_RANG - 1) <= UNSIGNED(i_buf_do(0));
+gen_matrix_y0 : for x in 0 to G_VFILTER_RANG - 2 generate begin
+i_matrix(0)(G_VFILTER_RANG - 2 - x) <= UNSIGNED(sr_buf(0).do(x));
 end generate gen_matrix_y0;
 
-gen_matrix_y : for y in 1 to C_VFILTER_RANG - 1 generate begin
-gen_matrix_x : for x in 0 to C_VFILTER_RANG - 1 generate begin
-i_matrix(y)(C_VFILTER_RANG - 1 - x) <= UNSIGNED(sr_buf(y).do(y -  1 + x));
+gen_matrix_y : for y in 1 to G_VFILTER_RANG - 1 generate begin
+gen_matrix_x : for x in 0 to G_VFILTER_RANG - 1 generate begin
+i_matrix(y)(G_VFILTER_RANG - 1 - x) <= UNSIGNED(sr_buf(y).do(y -  1 + x));
 end generate gen_matrix_x;
 end generate gen_matrix_y;
 
---i_matrix(0)(C_VFILTER_RANG - 1) <= UNSIGNED(i_buf_do(0))  ;
---gen_matrix_y0 : for x in 0 to C_VFILTER_RANG - 2 generate begin
---i_matrix(0)(C_VFILTER_RANG - 2 - x) <= UNSIGNED(sr_buf(0).do(x));
+--i_matrix(0)(G_VFILTER_RANG - 1) <= UNSIGNED(i_buf_do(0))  ;
+--gen_matrix_y0 : for x in 0 to G_VFILTER_RANG - 2 generate begin
+--i_matrix(0)(G_VFILTER_RANG - 2 - x) <= UNSIGNED(sr_buf(0).do(x));
 --end generate gen_matrix_y0;
 --
---gen_matrix_y : for y in 1 to C_VFILTER_RANG - 1 generate begin
---gen_matrix_x : for x in 0 to C_VFILTER_RANG - 1 generate begin
---i_matrix(y)(x) <= UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (C_VFILTER_RANG - 1  - y)  - x));
+--gen_matrix_y : for y in 1 to G_VFILTER_RANG - 1 generate begin
+--gen_matrix_x : for x in 0 to G_VFILTER_RANG - 1 generate begin
+--i_matrix(y)(x) <= UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
 --end generate gen_matrix_x;
 --end generate gen_matrix_y;
 
 ----------------------------------------------------
 --gen_matrix_y0 : for y in 0 to 0 generate begin
---i_matrix(y)(C_VFILTER_RANG - 1) <= (others => '0') when sr_eol(sr_eol'high) = '1' or sr_dwnp_en = '0' else
+--i_matrix(y)(G_VFILTER_RANG - 1) <= (others => '0') when sr_eol(sr_eol'high) = '1' or sr_dwnp_en = '0' else
 --  UNSIGNED(i_buf_do(y));
 --
---gen_matrix_x : for x in 0 to C_VFILTER_RANG - 3 generate begin
---i_matrix(y)(C_VFILTER_RANG - 2 - x) <= (others => '0') when sr_dwnp_en = '0' else
+--gen_matrix_x : for x in 0 to G_VFILTER_RANG - 3 generate begin
+--i_matrix(y)(G_VFILTER_RANG - 2 - x) <= (others => '0') when sr_dwnp_en = '0' else
 --  UNSIGNED(sr_buf(y).do(x));
 --end generate gen_matrix_x;
 --
---gen_matrix_xmax : for x in C_VFILTER_RANG - 2 to C_VFILTER_RANG - 2 generate begin
---i_matrix(y)(C_VFILTER_RANG - 2 - x) <= (others => '0') when sr_sol(sr_sol'high) = '1' or sr_dwnp_en = '0' else
+--gen_matrix_xmax : for x in G_VFILTER_RANG - 2 to G_VFILTER_RANG - 2 generate begin
+--i_matrix(y)(G_VFILTER_RANG - 2 - x) <= (others => '0') when sr_sol(sr_sol'high) = '1' or sr_dwnp_en = '0' else
 --  UNSIGNED(sr_buf(y).do(x));
 --end generate gen_matrix_xmax;
 --end generate gen_matrix_y0;
 --
 ----------------------------------------------------
---gen_matrix_y : for y in 1 to C_VFILTER_RANG - 2 generate begin
+--gen_matrix_y : for y in 1 to G_VFILTER_RANG - 2 generate begin
 --gen_matrix_x0 : for x in 0 to 0 generate begin
 --i_matrix(y)(x) <= (others => '0') when sr_sol(sr_sol'high) = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (C_VFILTER_RANG - 1  - y)  - x));
+--  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
 --end generate gen_matrix_x0;
 --
---gen_matrix_x : for x in 1 to C_VFILTER_RANG - 2 generate begin
---i_matrix(y)(x) <= UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (C_VFILTER_RANG - 1  - y)  - x));
+--gen_matrix_x : for x in 1 to G_VFILTER_RANG - 2 generate begin
+--i_matrix(y)(x) <= UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
 --end generate gen_matrix_x;
 --
---gen_matrix_xmax : for x in C_VFILTER_RANG - 1 to C_VFILTER_RANG - 1 generate begin
+--gen_matrix_xmax : for x in G_VFILTER_RANG - 1 to G_VFILTER_RANG - 1 generate begin
 --i_matrix(y)(x) <= (others => '0') when sr_eol(sr_eol'high) = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (C_VFILTER_RANG - 1  - y)  - x));
+--  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
 --end generate gen_matrix_xmax;
 --end generate gen_matrix_y;
 --
 ----------------------------------------------------
---gen_matrix_ymax : for y in C_VFILTER_RANG - 1 to C_VFILTER_RANG - 1 generate begin
+--gen_matrix_ymax : for y in G_VFILTER_RANG - 1 to G_VFILTER_RANG - 1 generate begin
 --gen_matrix_x0 : for x in 0 to 0 generate begin
 --i_matrix(y)(x) <= (others => '0') when sr_sol(sr_sol'high) = '1' or i_eof = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (C_VFILTER_RANG - 1  - y)  - x));
+--  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
 --end generate gen_matrix_x0;
 --
---gen_matrix_x : for x in 1 to C_VFILTER_RANG - 2 generate begin
+--gen_matrix_x : for x in 1 to G_VFILTER_RANG - 2 generate begin
 --i_matrix(y)(x) <= (others => '0') when i_eof = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (C_VFILTER_RANG - 1  - y)  - x));
+--  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
 --end generate gen_matrix_x;
 --
---gen_matrix_xmax : for x in C_VFILTER_RANG - 1 to C_VFILTER_RANG - 1 generate begin
+--gen_matrix_xmax : for x in G_VFILTER_RANG - 1 to G_VFILTER_RANG - 1 generate begin
 --i_matrix(y)(x) <= (others => '0') when sr_eol(sr_eol'high) = '1' or i_eof = '1' else
---  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (C_VFILTER_RANG - 1  - y)  - x));
+--  UNSIGNED(sr_buf(y).do(sr_buf(y).do'high - (G_VFILTER_RANG - 1  - y)  - x));
 --end generate gen_matrix_xmax;
 --end generate gen_matrix_ymax;
 ----------------------------------------------------
@@ -283,11 +284,11 @@ p_out_upp_rdy_n <= i_eof_en or i_eol_en;
 
 i_buf_wr <= (p_in_upp_wr or (i_eof_en and not i_eol_en));
 
-sr_buf_adr(C_VFILTER_RANG - 1) <= i_buf_adr;
-i_buf_do(C_VFILTER_RANG - 1) <= p_in_upp_data;
-sr_buf_wr(C_VFILTER_RANG - 1) <= i_buf_wr;
+sr_buf_adr(G_VFILTER_RANG - 1) <= i_buf_adr;
+i_buf_do(G_VFILTER_RANG - 1) <= p_in_upp_data;
+sr_buf_wr(G_VFILTER_RANG - 1) <= i_buf_wr;
 
-gen_buf : for i in C_VFILTER_RANG - 2 downto 0  generate begin
+gen_buf : for i in G_VFILTER_RANG - 2 downto 0  generate begin
 
 process(p_in_clk)
 begin
