@@ -32,7 +32,7 @@ entity vfilter_core is
 generic(
 G_VFILTER_RANG : integer := 3;
 G_BRAM_AWIDTH : integer := 12;
-G_SIM : string:="OFF"
+G_DWIDTH : integer := 8
 );
 port(
 -------------------------------
@@ -44,7 +44,7 @@ p_in_cfg_init      : in    std_logic;
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
-p_in_upp_data      : in    std_logic_vector(7 downto 0);
+p_in_upp_data      : in    std_logic_vector(G_DWIDTH - 1 downto 0);
 p_in_upp_wr        : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
 p_in_upp_eof       : in    std_logic;
@@ -80,8 +80,8 @@ component vbufpr
 port(
 --read first
 addra: in  std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
-dina : in  std_logic_vector(7 downto 0);
-douta: out std_logic_vector(7 downto 0);
+dina : in  std_logic_vector(G_DWIDTH - 1 downto 0);
+douta: out std_logic_vector(G_DWIDTH - 1 downto 0);
 ena  : in  std_logic;
 wea  : in  std_logic_vector(0 downto 0);
 clka : in  std_logic;
@@ -89,8 +89,8 @@ rsta : in  std_logic;
 
 --write first
 addrb: in  std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
-dinb : in  std_logic_vector(7 downto 0);
-doutb: out std_logic_vector(7 downto 0);
+dinb : in  std_logic_vector(G_DWIDTH - 1 downto 0);
+doutb: out std_logic_vector(G_DWIDTH - 1 downto 0);
 enb  : in  std_logic;
 web  : in  std_logic_vector(0 downto 0);
 clkb : in  std_logic;
@@ -160,14 +160,14 @@ p_out_dwnp_wr <= i_dwnp_en and sr_matrix_wr(selval(0, sr_matrix_wr'high, CI_OPT 
 p_out_dwnp_eof <= not p_in_dwnp_rdy_n and sr_eol(sr_eol'high) and i_eof;
 p_out_dwnp_eol <= not p_in_dwnp_rdy_n and sr_eol(sr_eol'high) and i_dwnp_en;
 
-i_matrix(0)(G_VFILTER_RANG - 1) <= UNSIGNED(i_buf_do(0));
+i_matrix(0)(G_VFILTER_RANG - 1) <= RESIZE(UNSIGNED(i_buf_do(0)), i_matrix(0)(0)'length);
 gen_matrix_y0 : for x in 0 to G_VFILTER_RANG - 2 generate begin
-i_matrix(0)(G_VFILTER_RANG - 2 - x) <= UNSIGNED(sr_buf(0).do(x));
+i_matrix(0)(G_VFILTER_RANG - 2 - x) <= RESIZE(UNSIGNED(sr_buf(0).do(x)), i_matrix(0)(0)'length);
 end generate gen_matrix_y0;
 
 gen_matrix_y : for y in 1 to G_VFILTER_RANG - 1 generate begin
 gen_matrix_x : for x in 0 to G_VFILTER_RANG - 1 generate begin
-i_matrix(y)(G_VFILTER_RANG - 1 - x) <= UNSIGNED(sr_buf(y).do(y - 1 + x));
+i_matrix(y)(G_VFILTER_RANG - 1 - x) <= RESIZE(UNSIGNED(sr_buf(y).do(y - 1 + x)), i_matrix(0)(0)'length);
 end generate gen_matrix_x;
 end generate gen_matrix_y;
 

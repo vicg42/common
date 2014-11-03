@@ -87,13 +87,12 @@ end component vmirx_main;
 component bayer_main is
 generic(
 G_BRAM_AWIDTH : integer := 12;
-G_SIM : string:="OFF"
+G_DWIDTH : integer := 8
 );
 port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_bypass    : in    std_logic;                    --
 p_in_cfg_colorfst  : in    std_logic_vector(1 downto 0); --First pix 0/1/2 - R/G/B
 p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);
 --p_in_cfg_row_count : in    std_logic_vector(15 downto 0);
@@ -102,7 +101,7 @@ p_in_cfg_init      : in    std_logic;
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
-p_in_upp_data      : in    std_logic_vector(7 downto 0);
+p_in_upp_data      : in    std_logic_vector(G_DWIDTH - 1 downto 0);
 p_in_upp_wr        : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
 p_in_upp_eof       : in    std_logic;
@@ -110,7 +109,7 @@ p_in_upp_eof       : in    std_logic;
 ----------------------------
 --Downstream Port (OUT)
 ----------------------------
-p_out_dwnp_data    : out   std_logic_vector(7 downto 0);
+p_out_dwnp_data    : out   std_logic_vector((G_DWIDTH * 3) - 1 downto 0);
 p_out_dwnp_wr      : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
 p_out_dwnp_eof     : out   std_logic;
@@ -135,6 +134,7 @@ component vfilter_core is
 generic(
 G_VFILTER_RANG : integer := 3;
 G_BRAM_AWIDTH : integer := 12;
+G_DWIDTH : integer := 8;
 G_SIM : string:="OFF"
 );
 port(
@@ -147,7 +147,7 @@ p_in_cfg_init      : in    std_logic;
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
-p_in_upp_data      : in    std_logic_vector(7 downto 0);
+p_in_upp_data      : in    std_logic_vector(G_DWIDTH - 1 downto 0);
 p_in_upp_wr        : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
 p_in_upp_eof       : in    std_logic;
@@ -228,6 +228,10 @@ signal i_matrix_wr          : std_logic;
 signal i_matrix_eof         : std_logic;
 signal i_matrix_rdy_n       : std_logic;
 
+signal  i_byer_do           : std_logic_vector((G_DO_WIDTH * 3) - 1 downto 0);
+signal  i_byer_do_wr        : std_logic;
+signal  i_byer_do_eof       : std_logic;
+
 begin --architecture behavior
 
 i_rst<='1','0' after 1 us;
@@ -288,6 +292,7 @@ p_in_rst            => i_rst
 m_filter_core : vfilter_core
 generic map(
 G_VFILTER_RANG => 5,
+G_DWIDTH => G_DO_WIDTH,
 G_BRAM_AWIDTH => 12
 )
 port map(
@@ -332,13 +337,12 @@ p_in_rst           => i_rst
 m_bayer : bayer_main
 generic map(
 G_BRAM_AWIDTH => 12,
-G_SIM => "OFF"
+G_DWIDTH => G_DO_WIDTH
 )
 port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_bypass    => '0',
 p_in_cfg_colorfst  => (others => '0'),
 p_in_cfg_pix_count  => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
 --p_in_cfg_row_count => (others => '0'),
@@ -347,7 +351,7 @@ p_in_cfg_init      => '0',
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
-p_in_upp_data      => std_logic_vector(i_matrix(2)(2)),--i_mir_do,
+p_in_upp_data      => std_logic_vector(i_matrix(2)(2)(G_DO_WIDTH - 1 downto 0)),--i_mir_do,
 p_in_upp_wr        => i_matrix_wr,--i_mir_wr,
 p_in_upp_eof       => i_matrix_eof,--i_mir_eof,
 p_out_upp_rdy_n    => i_bayer_rdy_n,
@@ -355,10 +359,10 @@ p_out_upp_rdy_n    => i_bayer_rdy_n,
 ----------------------------
 --Downstream Port (OUT)
 ----------------------------
-p_out_dwnp_data    => p_out_dwnp_data,
-p_out_dwnp_wr      => p_out_dwnp_wr  ,
+p_out_dwnp_data    => i_byer_do,
+p_out_dwnp_wr      => i_byer_do_wr  ,
 p_in_dwnp_rdy_n    => i_do_rdy_n     ,
-p_out_dwnp_eof     => p_out_dwnp_eof ,
+p_out_dwnp_eof     => i_byer_do_eof ,
 
 -------------------------------
 --DBG
@@ -373,6 +377,9 @@ p_in_clk           => i_clk,
 p_in_rst           => i_rst
 );
 
+p_out_dwnp_data <= i_byer_do(G_DO_WIDTH - 1 downto 0);
+p_out_dwnp_wr   <= i_byer_do_wr;
+p_out_dwnp_eof  <= i_byer_do_eof;
 
 
 --Генератор тестовых данных
