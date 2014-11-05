@@ -31,7 +31,7 @@ use work.vfilter_core_pkg.all;
 entity vfilter_core is
 generic(
 G_VFILTER_RANG : integer := 3;
-G_BRAM_AWIDTH : integer := 12;
+G_BRAM_SIZE_BYTE : integer := 12;
 G_DWIDTH : integer := 8
 );
 port(
@@ -47,7 +47,7 @@ p_in_cfg_init      : in    std_logic;
 p_in_upp_data      : in    std_logic_vector(G_DWIDTH - 1 downto 0);
 p_in_upp_wr        : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
-p_in_upp_eof       : in    std_logic;
+p_in_upp_eof       : in    std_logic; --strob 1clk
 
 ----------------------------
 --Downstream Port (OUT)
@@ -76,10 +76,10 @@ end entity vfilter_core;
 
 architecture behavioral of vfilter_core is
 
-component vbufpr
+component bram_filter_core
 port(
 --read first
-addra: in  std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
+addra: in  std_logic_vector(log2(G_BRAM_SIZE_BYTE) - 1 downto 0);
 dina : in  std_logic_vector(G_DWIDTH - 1 downto 0);
 douta: out std_logic_vector(G_DWIDTH - 1 downto 0);
 ena  : in  std_logic;
@@ -88,7 +88,7 @@ clka : in  std_logic;
 rsta : in  std_logic;
 
 --write first
-addrb: in  std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
+addrb: in  std_logic_vector(log2(G_BRAM_SIZE_BYTE) - 1 downto 0);
 dinb : in  std_logic_vector(G_DWIDTH - 1 downto 0);
 doutb: out std_logic_vector(G_DWIDTH - 1 downto 0);
 enb  : in  std_logic;
@@ -96,17 +96,17 @@ web  : in  std_logic_vector(0 downto 0);
 clkb : in  std_logic;
 rstb : in  std_logic
 );
-end component vbufpr;
+end component bram_filter_core;
 
 --constant CI_OPT : integer := 0; --3x3
 --constant CI_OPT : integer := 1; --5x5
 --constant CI_OPT : integer := 2; --7x7
 constant CI_OPT : integer := selval(0, selval(1, 2, G_VFILTER_RANG = 5), G_VFILTER_RANG = 3);
 
-signal i_gnd_adrb          : std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
+signal i_gnd_adrb          : std_logic_vector(log2(G_BRAM_SIZE_BYTE) - 1 downto 0);
 signal i_gnd_dinb          : std_logic_vector(p_in_upp_data'range);
 
-signal i_buf_adr           : unsigned(G_BRAM_AWIDTH - 1 downto 0);
+signal i_buf_adr           : unsigned(log2(G_BRAM_SIZE_BYTE) - 1 downto 0);
 type TDBufs is array (0 to G_VFILTER_RANG - 1) of std_logic_vector(p_in_upp_data'range);
 signal i_buf_do            : TDBufs;
 signal i_buf_wr            : std_logic;
@@ -296,7 +296,7 @@ end process;
 
 i_buf_en(i + 1) <= sr_buf_wr(i + 1) and not p_in_dwnp_rdy_n;
 
-m_buf : vbufpr
+m_buf : bram_filter_core
 port map(
 --READ FIRST
 addra=> std_logic_vector(sr_buf_adr(i + 1)),

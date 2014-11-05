@@ -23,7 +23,7 @@ use std.textio.all;
 
 entity bayer_main_tb is
 generic(
-G_VFR_PIX_COUNT : integer := 9;
+G_VFR_PIX_COUNT : integer := 16;
 G_VFR_LINE_COUNT : integer := 3
 );
 port(

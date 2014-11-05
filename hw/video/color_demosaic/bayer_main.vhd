@@ -22,7 +22,7 @@ use work.vfilter_core_pkg.all;
 
 entity bayer_main is
 generic(
-G_BRAM_AWIDTH : integer := 12;
+G_BRAM_SIZE_BYTE : integer := 12;
 G_DWIDTH : integer := 8
 );
 port(
@@ -49,6 +49,7 @@ p_out_dwnp_data    : out   std_logic_vector((G_DWIDTH * 3) - 1 downto 0);
 p_out_dwnp_wr      : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
 p_out_dwnp_eof     : out   std_logic;
+p_out_dwnp_eol     : out   std_logic;
 
 -------------------------------
 --DBG
@@ -69,9 +70,8 @@ architecture behavioral of bayer_main is
 component vfilter_core is
 generic(
 G_VFILTER_RANG : integer := 3;
-G_BRAM_AWIDTH : integer := 12;
-G_DWIDTH : integer := 8;
-G_SIM : string:="OFF"
+G_BRAM_SIZE_BYTE : integer := 12;
+G_DWIDTH : integer := 8
 );
 port(
 -------------------------------
@@ -118,7 +118,8 @@ signal i_matrix_wr         : std_logic;
 signal i_dwnp_eof          : std_logic;
 signal i_dwnp_eol          : std_logic;
 signal sr_matrix_wr        : std_logic_vector(0 to 3);
-signal sr_dwnp_eof         : std_logic_vector(0 to 3);
+signal sr_dwnp_eof         : std_logic_vector(sr_matrix_wr'range);
+signal sr_dwnp_eol         : std_logic_vector(sr_matrix_wr'range);
 
 signal i_line_evod         : std_logic;
 signal sr_line_evod        : std_logic_vector(0 to sr_dwnp_eof'high - 1) := (others => '0');
@@ -156,12 +157,13 @@ p_out_dwnp_data((G_DWIDTH * 2) - 1 downto (G_DWIDTH * 1)) <= std_logic_vector(i_
 p_out_dwnp_data((G_DWIDTH * 1) - 1 downto (G_DWIDTH * 0)) <= std_logic_vector(i_rcolor);
 p_out_dwnp_wr <= sr_matrix_wr(sr_matrix_wr'high) and not p_in_dwnp_rdy_n;
 p_out_dwnp_eof <= sr_dwnp_eof(sr_dwnp_eof'high) and not p_in_dwnp_rdy_n;
+p_out_dwnp_eol <= sr_dwnp_eol(sr_dwnp_eol'high) and not p_in_dwnp_rdy_n;
 
 
 m_core : vfilter_core
 generic map(
 G_VFILTER_RANG => 3,
-G_BRAM_AWIDTH => G_BRAM_AWIDTH
+G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE
 )
 port map(
 -------------------------------
@@ -266,33 +268,57 @@ if rising_edge(p_in_clk) then
       --------------------
       --3
       --------------------
+--      case i_sel is
+--        when "00" => --line/pix - even/even
+--            i_rcolor <= i_pix1_line1_res;
+--            i_gcolor <= i_pix021_line102_res;
+--            i_bcolor <= i_pix0202_line02_res;
+--
+--        when "01" => --line/pix - even/odd
+--            i_rcolor <= i_pix02_line1_res;
+--            i_gcolor <= i_pix1_line1_res;
+--            i_bcolor <= i_pix1_line02_res;
+--
+--        when "10" => --line/pix - odd/even
+--            i_rcolor <= i_pix1_line02_res;
+--            i_gcolor <= i_pix1_line1_res;
+--            i_bcolor <= i_pix02_line1_res;
+--
+--        when "11" => --line/pix - odd/odd
+--            i_rcolor <= i_pix0202_line02_res;
+--            i_gcolor <= i_pix021_line102_res;
+--            i_bcolor <= i_pix1_line1_res;
+--
+--        when others => null;
+--      end case;
+
       case i_sel is
         when "00" => --line/pix - even/even
-            i_rcolor <= i_pix1_line1_res;
-            i_gcolor <= i_pix021_line102_res;
-            i_bcolor <= i_pix0202_line02_res;
-
-        when "01" => --line/pix - even/odd
-            i_rcolor <= i_pix02_line1_res;
-            i_gcolor <= i_pix1_line1_res;
-            i_bcolor <= i_pix1_line02_res;
-
-        when "10" => --line/pix - odd/even
-            i_rcolor <= i_pix1_line02_res;
-            i_gcolor <= i_pix1_line1_res;
-            i_bcolor <= i_pix02_line1_res;
-
-        when "11" => --line/pix - odd/odd
             i_rcolor <= i_pix0202_line02_res;
             i_gcolor <= i_pix021_line102_res;
             i_bcolor <= i_pix1_line1_res;
 
+        when "01" => --line/pix - even/odd
+            i_rcolor <= i_pix1_line02_res;
+            i_gcolor <= i_pix1_line1_res;
+            i_bcolor <= i_pix02_line1_res;
+
+        when "10" => --line/pix - odd/even
+            i_rcolor <= i_pix02_line1_res;
+            i_gcolor <= i_pix1_line1_res;
+            i_bcolor <= i_pix1_line02_res;
+
+        when "11" => --line/pix - odd/odd
+            i_rcolor <= i_pix1_line1_res;
+            i_gcolor <= i_pix021_line102_res;
+            i_bcolor <= i_pix0202_line02_res;
+
         when others => null;
       end case;
-
       -----------------------------
       sr_matrix_wr <= i_matrix_wr & sr_matrix_wr(0 to sr_matrix_wr'high - 1);
       sr_dwnp_eof <= i_dwnp_eof & sr_dwnp_eof(0 to sr_dwnp_eof'high - 1);
+      sr_dwnp_eol <= i_dwnp_eol & sr_dwnp_eol(0 to sr_dwnp_eol'high - 1);
 
       sr_line_evod <= i_line_evod & sr_line_evod(0 to sr_line_evod'high - 1);
       sr_pix_evod <= i_pix_evod & sr_pix_evod(0 to sr_pix_evod'high - 1);

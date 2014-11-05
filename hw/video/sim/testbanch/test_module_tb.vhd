@@ -21,11 +21,11 @@ use work.vfilter_core_pkg.all;
 
 entity test_module_tb is
 generic(
-G_VFR_PIX_COUNT : integer := 8;
+G_VFR_PIX_COUNT : integer := 32;
 G_VFR_LINE_COUNT : integer := 5;
 G_MIRX : std_logic := '0';
 G_BRAM_SIZE_BYTE : integer := 8192;
-G_DI_WIDTH : integer := 64;
+G_DI_WIDTH : integer := 32;
 G_DO_WIDTH : integer := 8
 );
 port(
@@ -37,7 +37,8 @@ end entity test_module_tb;
 
 architecture behavior of test_module_tb is
 
-constant i_clk_period : TIME := 6.6 ns; --150MHz
+constant CI_CLK_PERIOD          : TIME := 6.6 ns; --150MHz
+constant CI_OFIFO_CLK_PERIOD    : TIME := 7.6 ns;
 
 component vmirx_main
 generic(
@@ -51,8 +52,6 @@ port(
 -------------------------------
 p_in_cfg_mirx       : in    std_logic;                    --1/0 - mirx ON/OFF
 p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--Count byte
-
-p_out_cfg_mirx_done : out   std_logic;
 
 ----------------------------
 --Upstream Port (IN)
@@ -69,6 +68,7 @@ p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
 p_out_dwnp_wr       : out   std_logic;
 p_in_dwnp_rdy_n     : in    std_logic;
 p_out_dwnp_eof      : out   std_logic;
+p_out_dwnp_eol      : out   std_logic;
 
 -------------------------------
 --DBG
@@ -86,7 +86,7 @@ end component vmirx_main;
 
 component bayer_main is
 generic(
-G_BRAM_AWIDTH : integer := 12;
+G_BRAM_SIZE_BYTE : integer := 12;
 G_DWIDTH : integer := 8
 );
 port(
@@ -113,8 +113,7 @@ p_out_dwnp_data    : out   std_logic_vector((G_DWIDTH * 3) - 1 downto 0);
 p_out_dwnp_wr      : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
 p_out_dwnp_eof     : out   std_logic;
---p_out_line_evod    : out   std_logic;
---p_out_pix_evod     : out   std_logic;
+p_out_dwnp_eol     : out   std_logic;
 
 -------------------------------
 --DBG
@@ -133,9 +132,8 @@ end component bayer_main;
 component vfilter_core is
 generic(
 G_VFILTER_RANG : integer := 3;
-G_BRAM_AWIDTH : integer := 12;
-G_DWIDTH : integer := 8;
-G_SIM : string:="OFF"
+G_BRAM_SIZE_BYTE : integer := 12;
+G_DWIDTH : integer := 8
 );
 port(
 -------------------------------
@@ -177,27 +175,29 @@ p_in_rst           : in    std_logic
 );
 end component vfilter_core;
 
---component vmirx_fifo
---port (
---din        : IN  std_logic_VECTOR(31 downto 0);
---wr_en      : IN  std_logic;
---
---dout       : OUT std_logic_VECTOR(31 downto 0);
---rd_en      : IN  std_logic;
---
---empty      : OUT std_logic;
---full       : OUT std_logic;
---almost_full: OUT std_logic;
---
---clk        : IN  std_logic;
---rst        : IN  std_logic
---);
---end component vmirx_fifo;
+component sim_fifo8x8bit
+port(
+din         : IN  std_logic_vector(7 downto 0);
+wr_en       : IN  std_logic;
+wr_clk      : IN  std_logic;
+
+dout        : OUT std_logic_vector(7 downto 0);
+rd_en       : IN  std_logic;
+rd_clk      : IN  std_logic;
+
+empty       : OUT std_logic;
+full        : OUT std_logic;
+prog_full   : OUT std_logic;
+
+rst         : IN  std_logic
+);
+end component sim_fifo8x8bit;
 
 type TFsm_state is (
 S_IDLE,
 S_PIX_COUNT,
-S_LINE_COUNT
+S_LINE_COUNT,
+S_DELAY_NFR
 );
 signal i_fsm_cs             : TFsm_state;
 
@@ -209,8 +209,6 @@ signal i_vfr_busy           : std_logic := '0';
 signal i_cntpix             : unsigned(7 downto 0) := (others => '0');
 signal i_cntline            : unsigned(7 downto 0) := (others => '0');
 
-signal i_nxt_line           : std_logic;
-
 signal i_di                 : unsigned(G_DI_WIDTH - 1 downto 0) := (others => '0');
 signal i_di_wr              : std_logic := '0';
 signal i_di_eof             : std_logic := '0';
@@ -221,6 +219,7 @@ signal i_do_rdy_n           : std_logic;
 signal i_mir_do             : std_logic_vector(7 downto 0);
 signal i_mir_wr             : std_logic;
 signal i_mir_eof            : std_logic;
+signal i_mir_eol            : std_logic;
 signal i_bayer_rdy_n        : std_logic;
 
 signal i_matrix             : TMatrix;
@@ -228,21 +227,40 @@ signal i_matrix_wr          : std_logic;
 signal i_matrix_eof         : std_logic;
 signal i_matrix_rdy_n       : std_logic;
 
-signal  i_byer_do           : std_logic_vector((G_DO_WIDTH * 3) - 1 downto 0);
-signal  i_byer_do_wr        : std_logic;
-signal  i_byer_do_eof       : std_logic;
+signal i_byer_do            : std_logic_vector((G_DO_WIDTH * 3) - 1 downto 0);
+signal i_byer_do_wr         : std_logic;
+signal i_byer_do_eof        : std_logic;
+signal i_byer_do_eol        : std_logic;
+
+signal i_ofifo_do           : std_logic_vector(7 downto 0);
+signal i_ofifo_rd           : std_logic := '0';
+signal i_ofifo_clk          : std_logic;
+signal i_ofifo_empty        : std_logic;
+signal i_ofifo_pfull        : std_logic;
+signal i_ofifo_cnddiv       : unsigned(7 downto 0) := (others => '0');
+
 
 begin --architecture behavior
 
-i_rst<='1','0' after 1 us;
+i_rst <= '1','0' after 1 us;
 
 clkgen : process
 begin
-  i_clk<='0';
-  wait for i_clk_period/2;
-  i_clk<='1';
-  wait for i_clk_period/2;
+  i_clk <= '0';
+  wait for (CI_CLK_PERIOD / 2);
+  i_clk <= '1';
+  wait for (CI_CLK_PERIOD / 2);
 end process clkgen;
+
+clkgen2 : process
+begin
+  i_ofifo_clk <= '0';
+  wait for (CI_OFIFO_CLK_PERIOD / 2);
+  i_ofifo_clk <= '1';
+  wait for (CI_OFIFO_CLK_PERIOD / 2);
+end process clkgen2;
+
+
 
 m_vmirx: vmirx_main
 generic map(
@@ -253,15 +271,13 @@ G_DO_WIDTH => G_DO_WIDTH
 port map
 (
 -------------------------------
--- Управление
+--CFG
 -------------------------------
 p_in_cfg_mirx       => G_MIRX,
 p_in_cfg_pix_count  => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
 
-p_out_cfg_mirx_done => i_nxt_line,
-
 ----------------------------
---Upstream Port (входные данные)
+--Upstream Port (IN)
 ----------------------------
 p_in_upp_data       => std_logic_vector(i_di),
 p_in_upp_wr         => i_di_wr,
@@ -269,15 +285,16 @@ p_out_upp_rdy_n     => i_di_rdy_n,
 p_in_upp_eof        => i_di_eof,
 
 ----------------------------
---Downstream Port (результат)
+--Downstream Port (OUT)
 ----------------------------
-p_out_dwnp_data     => i_mir_do    ,--p_out_dwnp_data,
-p_out_dwnp_wr       => i_mir_wr    ,--p_out_dwnp_wr  ,
-p_in_dwnp_rdy_n     => i_matrix_rdy_n, --i_bayer_rdy_n,--i_do_rdy_n     ,
-p_out_dwnp_eof      => i_mir_eof   ,--p_out_dwnp_eof ,
+p_out_dwnp_data     => i_mir_do      ,--p_out_dwnp_data,                 i_mir_do      ,--
+p_out_dwnp_wr       => i_mir_wr      ,--p_out_dwnp_wr  ,                 i_mir_wr      ,--
+p_in_dwnp_rdy_n     => i_matrix_rdy_n,--i_bayer_rdy_n,--i_do_rdy_n     , i_ofifo_pfull ,--
+p_out_dwnp_eof      => i_mir_eof     ,--p_out_dwnp_eof ,                 i_mir_eof     ,--
+p_out_dwnp_eol      => i_mir_eol     ,--p_out_dwnp_eof ,                 i_mir_eol     ,--
 
 -------------------------------
---Технологический
+--DBG
 -------------------------------
 p_in_tst            => (others => '0'),
 p_out_tst           => open,
@@ -289,11 +306,12 @@ p_in_clk            => i_clk,
 p_in_rst            => i_rst
 );
 
+
 m_filter_core : vfilter_core
 generic map(
 G_VFILTER_RANG => 5,
 G_DWIDTH => G_DO_WIDTH,
-G_BRAM_AWIDTH => 12
+G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE
 )
 port map(
 -------------------------------
@@ -336,7 +354,7 @@ p_in_rst           => i_rst
 
 m_bayer : bayer_main
 generic map(
-G_BRAM_AWIDTH => 12,
+G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
 G_DWIDTH => G_DO_WIDTH
 )
 port map(
@@ -361,8 +379,9 @@ p_out_upp_rdy_n    => i_bayer_rdy_n,
 ----------------------------
 p_out_dwnp_data    => i_byer_do,
 p_out_dwnp_wr      => i_byer_do_wr  ,
-p_in_dwnp_rdy_n    => i_do_rdy_n     ,
+p_in_dwnp_rdy_n    => i_ofifo_pfull , --i_do_rdy_n    ,
 p_out_dwnp_eof     => i_byer_do_eof ,
+p_out_dwnp_eol     => i_byer_do_eol ,
 
 -------------------------------
 --DBG
@@ -377,8 +396,26 @@ p_in_clk           => i_clk,
 p_in_rst           => i_rst
 );
 
-p_out_dwnp_data <= i_byer_do(G_DO_WIDTH - 1 downto 0);
-p_out_dwnp_wr   <= i_byer_do_wr;
+
+m_ofifo : sim_fifo8x8bit
+port map(
+din         => i_byer_do(7 downto 0), --i_mir_do,
+wr_en       => i_byer_do_wr,          --i_mir_wr,
+wr_clk      => i_clk,
+
+dout        => i_ofifo_do,
+rd_en       => i_ofifo_rd,
+rd_clk      => i_ofifo_clk,
+
+empty       => i_ofifo_empty,
+full        => open,
+prog_full   => i_ofifo_pfull,
+
+rst         => i_rst
+);
+
+p_out_dwnp_data <= std_logic_vector(RESIZE(UNSIGNED(i_ofifo_do), p_out_dwnp_data'length));--i_byer_do(G_DO_WIDTH - 1 downto 0);
+p_out_dwnp_wr   <= i_ofifo_rd;--i_byer_do_wr;
 p_out_dwnp_eof  <= i_byer_do_eof;
 
 
@@ -431,10 +468,11 @@ if rising_edge(i_clk) then
             for i in 0 to (i_di'length / 8) - 1 loop
             i_di(8 * (i + 1) - 1 downto (8 * i)) <= i_di(8 * (i + 1) - 1 downto (8 * i)) + (i_di'length / 8);
             end loop;
-
+          else
+            i_di_wr <= '1';
           end if;
 
-          i_di_wr <= not i_di_wr;
+--          i_di_wr <= not i_di_wr;
         end if;
 
       ------------------------------------------------
@@ -442,15 +480,28 @@ if rising_edge(i_clk) then
       ------------------------------------------------
       when S_LINE_COUNT =>
 
-        if i_nxt_line = '1' then
+        if i_mir_eol = '1' then
           if i_cntline = TO_UNSIGNED(G_VFR_LINE_COUNT - 1 ,i_cntline'length) then
             i_cntline <= (others => '0');
-            i_fsm_cs <= S_IDLE;
+            i_fsm_cs <= S_DELAY_NFR;--S_IDLE;
           else
             i_cntline <= i_cntline + 1;
             i_fsm_cs <= S_PIX_COUNT;
           end if;
         end if;
+
+
+      ------------------------------------------------
+      --
+      ------------------------------------------------
+      when S_DELAY_NFR =>
+
+          if i_cntline = TO_UNSIGNED(256 ,i_cntline'length) then
+            i_cntline <= (others => '0');
+            i_fsm_cs <= S_PIX_COUNT;
+          else
+            i_cntline <= i_cntline + 1;
+          end if;
 
     end case;
 
@@ -489,5 +540,24 @@ end process;
 
 
 
+process(i_clk)
+begin
+if rising_edge(i_ofifo_clk) then
+  if i_rst = '1' then
+    i_ofifo_cnddiv <= (others => '0');
+    i_ofifo_rd <= '0';
+
+  else
+    if i_ofifo_cnddiv = TO_UNSIGNED(4, i_ofifo_cnddiv'length) then
+      i_ofifo_cnddiv <= (others => '0');
+      i_ofifo_rd <= '1';
+    else
+      i_ofifo_cnddiv <= i_ofifo_cnddiv + 1;
+      i_ofifo_rd <= '0';
+    end if;
+
+  end if;
+end if;
+end process;
 
 end architecture behavior;
