@@ -64,6 +64,7 @@ function selval_real (valtrue, valfalse : real; sel :boolean) return real;
 function selval2 (val3, val2, val1, val0 : integer; sel1,sel0 :boolean) return integer;
 
 function max2 (num1, num2 : integer) return integer;
+function min2 (num1, num2 : integer) return integer;
 function Addr_Bits(x,y : std_logic_vector) return integer;
 function pad_power2 ( in_num : integer )  return integer;
 function pad_4 ( in_num : integer )  return integer;
@@ -429,7 +430,7 @@ end if;
 end function selval2;
 
 -------------------------------------------------------------------------------
--- Function max2
+-- Function max2/min2
 --
 -- This function returns the greater of two numbers.
 -------------------------------------------------------------------------------
@@ -441,6 +442,15 @@ begin
         return num2;
     end if;
 end function max2;
+
+function min2 (num1, num2 : integer) return integer is
+begin
+    if num1 <= num2 then
+        return num1;
+    else
+        return num2;
+    end if;
+end function min2;
 
 -------------------------------------------------------------------------------
 -- Function Addr_bits
