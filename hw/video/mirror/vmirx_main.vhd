@@ -32,8 +32,6 @@ port(
 p_in_cfg_mirx       : in    std_logic;                    --1/0 - mirx ON/OFF
 p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--Count byte
 
-p_out_cfg_mirx_done : out   std_logic;
-
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
@@ -49,6 +47,7 @@ p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
 p_out_dwnp_wr       : out   std_logic;
 p_in_dwnp_rdy_n     : in    std_logic;
 p_out_dwnp_eof      : out   std_logic;
+p_out_dwnp_eol      : out   std_logic;
 
 -------------------------------
 --DBG
@@ -68,7 +67,7 @@ architecture behavioral of vmirx_main is
 
 constant dly : time := 1 ps;
 
-component mirx_bram
+component bram_mirx
 port(
 addra: in  std_logic_vector(log2(G_BRAM_SIZE_BYTE / (G_DI_WIDTH / 8)) - 1 downto 0);
 dina : in  std_logic_vector(G_DI_WIDTH - 1 downto 0);
@@ -86,7 +85,7 @@ web  : in  std_logic_vector(0 downto 0);
 clkb : in  std_logic;
 rstb : in  std_logic
 );
-end component mirx_bram;
+end component bram_mirx;
 
 
 signal i_upp_data_swap   : std_logic_vector(p_in_upp_data'range);
@@ -102,53 +101,47 @@ signal i_pix_count_wr_tmp: unsigned(p_in_cfg_pix_count'range);
 signal i_pix_count_wr    : unsigned(p_in_cfg_pix_count'range);
 signal i_pix_count_rd_tmp: unsigned(p_in_cfg_pix_count'range);
 signal i_pix_count_rd    : unsigned(p_in_cfg_pix_count'range);
-signal i_mirx_done       : std_logic;
 
-signal i_buf_adr         : unsigned(p_in_cfg_pix_count'range);
-signal i_buf_adrw        : unsigned(log2(G_BRAM_SIZE_BYTE / (G_DI_WIDTH / 8)) - 1 downto 0);
+signal i_buf_adr         : unsigned(log2(G_BRAM_SIZE_BYTE / (min2(G_DI_WIDTH, G_DO_WIDTH) / 8)) - 1 downto 0);
 signal i_buf_di          : std_logic_vector(p_in_upp_data'range);
 signal i_buf_do          : std_logic_vector(p_out_dwnp_data'range);
-signal i_buf_wea         : std_logic_vector(0 downto 0);
+signal i_buf_ena         : std_logic;
 signal i_buf_enb         : std_logic;
 signal i_read_en         : std_logic;
 
 signal i_gnd             : std_logic_vector(max2(G_DI_WIDTH, G_DO_WIDTH) - 1 downto 0);
-
-signal tst_fsmstate     : unsigned(1 downto 0);
-signal tst_fsmstate_out : std_logic_vector(1 downto 0);
-signal tst_buf_enb : std_logic;
-signal tst_hbufo_pfull : std_logic;
 
 
 begin --architecture behavioral
 
 i_gnd <= (others=>'0');
 
-p_out_cfg_mirx_done <= i_mirx_done;
 
 p_out_upp_rdy_n <= i_read_en;
 
 p_out_dwnp_data <= i_buf_do;
 p_out_dwnp_wr <= not p_in_dwnp_rdy_n and i_read_en;
 p_out_dwnp_eof <= not p_in_dwnp_rdy_n and i_read_en and p_in_upp_eof when i_fsm_cs = S_BUF_RD_EOF else '0';
+p_out_dwnp_eol <= not p_in_dwnp_rdy_n and i_read_en when i_fsm_cs = S_BUF_RD_EOF else '0';
 
-----if p_in_upp_data'length = p_out_dwnp_data'length > 8
---i_pix_count_wr_tmp <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DI_WIDTH / 8)))
---                                                                    , i_pix_count_wr'length)
---               + (TO_UNSIGNED(0, i_pix_count_wr'length - 2)
---                  & OR_reduce(p_in_cfg_pix_count(log2(G_DI_WIDTH / 8) - 1 downto 0)));
---i_pix_count_wr <= i_pix_count_wr_tmp - 1;
---i_pix_count_rd <= i_pix_count_wr_tmp - 1;
+gen_in_1 : if (p_in_upp_data'length = p_out_dwnp_data'length) and p_out_dwnp_data'length > 8 generate begin
+i_pix_count_wr_tmp <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DI_WIDTH / 8)))
+                                                                    , i_pix_count_wr'length)
+               + (TO_UNSIGNED(0, i_pix_count_wr'length - 2)
+                  & OR_reduce(p_in_cfg_pix_count(log2(G_DI_WIDTH / 8) - 1 downto 0)));
+i_pix_count_wr <= i_pix_count_wr_tmp - 1;
+i_pix_count_rd <= i_pix_count_wr;
+end generate gen_in_1;
 
-----if p_in_upp_data'length = p_out_dwnp_data'length = 8
---i_pix_count_wr <= UNSIGNED(p_in_cfg_pix_count) - 1;
---i_pix_count_rd <= UNSIGNED(p_in_cfg_pix_count) - 1;
+gen_in_2 : if (p_in_upp_data'length = p_out_dwnp_data'length) and p_out_dwnp_data'length = 8 generate begin
+i_pix_count_wr <= UNSIGNED(p_in_cfg_pix_count) - 1;
+i_pix_count_rd <= UNSIGNED(p_in_cfg_pix_count) - 1;
+end generate gen_in_2;
 
-
---if p_in_upp_data'length > 8 and p_out_dwnp_data'length = 8
+gen_in_3 : if p_in_upp_data'length > 8 and p_out_dwnp_data'length = 8 generate begin
 i_pix_count_wr <= UNSIGNED(p_in_cfg_pix_count) - (p_in_upp_data'length / p_out_dwnp_data'length);
-i_pix_count_rd_tmp <= UNSIGNED(p_in_cfg_pix_count);
-i_pix_count_rd <= i_pix_count_rd_tmp - 1;
+i_pix_count_rd <= UNSIGNED(p_in_cfg_pix_count) - 1;
+end generate gen_in_3;
 
 
 --------------------------------------
@@ -160,9 +153,7 @@ if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
 
     i_fsm_cs <= S_BUF_WR;
-
     i_buf_adr <= (others=>'0');
-    i_mirx_done <= '1';
     i_read_en <= '0';
 
   else
@@ -173,10 +164,9 @@ if rising_edge(p_in_clk) then
       --
       --------------------------------------
       when S_BUF_WR =>
-        i_mirx_done <= '0';
 
         if p_in_upp_wr = '1' then
-          if i_buf_adr = i_pix_count_wr then
+          if RESIZE(i_buf_adr, i_pix_count_wr'length) = i_pix_count_wr then
             if p_in_cfg_mirx = '0' then
               i_buf_adr <= (others=>'0');
             end if;
@@ -196,7 +186,7 @@ if rising_edge(p_in_clk) then
 
             i_read_en <= '1';
 
-            if (p_in_cfg_mirx = '0' and i_buf_adr = i_pix_count_rd) or
+            if (p_in_cfg_mirx = '0' and RESIZE(i_buf_adr, i_pix_count_rd'length) = i_pix_count_rd) or
                (p_in_cfg_mirx = '1' and i_buf_adr = (i_buf_adr'range => '0')) then
 
               i_fsm_cs <= S_BUF_RD_EOF;
@@ -214,14 +204,13 @@ if rising_edge(p_in_clk) then
       --
       --------------------------------------
       when S_BUF_RD_EOF =>
+
         if p_in_dwnp_rdy_n = '0' then
-          i_mirx_done <= '1';
           i_read_en <= '0';
-          if p_in_cfg_mirx = '0' then
-            i_buf_adr <= (others=>'0');
-          end if;
+          i_buf_adr <= (others=>'0');
           i_fsm_cs <= S_BUF_WR;
         end if;
+
     end case;
 
   end if;
@@ -229,28 +218,31 @@ end if;
 end process;
 
 
---Если Отзеркаливание ЕСТЬ, то для 1Pix=8Bit
-gen_swap : for i in 0 to p_in_upp_data'length / 8 - 1 generate
+gen_out_swap : for i in 0 to p_in_upp_data'length / 8 - 1 generate begin
 i_upp_data_swap((i_upp_data_swap'length - (8 * i)) - 1 downto
                 (i_upp_data_swap'length - (8 * (i + 1)))) <= p_in_upp_data((8 * (i + 1) - 1) downto (8 * i));
-end generate gen_swap;
---i_buf_adrw <=
---i_buf_di <= i_upp_data_swap when p_in_cfg_mirx = '1' else p_in_upp_data;--
+end generate gen_out_swap;
 
-i_buf_adrw <= i_buf_adr(log2(G_BRAM_SIZE_BYTE / (G_DO_WIDTH / 8)) - 1 downto log2(p_in_upp_data'length / 8));
+gen_out_1 : if  p_out_dwnp_data'length = 8 generate begin
 i_buf_di <= p_in_upp_data;
+end generate gen_out_1;
 
-i_buf_wea(0) <= not i_read_en and p_in_upp_wr;
+gen_out_2 : if  p_out_dwnp_data'length > 8 generate begin
+i_buf_di <= i_upp_data_swap;
+end generate gen_out_2;
 
-i_buf_enb <= (not p_in_dwnp_rdy_n);
+i_buf_ena <= not i_read_en and p_in_upp_wr;
 
-m_buf : mirx_bram
+i_buf_enb <= not p_in_dwnp_rdy_n;
+
+m_buf : bram_mirx
 port map(
-addra => std_logic_vector(i_buf_adrw),
+addra => std_logic_vector(i_buf_adr(log2(G_BRAM_SIZE_BYTE / (G_DO_WIDTH / 8)) - 1
+                                                    downto log2(p_in_upp_data'length / 8))),
 dina  => i_buf_di,
 douta => open,
-ena   => '1',
-wea   => i_buf_wea,
+ena   => i_buf_ena,
+wea   => "1",
 clka  => p_in_clk,
 rsta  => p_in_rst,
 
@@ -267,20 +259,7 @@ rstb  => p_in_rst
 --##################################
 --DBG
 --##################################
-p_out_tst(0) <= OR_reduce(tst_fsmstate_out) or tst_buf_enb or tst_hbufo_pfull;
+p_out_tst(0) <= '0';
 p_out_tst(31 downto 1) <= (others=>'0');
-
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-    tst_fsmstate_out <= std_logic_vector(tst_fsmstate);
-    tst_buf_enb <= i_buf_enb;
-    tst_hbufo_pfull <= p_in_dwnp_rdy_n;
-  end if;
-end process;
-
-tst_fsmstate <= TO_UNSIGNED(16#02#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD      else
-                TO_UNSIGNED(16#03#, tst_fsmstate'length) when i_fsm_cs = S_BUF_RD_EOF  else
-                TO_UNSIGNED(16#00#, tst_fsmstate'length); --i_fsm_cs = S_BUF_WR          else
 
 end architecture behavioral;
