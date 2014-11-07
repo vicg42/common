@@ -25,6 +25,7 @@ G_VFR_PIX_COUNT : integer := 32;
 G_VFR_LINE_COUNT : integer := 5;
 G_MIRX : std_logic := '0';
 G_BRAM_SIZE_BYTE : integer := 8192;
+G_PIX_SIZE : integer := 8;
 G_DI_WIDTH : integer := 32;
 G_DO_WIDTH : integer := 8
 );
@@ -43,6 +44,7 @@ constant CI_OFIFO_CLK_PERIOD    : TIME := 7.6 ns;
 component vmirx_main
 generic(
 G_BRAM_SIZE_BYTE : integer := 8;
+G_PIX_SIZE : integer := 8;
 G_DI_WIDTH : integer := 8;
 G_DO_WIDTH : integer := 8
 );
@@ -216,7 +218,7 @@ signal i_di_rdy_n           : std_logic;
 
 signal i_do_rdy_n           : std_logic;
 
-signal i_mir_do             : std_logic_vector(7 downto 0);
+signal i_mir_do             : std_logic_vector(G_DO_WIDTH - 1 downto 0);
 signal i_mir_wr             : std_logic;
 signal i_mir_eof            : std_logic;
 signal i_mir_eol            : std_logic;
@@ -227,7 +229,7 @@ signal i_matrix_wr          : std_logic;
 signal i_matrix_eof         : std_logic;
 signal i_matrix_rdy_n       : std_logic;
 
-signal i_byer_do            : std_logic_vector((G_DO_WIDTH * 3) - 1 downto 0);
+signal i_byer_do            : std_logic_vector((8*3) -1 downto 0);--((G_DO_WIDTH * 3) - 1 downto 0);--
 signal i_byer_do_wr         : std_logic;
 signal i_byer_do_eof        : std_logic;
 signal i_byer_do_eol        : std_logic;
@@ -265,6 +267,7 @@ end process clkgen2;
 m_vmirx: vmirx_main
 generic map(
 G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
+G_PIX_SIZE => G_PIX_SIZE,
 G_DI_WIDTH => G_DI_WIDTH,
 G_DO_WIDTH => G_DO_WIDTH
 )
@@ -310,7 +313,7 @@ p_in_rst            => i_rst
 m_filter_core : vfilter_core
 generic map(
 G_VFILTER_RANG => 5,
-G_DWIDTH => G_DO_WIDTH,
+G_DWIDTH => 8, --G_DO_WIDTH,
 G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE
 )
 port map(
@@ -323,7 +326,7 @@ p_in_cfg_init      => '0',
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
-p_in_upp_data      => i_mir_do,
+p_in_upp_data      => i_mir_do(7 downto 0),
 p_in_upp_wr        => i_mir_wr,
 p_out_upp_rdy_n    => i_matrix_rdy_n,
 p_in_upp_eof       => i_mir_eof,
@@ -355,7 +358,7 @@ p_in_rst           => i_rst
 m_bayer : bayer_main
 generic map(
 G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
-G_DWIDTH => G_DO_WIDTH
+G_DWIDTH => 8 --G_DO_WIDTH
 )
 port map(
 -------------------------------
@@ -369,7 +372,7 @@ p_in_cfg_init      => '0',
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
-p_in_upp_data      => std_logic_vector(i_matrix(2)(2)(G_DO_WIDTH - 1 downto 0)),--i_mir_do,
+p_in_upp_data      => std_logic_vector(i_matrix(2)(2)(7 downto 0)),--(G_DO_WIDTH - 1 downto 0)),--i_mir_do,
 p_in_upp_wr        => i_matrix_wr,--i_mir_wr,
 p_in_upp_eof       => i_matrix_eof,--i_mir_eof,
 p_out_upp_rdy_n    => i_bayer_rdy_n,

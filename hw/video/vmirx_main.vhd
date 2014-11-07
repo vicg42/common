@@ -22,8 +22,9 @@ use work.vicg_common_pkg.all;
 entity vmirx_main is
 generic(
 G_BRAM_SIZE_BYTE : integer := 8;
-G_DI_WIDTH : integer := 8;
-G_DO_WIDTH : integer := 8
+G_PIX_SIZE : integer := 8;--value 8, 16
+G_DI_WIDTH : integer := 8;--value 8, 16, 32 ...
+G_DO_WIDTH : integer := 8 --value 8, 16, 32 ...
 );
 port(
 -------------------------------
@@ -87,8 +88,10 @@ rstb : in  std_logic
 );
 end component bram_mirx;
 
-
-signal i_upp_data_swap   : std_logic_vector(p_in_upp_data'range);
+type TDin is array (0 to (p_in_upp_data'length / p_out_dwnp_data'length) - 1)
+                                             of std_logic_vector(p_out_dwnp_data'range);
+signal i_upp_data        : TDin;
+signal i_upp_pix_swap    : TDin;
 
 type TFsm_state is (
 S_BUF_WR,
@@ -102,7 +105,9 @@ signal i_pix_count_wr    : unsigned(p_in_cfg_pix_count'range);
 signal i_pix_count_rd_tmp: unsigned(p_in_cfg_pix_count'range);
 signal i_pix_count_rd    : unsigned(p_in_cfg_pix_count'range);
 
-signal i_buf_adr         : unsigned(log2(G_BRAM_SIZE_BYTE / (min2(G_DI_WIDTH, G_DO_WIDTH) / 8)) - 1 downto 0);
+signal i_buf_adr         : unsigned(log2(G_BRAM_SIZE_BYTE) - 1 downto 0);
+signal i_buf_adr_rd      : unsigned(log2(G_BRAM_SIZE_BYTE) - 1 downto 0);
+signal i_buf_adr_rd_t    : unsigned(log2(G_BRAM_SIZE_BYTE) - 1 downto 0);
 signal i_buf_di          : std_logic_vector(p_in_upp_data'range);
 signal i_buf_do          : std_logic_vector(p_out_dwnp_data'range);
 signal i_buf_ena         : std_logic;
@@ -124,22 +129,38 @@ p_out_dwnp_wr <= not p_in_dwnp_rdy_n and i_read_en;
 p_out_dwnp_eof <= not p_in_dwnp_rdy_n and i_read_en and p_in_upp_eof when i_fsm_cs = S_BUF_RD_EOF else '0';
 p_out_dwnp_eol <= not p_in_dwnp_rdy_n and i_read_en when i_fsm_cs = S_BUF_RD_EOF else '0';
 
-gen_in_1 : if (p_in_upp_data'length = p_out_dwnp_data'length) and p_out_dwnp_data'length > 8 generate begin
-i_pix_count_wr_tmp <= RESIZE(UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DI_WIDTH / 8)))
-                                                                    , i_pix_count_wr'length)
-               + (TO_UNSIGNED(0, i_pix_count_wr'length - 2)
-                  & OR_reduce(p_in_cfg_pix_count(log2(G_DI_WIDTH / 8) - 1 downto 0)));
-i_pix_count_wr <= i_pix_count_wr_tmp - 1;
-i_pix_count_rd <= i_pix_count_wr;
+gen_in_1 : if p_in_upp_data'length > 8 and p_out_dwnp_data'length > 8 generate begin
+i_pix_count_wr_tmp <= (UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DI_WIDTH / 8)))
+                          & TO_UNSIGNED(0, log2(G_DI_WIDTH / 8)))
+
+                       + (TO_UNSIGNED(0, i_pix_count_wr'length - 2)
+                            & OR_reduce(p_in_cfg_pix_count(log2(G_DI_WIDTH / 8) - 1 downto 0)));
+
+i_pix_count_wr <= i_pix_count_wr_tmp - (p_in_upp_data'length / 8);
+
+i_pix_count_rd_tmp <= (UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DO_WIDTH / 8)))
+                          & TO_UNSIGNED(0, log2(G_DO_WIDTH / 8)))
+
+                       + (TO_UNSIGNED(0, i_pix_count_rd_tmp'length - 2)
+                            & OR_reduce(p_in_cfg_pix_count(log2(G_DO_WIDTH / 8) - 1 downto 0)));
+
+i_pix_count_rd <= i_pix_count_rd_tmp - (p_out_dwnp_data'length / 8);
 end generate gen_in_1;
 
 gen_in_2 : if (p_in_upp_data'length = p_out_dwnp_data'length) and p_out_dwnp_data'length = 8 generate begin
 i_pix_count_wr <= UNSIGNED(p_in_cfg_pix_count) - 1;
-i_pix_count_rd <= UNSIGNED(p_in_cfg_pix_count) - 1;
+i_pix_count_rd <= i_pix_count_wr;
 end generate gen_in_2;
 
 gen_in_3 : if p_in_upp_data'length > 8 and p_out_dwnp_data'length = 8 generate begin
-i_pix_count_wr <= UNSIGNED(p_in_cfg_pix_count) - (p_in_upp_data'length / p_out_dwnp_data'length);
+i_pix_count_wr_tmp <= (UNSIGNED(p_in_cfg_pix_count(p_in_cfg_pix_count'high downto log2(G_DI_WIDTH / 8)))
+                          & TO_UNSIGNED(0, log2(G_DI_WIDTH / 8)))
+
+                       + (TO_UNSIGNED(0, i_pix_count_wr'length - 2)
+                            & OR_reduce(p_in_cfg_pix_count(log2(G_DI_WIDTH / 8) - 1 downto 0)));
+
+i_pix_count_wr <= i_pix_count_wr_tmp - (p_in_upp_data'length / 8);
+
 i_pix_count_rd <= UNSIGNED(p_in_cfg_pix_count) - 1;
 end generate gen_in_3;
 
@@ -167,13 +188,10 @@ if rising_edge(p_in_clk) then
 
         if p_in_upp_wr = '1' then
           if RESIZE(i_buf_adr, i_pix_count_wr'length) = i_pix_count_wr then
-            if p_in_cfg_mirx = '0' then
-              i_buf_adr <= (others=>'0');
-            end if;
-
+            i_buf_adr <= (others=>'0');
             i_fsm_cs <= S_BUF_RD;
           else
-            i_buf_adr <= i_buf_adr + (p_in_upp_data'length / p_out_dwnp_data'length);
+            i_buf_adr <= i_buf_adr + (p_in_upp_data'length / 8);
           end if;
         end if;
 
@@ -186,16 +204,11 @@ if rising_edge(p_in_clk) then
 
             i_read_en <= '1';
 
-            if (p_in_cfg_mirx = '0' and RESIZE(i_buf_adr, i_pix_count_rd'length) = i_pix_count_rd) or
-               (p_in_cfg_mirx = '1' and i_buf_adr = (i_buf_adr'range => '0')) then
-
+            if RESIZE(i_buf_adr, i_pix_count_rd'length) = i_pix_count_rd then
+              i_buf_adr <= (others=>'0');
               i_fsm_cs <= S_BUF_RD_EOF;
             else
-              if p_in_cfg_mirx = '0' then
-                i_buf_adr <= i_buf_adr + 1;
-              else
-                i_buf_adr <= i_buf_adr - 1;
-              end if;
+              i_buf_adr <= i_buf_adr + (p_out_dwnp_data'length / 8);
             end if;
 
         end if;
@@ -207,7 +220,6 @@ if rising_edge(p_in_clk) then
 
         if p_in_dwnp_rdy_n = '0' then
           i_read_en <= '0';
-          i_buf_adr <= (others=>'0');
           i_fsm_cs <= S_BUF_WR;
         end if;
 
@@ -218,26 +230,31 @@ end if;
 end process;
 
 
-gen_out_swap : for i in 0 to p_in_upp_data'length / 8 - 1 generate begin
-i_upp_data_swap((i_upp_data_swap'length - (8 * i)) - 1 downto
-                (i_upp_data_swap'length - (8 * (i + 1)))) <= p_in_upp_data((8 * (i + 1) - 1) downto (8 * i));
-end generate gen_out_swap;
+gen_buf_din : for i in 0 to p_in_upp_data'length / p_out_dwnp_data'length - 1 generate begin
+i_upp_data(i) <= p_in_upp_data((p_out_dwnp_data'length * (i + 1) - 1) downto (p_out_dwnp_data'length * i));
 
-gen_out_1 : if  p_out_dwnp_data'length = 8 generate begin
-i_buf_di <= p_in_upp_data;
-end generate gen_out_1;
+gen_pix_swap : for y in 0 to i_upp_data(i)'length / G_PIX_SIZE - 1 generate begin
+i_upp_pix_swap(i)((i_upp_pix_swap(i)'length - (G_PIX_SIZE * y)) - 1 downto
+                (i_upp_pix_swap(i)'length - (G_PIX_SIZE * (y + 1))))
 
-gen_out_2 : if  p_out_dwnp_data'length > 8 generate begin
-i_buf_di <= i_upp_data_swap;
-end generate gen_out_2;
+                  <= i_upp_data(i)((G_PIX_SIZE * (y + 1) - 1) downto (G_PIX_SIZE * y));
+end generate gen_pix_swap;
+
+i_buf_di((p_out_dwnp_data'length * (i + 1) - 1)
+            downto (p_out_dwnp_data'length * i)) <= i_upp_data(i) when p_in_cfg_mirx = '0' else i_upp_pix_swap(i);
+
+end generate gen_buf_din;
 
 i_buf_ena <= not i_read_en and p_in_upp_wr;
 
 i_buf_enb <= not p_in_dwnp_rdy_n;
 
+i_buf_adr_rd_t <= RESIZE(UNSIGNED(p_in_cfg_pix_count), i_buf_adr_rd_t'length) - (p_out_dwnp_data'length / 8);
+i_buf_adr_rd <= i_buf_adr when p_in_cfg_mirx = '0' else i_buf_adr_rd_t - i_buf_adr;
+
 m_buf : bram_mirx
 port map(
-addra => std_logic_vector(i_buf_adr(log2(G_BRAM_SIZE_BYTE / (G_DO_WIDTH / 8)) - 1
+addra => std_logic_vector(i_buf_adr(log2(G_BRAM_SIZE_BYTE) - 1
                                                     downto log2(p_in_upp_data'length / 8))),
 dina  => i_buf_di,
 douta => open,
@@ -246,7 +263,7 @@ wea   => "1",
 clka  => p_in_clk,
 rsta  => p_in_rst,
 
-addrb => std_logic_vector(i_buf_adr(log2(G_BRAM_SIZE_BYTE / (G_DO_WIDTH / 8)) - 1 downto 0)),
+addrb => std_logic_vector(i_buf_adr_rd(log2(G_BRAM_SIZE_BYTE) - 1 downto log2(p_out_dwnp_data'length / 8))),
 dinb  => i_gnd(p_out_dwnp_data'range),
 doutb => i_buf_do,
 enb   => i_buf_enb,
