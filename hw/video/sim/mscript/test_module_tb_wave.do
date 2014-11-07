@@ -2,7 +2,7 @@ onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /test_module_tb/i_vfr_start
 add wave -noupdate -radix hexadecimal /test_module_tb/m_vmirx/p_in_cfg_mirx
-add wave -noupdate -radix hexadecimal /test_module_tb/m_vmirx/p_in_cfg_pix_count
+add wave -noupdate -radix unsigned /test_module_tb/m_vmirx/p_in_cfg_pix_count
 add wave -noupdate /test_module_tb/i_fsm_cs
 add wave -noupdate -radix hexadecimal /test_module_tb/i_cntpix
 add wave -noupdate -radix hexadecimal /test_module_tb/i_cntline
@@ -11,7 +11,7 @@ add wave -noupdate -radix hexadecimal /test_module_tb/m_vmirx/p_in_upp_wr
 add wave -noupdate /test_module_tb/m_vmirx/p_in_upp_eof
 add wave -noupdate -radix hexadecimal /test_module_tb/m_vmirx/p_out_upp_rdy_n
 add wave -noupdate -color {Cornflower Blue} -itemcolor Gold -radix hexadecimal /test_module_tb/m_vmirx/i_fsm_cs
-add wave -noupdate -radix hexadecimal /test_module_tb/m_vmirx/i_buf_adr
+add wave -noupdate -radix unsigned /test_module_tb/m_vmirx/i_buf_adr
 add wave -noupdate -radix hexadecimal /test_module_tb/m_vmirx/i_buf_di
 add wave -noupdate -radix hexadecimal /test_module_tb/m_vmirx/i_buf_do
 add wave -noupdate -radix hexadecimal /test_module_tb/m_vmirx/i_buf_enb
@@ -82,4 +82,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {15750 ns}
+WaveRestoreZoom {2195936 ps} {2312214 ps}
