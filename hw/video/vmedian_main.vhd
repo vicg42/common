@@ -2,7 +2,7 @@
 -- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 24.10.2014 10:28:44
+-- Create Date : 10.11.2014 12:51:18
 -- Module Name : vmedian_main
 --
 -- Назначение/Описание :
@@ -29,9 +29,7 @@ port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_cfg_colorfst  : in    std_logic_vector(1 downto 0); --First pix
 p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);
---p_in_cfg_row_count : in    std_logic_vector(15 downto 0);
 p_in_cfg_init      : in    std_logic;
 
 ----------------------------
