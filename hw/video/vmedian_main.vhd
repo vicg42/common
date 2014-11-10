@@ -115,72 +115,72 @@ signal i_matrix            : TMatrix;
 signal i_matrix_wr         : std_logic;
 signal i_dwnp_eof          : std_logic;
 signal i_dwnp_eol          : std_logic;
-signal sr_matrix_wr        : std_logic_vector(0 to 5);
+signal sr_matrix_wr        : std_logic_vector(0 to 8);
 signal sr_dwnp_eof         : std_logic_vector(sr_matrix_wr'range);
 signal sr_dwnp_eol         : std_logic_vector(sr_matrix_wr'range);
 
-signal i_calc0_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc0_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc0_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc0_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc0_3L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc0_4           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc0_5H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc0_5H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc0_6           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc0_1H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc0_1L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc0_2           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc0_3H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc0_3L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc0_4           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc0_5H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc0_5L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc0_6           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
 
-signal i_calc1_1           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc1_2H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc1_2L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc1_3           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc1_4H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc1_4L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc1_5           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc1_6H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc1_6L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc2_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc2_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc2_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc2_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc2_3L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc2_4           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc2_5H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc2_5L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc2_6           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc1_1           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc1_2H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc1_2L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc1_3           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc1_4H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc1_4L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc1_5           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc1_6H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc1_6L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc2_1H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc2_1L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc2_2           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc2_3H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc2_3L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc2_4           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc2_5H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc2_5L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc2_6           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
 
-signal i_calc3_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc3_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc3_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc3_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc3_3L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc3_4           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc3_5H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc3_5L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc3_6           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc3_1H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc3_1L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc3_2           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc3_3H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc3_3L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc3_4           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc3_5H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc3_5L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc3_6           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
 
-signal i_calc4_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc4_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc4_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc4_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc4_3L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc4_4H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc4_4L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc4_1H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc4_1L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc4_2           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc4_3H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc4_3L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc4_4H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc4_4L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
 
-signal i_calc5_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc5_2H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc5_2L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc5_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc5_1           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc5_2H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc5_2L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc5_3           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
 
-signal i_calc6_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc6_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc6_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc6_1H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc6_1L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc6_2           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
 
-signal i_calc7_1           : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc7_2H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc7_2L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc7_1           : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc7_2H          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc7_2L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
 
-signal i_calc8_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
-signal i_calc8_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+--signal i_calc8_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc8_1L          : std_logic_vector(G_DWIDTH - 1 downto 0) := (others => '0');
 
 
 
@@ -251,46 +251,32 @@ if rising_edge(p_in_clk) then
       --------------------------------------------
       if i_matrix(0)(0) >= i_matrix(0)(1) then
         i_calc0_1H <= i_matrix(0)(0);
-      else
-        i_calc0_1H <= i_matrix(0)(1);
-      end if;
-
-      if i_matrix(0)(0) <= i_matrix(0)(1) then
         i_calc0_1L <= i_matrix(0)(1);
       else
+        i_calc0_1H <= i_matrix(0)(1);
         i_calc0_1L <= i_matrix(0)(0);
       end if;
-                        ----------------
+
       i_calc0_2 <= i_matrix(0)(2);
 
-                        ----------------
       if i_matrix(1)(0) >= i_matrix(1)(1) then
         i_calc0_3H <= i_matrix(1)(0);
-      else
-        i_calc0_3H <= i_matrix(1)(1);
-      end if;
-
-      if i_matrix(1)(0) <= i_matrix(1)(1) then
         i_calc0_3L <= i_matrix(1)(1);
       else
+        i_calc0_3H <= i_matrix(1)(1);
         i_calc0_3L <= i_matrix(1)(0);
       end if;
-                        ----------------
+
       i_calc0_4 <= i_matrix(1)(2);
 
-                        ----------------
       if i_matrix(2)(0) >= i_matrix(2)(1) then
         i_calc0_5H <= i_matrix(2)(0);
-      else
-        i_calc0_5H <= i_matrix(2)(1);
-      end if;
-
-      if i_matrix(2)(0) <= i_matrix(2)(1) then
         i_calc0_5L <= i_matrix(2)(0);
       else
+        i_calc0_5H <= i_matrix(2)(1);
         i_calc0_5L <= i_matrix(2)(1);
       end if;
-                        ----------------
+
       i_calc0_6 <= i_matrix(2)(2);
 
 
@@ -299,46 +285,31 @@ if rising_edge(p_in_clk) then
       --------------------
       i_calc1_1 <=i_calc0_1H;
 
-                        ----------------
       if i_calc0_1L >= i_calc0_2 then
         i_calc1_2H <= i_calc0_1L;
-      else
         i_calc1_2L <= i_calc0_2;
-      end if;
-
-      if i_calc0_1L <= i_calc0_2 then
-        i_calc1_2H <= i_calc0_2;
       else
+        i_calc1_2H <= i_calc0_2;
         i_calc1_2L <= i_calc0_1L;
       end if;
-                        ----------------
+
       i_calc1_3 <= i_calc0_3H;
 
-                        ----------------
       if i_calc0_3L >= i_calc0_4 then
         i_calc1_4H <= i_calc0_3L;
-      else
         i_calc1_4L <= i_calc0_4;
-      end if;
-
-      if i_calc0_3L <= i_calc0_4 then
-        i_calc1_4H <= i_calc0_4;
       else
+        i_calc1_4H <= i_calc0_4;
         i_calc1_4L <= i_calc0_3L;
       end if;
-                        ----------------
+
       i_calc1_5 <= i_calc0_5H;
 
-                        ----------------
       if i_calc0_5L >= i_calc0_6 then
         i_calc1_6H <= i_calc0_5L;
-      else
         i_calc1_6L <= i_calc0_6;
-      end if;
-
-      if i_calc0_5L <= i_calc0_6 then
-        i_calc1_6H <= i_calc0_6;
       else
+        i_calc1_6H <= i_calc0_6;
         i_calc1_6L <= i_calc0_5L;
       end if;
 
@@ -348,13 +319,9 @@ if rising_edge(p_in_clk) then
       --------------------
       if i_calc1_1 >= i_calc1_2H then
         i_calc2_1H <= i_calc1_1;
-      else
         i_calc2_1L <= i_calc1_2H;
-      end if;
-
-      if i_calc1_1 <= i_calc1_2H then
-        i_calc2_1H <= i_calc1_2H;
       else
+        i_calc2_1H <= i_calc1_2H;
         i_calc2_1L <= i_calc1_1;
       end if;
 
@@ -362,13 +329,9 @@ if rising_edge(p_in_clk) then
 
       if i_calc1_3 >= i_calc1_4H then
         i_calc2_3H <= i_calc1_3;
-      else
         i_calc2_3L <= i_calc1_4H;
-      end if;
-
-      if i_calc1_3 <= i_calc1_4H then
-        i_calc2_3H <= i_calc1_4H;
       else
+        i_calc2_3H <= i_calc1_4H;
         i_calc2_3L <= i_calc1_3;
       end if;
 
@@ -376,13 +339,9 @@ if rising_edge(p_in_clk) then
 
       if i_calc1_5 >= i_calc1_6H then
         i_calc2_5H <= i_calc1_5;
-      else
         i_calc2_5L <= i_calc1_6H;
-      end if;
-
-      if i_calc1_5 <= i_calc1_6H then
-        i_calc2_5H <= i_calc1_6H;
       else
+        i_calc2_5H <= i_calc1_6H;
         i_calc2_5L <= i_calc1_5;
       end if;
 
@@ -394,13 +353,9 @@ if rising_edge(p_in_clk) then
       --------------------
       if i_calc2_1H >= i_calc2_3H then
         i_calc3_1H <= i_calc2_1H;
-      else
         i_calc3_1L <= i_calc2_3H;
-      end if;
-
-      if i_calc2_1H <= i_calc2_3H then
-        i_calc3_1H <= i_calc2_3H;
       else
+        i_calc3_1H <= i_calc2_3H;
         i_calc3_1L <= i_calc2_1H;
       end if;
 
@@ -408,13 +363,9 @@ if rising_edge(p_in_clk) then
 
       if i_calc2_1L >= i_calc2_3L then
         i_calc3_3H <= i_calc2_1L;
-      else
         i_calc3_3L <= i_calc2_3L;
-      end if;
-
-      if i_calc2_1L <= i_calc2_3H thenL
-        i_calc3_3H <= i_calc2_3L;
       else
+        i_calc3_3H <= i_calc2_3L;
         i_calc3_3L <= i_calc2_1L;
       end if;
 
@@ -422,13 +373,9 @@ if rising_edge(p_in_clk) then
 
       if i_calc2_4 >= i_calc2_6 then
         i_calc3_5H <= i_calc2_4;
-      else
         i_calc3_5L <= i_calc2_6;
-      end if;
-
-      if i_calc2_4 <= i_calc2_6 then
-        i_calc3_5H <= i_calc2_6;
       else
+        i_calc3_5H <= i_calc2_6;
         i_calc3_5L <= i_calc2_4;
       end if;
 
@@ -440,13 +387,9 @@ if rising_edge(p_in_clk) then
       --------------------
       if i_calc3_1L >= i_calc3_4 then
         i_calc4_1H <= i_calc3_1L;
-      else
         i_calc4_1L <= i_calc3_4;
-      end if;
-
-      if i_calc3_1L <= i_calc3_4 then
-        i_calc4_1H <= i_calc3_4;
       else
+        i_calc4_1H <= i_calc3_4;
         i_calc4_1L <= i_calc3_1L;
       end if;
 
@@ -454,25 +397,17 @@ if rising_edge(p_in_clk) then
 
       if i_calc3_3L >= i_calc3_6 then
         i_calc4_3H <= i_calc3_3L;
-      else
         i_calc4_3L <= i_calc3_6;
-      end if;
-
-      if i_calc3_3L <= i_calc3_6 then
-        i_calc4_3H <= i_calc3_6;
       else
+        i_calc4_3H <= i_calc3_6;
         i_calc4_3L <= i_calc3_3L;
       end if;
 
       if i_calc3_5H >= i_calc3_2 then
         i_calc4_4H <= i_calc3_5H;
-      else
         i_calc4_4L <= i_calc3_2;
-      end if;
-
-      if i_calc3_5H <= i_calc3_2 then
-        i_calc4_4H <= i_calc3_2;
       else
+        i_calc4_4H <= i_calc3_2;
         i_calc4_4L <= i_calc3_5H;
       end if;
 
@@ -480,21 +415,17 @@ if rising_edge(p_in_clk) then
       --------------------
       --5
       --------------------
-      i_calc5_1H <= i_calc4_1L;
+      i_calc5_1 <= i_calc4_1L;
 
       if i_calc4_2 >= i_calc4_3H then
         i_calc5_2H <= i_calc4_2;
-      else
         i_calc5_2L <= i_calc4_3H;
-      end if;
-
-      if i_calc4_2 <= i_calc4_3H then
-        i_calc5_2H <= i_calc4_3H;
       else
+        i_calc5_2H <= i_calc4_3H;
         i_calc5_2L <= i_calc4_2;
       end if;
 
-      i_calc5_3H <= i_calc4_4H;
+      i_calc5_3 <= i_calc4_4H;
 
 
       --------------------
@@ -502,8 +433,10 @@ if rising_edge(p_in_clk) then
       --------------------
       if i_calc5_1 >= i_calc5_2L then
         i_calc6_1H <= i_calc5_1;
-      else
         i_calc6_1L <= i_calc5_2L;
+      else
+        i_calc6_1H <= i_calc5_2L;
+        i_calc6_1L <= i_calc5_1;
       end if;
 
       i_calc6_2 <= i_calc5_3;
@@ -516,13 +449,9 @@ if rising_edge(p_in_clk) then
 
       if i_calc6_1L >= i_calc6_2 then
         i_calc7_2H <= i_calc6_1L;
-      else
         i_calc7_2L <= i_calc6_2;
-      end if;
-
-      if i_calc6_1L <= i_calc6_2 then
-        i_calc7_2H <= i_calc6_2;
       else
+        i_calc7_2H <= i_calc6_2;
         i_calc7_2L <= i_calc6_1L;
       end if;
 
@@ -531,14 +460,10 @@ if rising_edge(p_in_clk) then
       --8
       --------------------
       if i_calc7_1 >= i_calc7_2H then
-        i_calc8_1H <= i_calc7_1;
-      else
+--        i_calc8_1H <= i_calc7_1;
         i_calc8_1L <= i_calc7_2H;
-      end if;
-
-      if i_calc7_1 <= i_calc7_2H then
-        i_calc8_1H <= i_calc7_2H;
       else
+--        i_calc8_1H <= i_calc7_2H;
         i_calc8_1L <= i_calc7_1;
       end if;
 
