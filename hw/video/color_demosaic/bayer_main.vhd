@@ -300,12 +300,12 @@ if rising_edge(p_in_clk) then
 
         when "01" => --line/pix - even/odd
             i_rcolor <= i_pix1_line02_res;
-            i_gcolor <= i_pix1_line1_res;
+            i_gcolor <= i_pix0202_line02_res; --i_pix1_line1_res;
             i_bcolor <= i_pix02_line1_res;
 
         when "10" => --line/pix - odd/even
             i_rcolor <= i_pix02_line1_res;
-            i_gcolor <= i_pix1_line1_res;
+            i_gcolor <= i_pix0202_line02_res; --i_pix1_line1_res;
             i_bcolor <= i_pix1_line02_res;
 
         when "11" => --line/pix - odd/odd
