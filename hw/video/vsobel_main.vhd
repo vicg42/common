@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 10.11.2014 10:47:07
--- Module Name : sobel_main
+-- Module Name : vsobel_main
 --
 -- Назначение/Описание :
 --
@@ -20,7 +20,7 @@ use work.vicg_common_pkg.all;
 use work.reduce_pack.all;
 use work.vfilter_core_pkg.all;
 
-entity sobel_main is
+entity vsobel_main is
 generic(
 G_BRAM_SIZE_BYTE : integer := 12;
 G_DWIDTH : integer := 8
@@ -61,9 +61,9 @@ p_out_tst          : out   std_logic_vector(31 downto 0);
 p_in_clk           : in    std_logic;
 p_in_rst           : in    std_logic
 );
-end entity sobel_main;
+end entity vsobel_main;
 
-architecture behavioral of sobel_main is
+architecture behavioral of vsobel_main is
 
 component vfilter_core is
 generic(

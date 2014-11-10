@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 24.10.2014 10:28:44
--- Module Name : bayer_main
+-- Module Name : vdebayer_main
 --
 -- Назначение/Описание :
 --
@@ -20,7 +20,7 @@ use work.vicg_common_pkg.all;
 use work.reduce_pack.all;
 use work.vfilter_core_pkg.all;
 
-entity bayer_main is
+entity vdebayer_main is
 generic(
 G_BRAM_SIZE_BYTE : integer := 12;
 G_DWIDTH : integer := 8
@@ -63,9 +63,9 @@ p_out_tst          : out   std_logic_vector(31 downto 0);
 p_in_clk           : in    std_logic;
 p_in_rst           : in    std_logic
 );
-end entity bayer_main;
+end entity vdebayer_main;
 
-architecture behavioral of bayer_main is
+architecture behavioral of vdebayer_main is
 
 component vfilter_core is
 generic(
