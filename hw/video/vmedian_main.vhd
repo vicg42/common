@@ -115,44 +115,79 @@ signal i_matrix            : TMatrix;
 signal i_matrix_wr         : std_logic;
 signal i_dwnp_eof          : std_logic;
 signal i_dwnp_eol          : std_logic;
-signal sr_matrix_wr        : std_logic_vector(0 to 3);
+signal sr_matrix_wr        : std_logic_vector(0 to 5);
 signal sr_dwnp_eof         : std_logic_vector(sr_matrix_wr'range);
 signal sr_dwnp_eol         : std_logic_vector(sr_matrix_wr'range);
 
-signal i_line_evod         : std_logic;
-signal sr_line_evod        : std_logic_vector(0 to sr_dwnp_eof'high - 1) := (others => '0');
-signal i_pix_evod          : std_logic;
-signal sr_pix_evod         : std_logic_vector(0 to sr_dwnp_eof'high - 1) := (others => '0');
-signal i_sel               : std_logic_vector(1 downto 0);
+signal i_calc0_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc0_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc0_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc0_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc0_3L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc0_4           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc0_5H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc0_5H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc0_6           : std_logic_vector(G_DWIDTH - 1 downto 0);
 
-signal i_pix02_line0_sum   : unsigned((G_DWIDTH + 1) - 1 downto 0) := (others => '0');
-signal i_pix02_line2_sum   : unsigned((G_DWIDTH + 1) - 1 downto 0) := (others => '0');
-signal i_pix02_line1_sum   : unsigned((G_DWIDTH + 1) - 1 downto 0) := (others => '0');
-signal i_pix1_line02_sum   : unsigned((G_DWIDTH + 1) - 1 downto 0) := (others => '0');
-signal i_pix1_line1        : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc1_1           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc1_2H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc1_2L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc1_3           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc1_4H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc1_4L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc1_5           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc1_6H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc1_6L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc2_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc2_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc2_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc2_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc2_3L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc2_4           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc2_5H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc2_5L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc2_6           : std_logic_vector(G_DWIDTH - 1 downto 0);
 
-signal i_pix0202_line02_sum : unsigned((G_DWIDTH + 2) - 1 downto 0) := (others => '0');
-signal i_pix021_line102_sum : unsigned((G_DWIDTH + 2) - 1 downto 0) := (others => '0');
-signal sr_pix02_line1_sum   : unsigned(i_pix02_line1_sum'range) := (others => '0');
-signal sr_pix1_line02_sum   : unsigned(i_pix1_line02_sum'range) := (others => '0');
-signal sr_pix1_line1_sum    : unsigned(i_pix1_line1'range) := (others => '0');
+signal i_calc3_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc3_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc3_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc3_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc3_3L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc3_4           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc3_5H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc3_5L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc3_6           : std_logic_vector(G_DWIDTH - 1 downto 0);
 
-signal i_pix0202_line02_res : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
-signal i_pix021_line102_res : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
-signal i_pix02_line1_res    : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
-signal i_pix1_line02_res    : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
-signal i_pix1_line1_res     : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc4_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc4_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc4_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc4_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc4_3L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc4_4H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc4_4L          : std_logic_vector(G_DWIDTH - 1 downto 0);
 
-signal i_rcolor             : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
-signal i_gcolor             : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
-signal i_bcolor             : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
+signal i_calc5_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc5_2H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc5_2L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc5_3H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+
+signal i_calc6_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc6_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc6_2           : std_logic_vector(G_DWIDTH - 1 downto 0);
+
+signal i_calc7_1           : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc7_2H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc7_2L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+
+signal i_calc8_1H          : std_logic_vector(G_DWIDTH - 1 downto 0);
+signal i_calc8_1L          : std_logic_vector(G_DWIDTH - 1 downto 0);
+
+
 
 
 begin --architecture behavioral
 
-p_out_dwnp_data((G_DWIDTH * 3) - 1 downto (G_DWIDTH * 2)) <= std_logic_vector(i_bcolor);
-p_out_dwnp_data((G_DWIDTH * 2) - 1 downto (G_DWIDTH * 1)) <= std_logic_vector(i_gcolor);
-p_out_dwnp_data((G_DWIDTH * 1) - 1 downto (G_DWIDTH * 0)) <= std_logic_vector(i_rcolor);
+p_out_dwnp_data <= std_logic_vector(i_calc8_1L);
 p_out_dwnp_wr <= sr_matrix_wr(sr_matrix_wr'high) and not p_in_dwnp_rdy_n;
 p_out_dwnp_eof <= sr_dwnp_eof(sr_dwnp_eof'high) and not p_in_dwnp_rdy_n;
 p_out_dwnp_eol <= sr_dwnp_eol(sr_dwnp_eol'high) and not p_in_dwnp_rdy_n;
@@ -214,118 +249,308 @@ if rising_edge(p_in_clk) then
       --------------------------------------------
       --0
       --------------------------------------------
-      i_pix02_line0_sum <= RESIZE(i_matrix(0)(0), i_pix02_line0_sum'length) + RESIZE(i_matrix(0)(2), i_pix02_line0_sum'length);
-      i_pix02_line2_sum <= RESIZE(i_matrix(2)(0), i_pix02_line2_sum'length) + RESIZE(i_matrix(2)(2), i_pix02_line2_sum'length);
+      if i_matrix(0)(0) >= i_matrix(0)(1) then
+        i_calc0_1H <= i_matrix(0)(0);
+      else
+        i_calc0_1H <= i_matrix(0)(1);
+      end if;
 
-      i_pix02_line1_sum <= RESIZE(i_matrix(1)(0), i_pix02_line1_sum'length) + RESIZE(i_matrix(1)(2), i_pix02_line1_sum'length);
-      i_pix1_line02_sum <= RESIZE(i_matrix(0)(1), i_pix1_line02_sum'length) + RESIZE(i_matrix(2)(1), i_pix1_line02_sum'length);
+      if i_matrix(0)(0) <= i_matrix(0)(1) then
+        i_calc0_1L <= i_matrix(0)(1);
+      else
+        i_calc0_1L <= i_matrix(0)(0);
+      end if;
+                        ----------------
+      i_calc0_2 <= i_matrix(0)(2);
 
-      i_pix1_line1 <= RESIZE(i_matrix(1)(1), i_pix1_line1'length);
+                        ----------------
+      if i_matrix(1)(0) >= i_matrix(1)(1) then
+        i_calc0_3H <= i_matrix(1)(0);
+      else
+        i_calc0_3H <= i_matrix(1)(1);
+      end if;
+
+      if i_matrix(1)(0) <= i_matrix(1)(1) then
+        i_calc0_3L <= i_matrix(1)(1);
+      else
+        i_calc0_3L <= i_matrix(1)(0);
+      end if;
+                        ----------------
+      i_calc0_4 <= i_matrix(1)(2);
+
+                        ----------------
+      if i_matrix(2)(0) >= i_matrix(2)(1) then
+        i_calc0_5H <= i_matrix(2)(0);
+      else
+        i_calc0_5H <= i_matrix(2)(1);
+      end if;
+
+      if i_matrix(2)(0) <= i_matrix(2)(1) then
+        i_calc0_5L <= i_matrix(2)(0);
+      else
+        i_calc0_5L <= i_matrix(2)(1);
+      end if;
+                        ----------------
+      i_calc0_6 <= i_matrix(2)(2);
+
 
       --------------------
       --1
       --------------------
-      i_pix0202_line02_sum <= RESIZE(i_pix02_line0_sum, i_pix0202_line02_sum'length) + RESIZE(i_pix02_line2_sum, i_pix0202_line02_sum'length);
+      i_calc1_1 <=i_calc0_1H;
 
-      i_pix021_line102_sum <= RESIZE(i_pix02_line1_sum, i_pix021_line102_sum'length) + RESIZE(i_pix1_line02_sum, i_pix021_line102_sum'length);
+                        ----------------
+      if i_calc0_1L >= i_calc0_2 then
+        i_calc1_2H <= i_calc0_1L;
+      else
+        i_calc1_2L <= i_calc0_2;
+      end if;
 
-      sr_pix02_line1_sum <= RESIZE(i_pix02_line1_sum, sr_pix02_line1_sum'length);
+      if i_calc0_1L <= i_calc0_2 then
+        i_calc1_2H <= i_calc0_2;
+      else
+        i_calc1_2L <= i_calc0_1L;
+      end if;
+                        ----------------
+      i_calc1_3 <= i_calc0_3H;
 
-      sr_pix1_line02_sum <= RESIZE(i_pix1_line02_sum, sr_pix1_line02_sum'length);
+                        ----------------
+      if i_calc0_3L >= i_calc0_4 then
+        i_calc1_4H <= i_calc0_3L;
+      else
+        i_calc1_4L <= i_calc0_4;
+      end if;
 
-      sr_pix1_line1_sum <= i_pix1_line1;
+      if i_calc0_3L <= i_calc0_4 then
+        i_calc1_4H <= i_calc0_4;
+      else
+        i_calc1_4L <= i_calc0_3L;
+      end if;
+                        ----------------
+      i_calc1_5 <= i_calc0_5H;
+
+                        ----------------
+      if i_calc0_5L >= i_calc0_6 then
+        i_calc1_6H <= i_calc0_5L;
+      else
+        i_calc1_6L <= i_calc0_6;
+      end if;
+
+      if i_calc0_5L <= i_calc0_6 then
+        i_calc1_6H <= i_calc0_6;
+      else
+        i_calc1_6L <= i_calc0_5L;
+      end if;
+
 
       --------------------
       --2
       --------------------
-      --X 0 X
-      --0 0 0
-      --X 0 X
-      i_pix0202_line02_res <= i_pix0202_line02_sum(i_pix0202_line02_sum'high downto 2); --div 4
+      if i_calc1_1 >= i_calc1_2H then
+        i_calc2_1H <= i_calc1_1;
+      else
+        i_calc2_1L <= i_calc1_2H;
+      end if;
 
-      --0 X 0
-      --X 0 X
-      --0 X 0
-      i_pix021_line102_res <= i_pix021_line102_sum(i_pix021_line102_sum'high downto 2); --div 4
+      if i_calc1_1 <= i_calc1_2H then
+        i_calc2_1H <= i_calc1_2H;
+      else
+        i_calc2_1L <= i_calc1_1;
+      end if;
 
-      --0 0 0
-      --X 0 X
-      --0 0 0
-      i_pix02_line1_res <= sr_pix02_line1_sum(sr_pix02_line1_sum'high downto 1); --div 2
+      i_calc2_2 <= i_calc1_2L;
 
-      --0 X 0
-      --0 0 0
-      --0 X 0
-      i_pix1_line02_res <= sr_pix1_line02_sum(sr_pix1_line02_sum'high downto 1); --div 2
+      if i_calc1_3 >= i_calc1_4H then
+        i_calc2_3H <= i_calc1_3;
+      else
+        i_calc2_3L <= i_calc1_4H;
+      end if;
 
-      --0 0 0
-      --0 X 0
-      --0 0 0
-      i_pix1_line1_res <= sr_pix1_line1_sum;
+      if i_calc1_3 <= i_calc1_4H then
+        i_calc2_3H <= i_calc1_4H;
+      else
+        i_calc2_3L <= i_calc1_3;
+      end if;
+
+      i_calc2_4 <= i_calc1_4L;
+
+      if i_calc1_5 >= i_calc1_6H then
+        i_calc2_5H <= i_calc1_5;
+      else
+        i_calc2_5L <= i_calc1_6H;
+      end if;
+
+      if i_calc1_5 <= i_calc1_6H then
+        i_calc2_5H <= i_calc1_6H;
+      else
+        i_calc2_5L <= i_calc1_5;
+      end if;
+
+      i_calc2_6 <= i_calc1_6L;
+
 
       --------------------
       --3
       --------------------
---      case i_sel is
---        when "00" => --line/pix - even/even
---            i_rcolor <= i_pix1_line1_res;
---            i_gcolor <= i_pix021_line102_res;
---            i_bcolor <= i_pix0202_line02_res;
---
---        when "01" => --line/pix - even/odd
---            i_rcolor <= i_pix02_line1_res;
---            i_gcolor <= i_pix1_line1_res;
---            i_bcolor <= i_pix1_line02_res;
---
---        when "10" => --line/pix - odd/even
---            i_rcolor <= i_pix1_line02_res;
---            i_gcolor <= i_pix1_line1_res;
---            i_bcolor <= i_pix02_line1_res;
---
---        when "11" => --line/pix - odd/odd
---            i_rcolor <= i_pix0202_line02_res;
---            i_gcolor <= i_pix021_line102_res;
---            i_bcolor <= i_pix1_line1_res;
---
---        when others => null;
---      end case;
+      if i_calc2_1H >= i_calc2_3H then
+        i_calc3_1H <= i_calc2_1H;
+      else
+        i_calc3_1L <= i_calc2_3H;
+      end if;
 
-      case i_sel is
-        when "00" => --line/pix - even/even
-            i_rcolor <= i_pix0202_line02_res;
-            i_gcolor <= i_pix021_line102_res;
-            i_bcolor <= i_pix1_line1_res;
+      if i_calc2_1H <= i_calc2_3H then
+        i_calc3_1H <= i_calc2_3H;
+      else
+        i_calc3_1L <= i_calc2_1H;
+      end if;
 
-        when "01" => --line/pix - even/odd
-            i_rcolor <= i_pix1_line02_res;
-            i_gcolor <= i_pix0202_line02_res; --i_pix1_line1_res;
-            i_bcolor <= i_pix02_line1_res;
+      i_calc3_2 <= i_calc2_2;
 
-        when "10" => --line/pix - odd/even
-            i_rcolor <= i_pix02_line1_res;
-            i_gcolor <= i_pix0202_line02_res; --i_pix1_line1_res;
-            i_bcolor <= i_pix1_line02_res;
+      if i_calc2_1L >= i_calc2_3L then
+        i_calc3_3H <= i_calc2_1L;
+      else
+        i_calc3_3L <= i_calc2_3L;
+      end if;
 
-        when "11" => --line/pix - odd/odd
-            i_rcolor <= i_pix1_line1_res;
-            i_gcolor <= i_pix021_line102_res;
-            i_bcolor <= i_pix0202_line02_res;
+      if i_calc2_1L <= i_calc2_3H thenL
+        i_calc3_3H <= i_calc2_3L;
+      else
+        i_calc3_3L <= i_calc2_1L;
+      end if;
 
-        when others => null;
-      end case;
+      i_calc3_4 <= i_calc2_5H;
+
+      if i_calc2_4 >= i_calc2_6 then
+        i_calc3_5H <= i_calc2_4;
+      else
+        i_calc3_5L <= i_calc2_6;
+      end if;
+
+      if i_calc2_4 <= i_calc2_6 then
+        i_calc3_5H <= i_calc2_6;
+      else
+        i_calc3_5L <= i_calc2_4;
+      end if;
+
+      i_calc3_6 <= i_calc2_5L;
+
+
+      --------------------
+      --4
+      --------------------
+      if i_calc3_1L >= i_calc3_4 then
+        i_calc4_1H <= i_calc3_1L;
+      else
+        i_calc4_1L <= i_calc3_4;
+      end if;
+
+      if i_calc3_1L <= i_calc3_4 then
+        i_calc4_1H <= i_calc3_4;
+      else
+        i_calc4_1L <= i_calc3_1L;
+      end if;
+
+      i_calc4_2 <= i_calc3_3H;
+
+      if i_calc3_3L >= i_calc3_6 then
+        i_calc4_3H <= i_calc3_3L;
+      else
+        i_calc4_3L <= i_calc3_6;
+      end if;
+
+      if i_calc3_3L <= i_calc3_6 then
+        i_calc4_3H <= i_calc3_6;
+      else
+        i_calc4_3L <= i_calc3_3L;
+      end if;
+
+      if i_calc3_5H >= i_calc3_2 then
+        i_calc4_4H <= i_calc3_5H;
+      else
+        i_calc4_4L <= i_calc3_2;
+      end if;
+
+      if i_calc3_5H <= i_calc3_2 then
+        i_calc4_4H <= i_calc3_2;
+      else
+        i_calc4_4L <= i_calc3_5H;
+      end if;
+
+
+      --------------------
+      --5
+      --------------------
+      i_calc5_1H <= i_calc4_1L;
+
+      if i_calc4_2 >= i_calc4_3H then
+        i_calc5_2H <= i_calc4_2;
+      else
+        i_calc5_2L <= i_calc4_3H;
+      end if;
+
+      if i_calc4_2 <= i_calc4_3H then
+        i_calc5_2H <= i_calc4_3H;
+      else
+        i_calc5_2L <= i_calc4_2;
+      end if;
+
+      i_calc5_3H <= i_calc4_4H;
+
+
+      --------------------
+      --6
+      --------------------
+      if i_calc5_1 >= i_calc5_2L then
+        i_calc6_1H <= i_calc5_1;
+      else
+        i_calc6_1L <= i_calc5_2L;
+      end if;
+
+      i_calc6_2 <= i_calc5_3;
+
+
+      --------------------
+      --7
+      --------------------
+      i_calc7_1 <= i_calc6_1H;
+
+      if i_calc6_1L >= i_calc6_2 then
+        i_calc7_2H <= i_calc6_1L;
+      else
+        i_calc7_2L <= i_calc6_2;
+      end if;
+
+      if i_calc6_1L <= i_calc6_2 then
+        i_calc7_2H <= i_calc6_2;
+      else
+        i_calc7_2L <= i_calc6_1L;
+      end if;
+
+
+      --------------------
+      --8
+      --------------------
+      if i_calc7_1 >= i_calc7_2H then
+        i_calc8_1H <= i_calc7_1;
+      else
+        i_calc8_1L <= i_calc7_2H;
+      end if;
+
+      if i_calc7_1 <= i_calc7_2H then
+        i_calc8_1H <= i_calc7_2H;
+      else
+        i_calc8_1L <= i_calc7_1;
+      end if;
+
+
       -----------------------------
       sr_matrix_wr <= i_matrix_wr & sr_matrix_wr(0 to sr_matrix_wr'high - 1);
       sr_dwnp_eof <= i_dwnp_eof & sr_dwnp_eof(0 to sr_dwnp_eof'high - 1);
       sr_dwnp_eol <= i_dwnp_eol & sr_dwnp_eol(0 to sr_dwnp_eol'high - 1);
 
-      sr_line_evod <= i_line_evod & sr_line_evod(0 to sr_line_evod'high - 1);
-      sr_pix_evod <= i_pix_evod & sr_pix_evod(0 to sr_pix_evod'high - 1);
-
   end if;
 end if;
 end process;
-
-i_sel <= sr_line_evod(sr_line_evod'high) & sr_pix_evod(sr_pix_evod'high);
 
 
 --##################################
