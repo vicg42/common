@@ -115,7 +115,7 @@ signal i_matrix            : TMatrix;
 signal i_matrix_wr         : std_logic;
 signal i_dwnp_eof          : std_logic;
 signal i_dwnp_eol          : std_logic;
-signal sr_matrix_wr        : std_logic_vector(0 to 5);
+signal sr_matrix_wr        : std_logic_vector(0 to 4);
 signal sr_dwnp_eof         : std_logic_vector(sr_matrix_wr'range);
 signal sr_dwnp_eol         : std_logic_vector(sr_matrix_wr'range);
 
@@ -144,7 +144,9 @@ signal i_mult_02           : unsigned(((G_DWIDTH + 2) * 2) - 1 downto 0) := (oth
 signal i_mult_01_div       : unsigned(((G_DWIDTH + 2) * 2) - 1 downto 0) := (others => '0');
 signal i_mult_02_div       : unsigned(((G_DWIDTH + 2) * 2) - 1 downto 0) := (others => '0');
 
-signal tmp_grad_out        : unsigned(((G_DWIDTH + 2) * 2) - 1 downto 0) := (others => '0');
+signal i_grad_tmp          : unsigned((G_DWIDTH + 3) - 1 downto 0) := (others => '0');
+signal i_grad_tmp1         : unsigned(((G_DWIDTH + 3) * 2) - 1 downto 0) := (others => '0');
+
 signal i_grad_out          : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
 
 
@@ -251,8 +253,24 @@ if rising_edge(p_in_clk) then
       end if;
 
       --------------------
-      --3
+      --3  GRADIENT = (dx^2 + dy^2)^0.5
       --------------------
+      --simple calculation gradient
+      i_grad_tmp <= RESIZE(i_delt_xm, i_grad_tmp'length) + RESIZE(i_delt_ym, i_grad_tmp'length);
+
+      --------------------
+      --4
+      --------------------
+      if i_grad_tmp >= TO_UNSIGNED(pwr(2, G_DWIDTH) - 1, i_grad_tmp'length) then
+        i_grad_out <= (others => '1');
+      else
+        i_grad_out <= i_grad_tmp(i_grad_out'range);
+      end if;
+--      i_grad_tmp1 <= i_grad_tmp * TO_UNSIGNED(10#2040#, i_grad_tmp'length);
+
+--      --------------------
+--      --3
+--      --------------------
 --      --accurate calculation gradient
 --      if i_delt_xm > i_delt_ym then
 --        i_mult_01 <= i_delt_xm * TO_UNSIGNED(10#123#, i_delt_xm'length);
@@ -261,30 +279,23 @@ if rising_edge(p_in_clk) then
 --        i_mult_01 <= i_delt_ym * TO_UNSIGNED(10#123#, i_delt_ym'length);
 --        i_mult_02 <= i_delt_xm * TO_UNSIGNED(10#13# , i_delt_xm'length);
 --      end if;
-
-      --simple calculation gradient
-      sr_delt_xm <= i_delt_xm;
-      sr_delt_ym <= i_delt_ym;
-
-      --------------------
-      --4  GRADIENT = (dx^2 + dy^2)^0.5
-      --------------------
+--
+--      --------------------
+--      --4  GRADIENT = (dx^2 + dy^2)^0.5
+--      --------------------
 --      --accurate calculation gradient
 --      --((delta_xm * 123)/128) + ((delt_ym * 13)/32)
---      tmp_grad_out <= (TO_UNSIGNED(0, 7) & i_mult_01(i_mult_01'high downto 7))
+--      i_grad_tmp <= (TO_UNSIGNED(0, 7) & i_mult_01(i_mult_01'high downto 7))
 --                        + (TO_UNSIGNED(0, 5) & i_mult_02(i_mult_02'high downto 5));
-
-      --simple calculation gradient
-      tmp_grad_out <= RESIZE(sr_delt_xm, tmp_grad_out'length) + RESIZE(sr_delt_ym, tmp_grad_out'length);
-
-      --------------------
-      --5
-      --------------------
-      if tmp_grad_out >= TO_UNSIGNED(pwr(2, G_DWIDTH) - 1, tmp_grad_out'length) then
-        i_grad_out <= (others=>'1');
-      else
-        i_grad_out <= tmp_grad_out(i_grad_out'range);
-      end if;
+--
+--      --------------------
+--      --5
+--      --------------------
+--      if i_grad_tmp >= TO_UNSIGNED(pwr(2, G_DWIDTH) - 1, i_grad_tmp'length) then
+--        i_grad_out <= (others=>'1');
+--      else
+--        i_grad_out <= i_grad_tmp(i_grad_out'range);
+--      end if;
 
       -----------------------------
       sr_matrix_wr <= i_matrix_wr & sr_matrix_wr(0 to sr_matrix_wr'high - 1);
@@ -295,6 +306,8 @@ if rising_edge(p_in_clk) then
 end if;
 end process;
 
+----DIV 256
+--i_grad_out <= i_grad_tmp1((8 + G_DWIDTH) - 1 downto 8);
 
 --##################################
 --DBG
