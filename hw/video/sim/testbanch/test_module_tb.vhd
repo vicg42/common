@@ -21,7 +21,7 @@ use work.vfilter_core_pkg.all;
 
 entity test_module_tb is
 generic(
-G_VFR_PIX_COUNT : integer := 32;
+G_VFR_PIX_COUNT : integer := 8;
 G_VFR_LINE_COUNT : integer := 5;
 G_MIRX : std_logic := '0';
 G_BRAM_SIZE_BYTE : integer := 8192;
@@ -86,7 +86,7 @@ p_in_rst            : in    std_logic
 );
 end component vmirx_main;
 
-component bayer_main is
+component vdebayer_main is
 generic(
 G_BRAM_SIZE_BYTE : integer := 12;
 G_DWIDTH : integer := 8
@@ -129,7 +129,7 @@ p_out_tst          : out   std_logic_vector(31 downto 0);
 p_in_clk           : in    std_logic;
 p_in_rst           : in    std_logic
 );
-end component bayer_main;
+end component vdebayer_main;
 
 component vfilter_core is
 generic(
@@ -176,6 +176,50 @@ p_in_clk           : in    std_logic;
 p_in_rst           : in    std_logic
 );
 end component vfilter_core;
+
+component vsobel_main is
+generic(
+G_BRAM_SIZE_BYTE : integer := 12;
+G_DWIDTH : integer := 8
+);
+port(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);
+p_in_cfg_init      : in    std_logic;
+
+----------------------------
+--Upstream Port (IN)
+----------------------------
+p_in_upp_data      : in    std_logic_vector(G_DWIDTH - 1 downto 0);
+p_in_upp_wr        : in    std_logic;
+p_out_upp_rdy_n    : out   std_logic;
+p_in_upp_eof       : in    std_logic;
+
+----------------------------
+--Downstream Port (OUT)
+----------------------------
+p_out_dwnp_data    : out   std_logic_vector(G_DWIDTH - 1 downto 0);
+p_out_dwnp_wr      : out   std_logic;
+p_in_dwnp_rdy_n    : in    std_logic;
+p_out_dwnp_eof     : out   std_logic;
+p_out_dwnp_eol     : out   std_logic;
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst           : in    std_logic_vector(31 downto 0);
+p_out_tst          : out   std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk           : in    std_logic;
+p_in_rst           : in    std_logic
+);
+end component vsobel_main;
+
 
 component sim_fifo8x8bit
 port(
@@ -241,6 +285,12 @@ signal i_ofifo_empty        : std_logic;
 signal i_ofifo_pfull        : std_logic;
 signal i_ofifo_cnddiv       : unsigned(7 downto 0) := (others => '0');
 
+signal i_sobel_do           : std_logic_vector(G_DO_WIDTH - 1 downto 0);
+signal i_sobel_wr           : std_logic;
+signal i_sobel_rdy_n        : std_logic;
+signal i_sobel_eof          : std_logic;
+
+
 
 begin --architecture behavior
 
@@ -290,11 +340,11 @@ p_in_upp_eof        => i_di_eof,
 ----------------------------
 --Downstream Port (OUT)
 ----------------------------
-p_out_dwnp_data     => i_mir_do      ,--p_out_dwnp_data,                 i_mir_do      ,--
-p_out_dwnp_wr       => i_mir_wr      ,--p_out_dwnp_wr  ,                 i_mir_wr      ,--
-p_in_dwnp_rdy_n     => i_matrix_rdy_n,--i_bayer_rdy_n,--i_do_rdy_n     , i_ofifo_pfull ,--
-p_out_dwnp_eof      => i_mir_eof     ,--p_out_dwnp_eof ,                 i_mir_eof     ,--
-p_out_dwnp_eol      => i_mir_eol     ,--p_out_dwnp_eof ,                 i_mir_eol     ,--
+p_out_dwnp_data     => i_mir_do      ,--i_mir_do      ,--p_out_dwnp_data,                 i_mir_do      ,--
+p_out_dwnp_wr       => i_mir_wr      ,--i_mir_wr      ,--p_out_dwnp_wr  ,                 i_mir_wr      ,--
+p_in_dwnp_rdy_n     => i_sobel_rdy_n ,--i_matrix_rdy_n,--i_bayer_rdy_n,--i_do_rdy_n     , i_ofifo_pfull ,--
+p_out_dwnp_eof      => i_mir_eof     ,--i_mir_eof     ,--p_out_dwnp_eof ,                 i_mir_eof     ,--
+p_out_dwnp_eol      => i_mir_eol     ,--i_mir_eol     ,--p_out_dwnp_eof ,                 i_mir_eol     ,--
 
 -------------------------------
 --DBG
@@ -310,11 +360,99 @@ p_in_rst            => i_rst
 );
 
 
-m_filter_core : vfilter_core
+--m_filter_core : vfilter_core
+--generic map(
+--G_VFILTER_RANG => 5,
+--G_DWIDTH => 8, --G_DO_WIDTH,
+--G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE
+--)
+--port map(
+---------------------------------
+----CFG
+---------------------------------
+--p_in_cfg_pix_count => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
+--p_in_cfg_init      => '0',
+--
+------------------------------
+----Upstream Port (IN)
+------------------------------
+--p_in_upp_data      => i_mir_do(7 downto 0),
+--p_in_upp_wr        => i_mir_wr,
+--p_out_upp_rdy_n    => i_matrix_rdy_n,
+--p_in_upp_eof       => i_mir_eof,
+--
+------------------------------
+----Downstream Port (OUT)
+------------------------------
+--p_out_matrix       => i_matrix     ,
+--p_out_dwnp_wr      => i_matrix_wr  ,
+--p_in_dwnp_rdy_n    => i_bayer_rdy_n,
+--p_out_dwnp_eof     => i_matrix_eof ,
+--p_out_dwnp_eol     => open,--i_dwnp_eol,
+--p_out_line_evod    => open,--i_line_evod,
+--p_out_pix_evod     => open,--i_pix_evod,
+--
+---------------------------------
+----DBG
+---------------------------------
+--p_in_tst           => (others => '0'),
+--p_out_tst          => open,
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk           => i_clk,
+--p_in_rst           => i_rst
+--);
+
+--m_bayer : vdebayer_main
+--generic map(
+--G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
+--G_DWIDTH => 8 --G_DO_WIDTH
+--)
+--port map(
+---------------------------------
+----CFG
+---------------------------------
+--p_in_cfg_colorfst  => (others => '0'),
+--p_in_cfg_pix_count  => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
+----p_in_cfg_row_count => (others => '0'),
+--p_in_cfg_init      => '0',
+--
+------------------------------
+----Upstream Port (IN)
+------------------------------
+--p_in_upp_data      => std_logic_vector(i_matrix(2)(2)(7 downto 0)),--(G_DO_WIDTH - 1 downto 0)),--i_mir_do,
+--p_in_upp_wr        => i_matrix_wr,--i_mir_wr,
+--p_in_upp_eof       => i_matrix_eof,--i_mir_eof,
+--p_out_upp_rdy_n    => i_bayer_rdy_n,
+--
+------------------------------
+----Downstream Port (OUT)
+------------------------------
+--p_out_dwnp_data    => i_byer_do,
+--p_out_dwnp_wr      => i_byer_do_wr  ,
+--p_in_dwnp_rdy_n    => i_ofifo_pfull , --i_do_rdy_n    ,
+--p_out_dwnp_eof     => i_byer_do_eof ,
+--p_out_dwnp_eol     => i_byer_do_eol ,
+--
+---------------------------------
+----DBG
+---------------------------------
+--p_in_tst           => (others => '0'),
+--p_out_tst          => open,
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk           => i_clk,
+--p_in_rst           => i_rst
+--);
+
+m_sobel : vsobel_main
 generic map(
-G_VFILTER_RANG => 5,
-G_DWIDTH => 8, --G_DO_WIDTH,
-G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE
+G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
+G_DWIDTH => 8
 )
 port map(
 -------------------------------
@@ -328,19 +466,17 @@ p_in_cfg_init      => '0',
 ----------------------------
 p_in_upp_data      => i_mir_do(7 downto 0),
 p_in_upp_wr        => i_mir_wr,
-p_out_upp_rdy_n    => i_matrix_rdy_n,
+p_out_upp_rdy_n    => i_sobel_rdy_n,
 p_in_upp_eof       => i_mir_eof,
 
 ----------------------------
 --Downstream Port (OUT)
 ----------------------------
-p_out_matrix       => i_matrix     ,
-p_out_dwnp_wr      => i_matrix_wr  ,
-p_in_dwnp_rdy_n    => i_bayer_rdy_n,
-p_out_dwnp_eof     => i_matrix_eof ,
-p_out_dwnp_eol     => open,--i_dwnp_eol,
-p_out_line_evod    => open,--i_line_evod,
-p_out_pix_evod     => open,--i_pix_evod,
+p_out_dwnp_data    => i_sobel_do,
+p_out_dwnp_wr      => i_sobel_wr,
+p_in_dwnp_rdy_n    => i_ofifo_pfull,
+p_out_dwnp_eof     => open,
+p_out_dwnp_eol     => open,
 
 -------------------------------
 --DBG
@@ -355,59 +491,16 @@ p_in_clk           => i_clk,
 p_in_rst           => i_rst
 );
 
-m_bayer : bayer_main
-generic map(
-G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
-G_DWIDTH => 8 --G_DO_WIDTH
-)
-port map(
--------------------------------
---CFG
--------------------------------
-p_in_cfg_colorfst  => (others => '0'),
-p_in_cfg_pix_count  => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
---p_in_cfg_row_count => (others => '0'),
-p_in_cfg_init      => '0',
-
-----------------------------
---Upstream Port (IN)
-----------------------------
-p_in_upp_data      => std_logic_vector(i_matrix(2)(2)(7 downto 0)),--(G_DO_WIDTH - 1 downto 0)),--i_mir_do,
-p_in_upp_wr        => i_matrix_wr,--i_mir_wr,
-p_in_upp_eof       => i_matrix_eof,--i_mir_eof,
-p_out_upp_rdy_n    => i_bayer_rdy_n,
-
-----------------------------
---Downstream Port (OUT)
-----------------------------
-p_out_dwnp_data    => i_byer_do,
-p_out_dwnp_wr      => i_byer_do_wr  ,
-p_in_dwnp_rdy_n    => i_ofifo_pfull , --i_do_rdy_n    ,
-p_out_dwnp_eof     => i_byer_do_eof ,
-p_out_dwnp_eol     => i_byer_do_eol ,
-
--------------------------------
---DBG
--------------------------------
-p_in_tst           => (others => '0'),
-p_out_tst          => open,
-
--------------------------------
---System
--------------------------------
-p_in_clk           => i_clk,
-p_in_rst           => i_rst
-);
 
 
 m_ofifo : sim_fifo8x8bit
 port map(
-din         => i_byer_do(7 downto 0), --i_mir_do,
-wr_en       => i_byer_do_wr,          --i_mir_wr,
+din         => i_sobel_do(7 downto 0),--i_byer_do(7 downto 0), --i_mir_do,
+wr_en       => i_sobel_wr,--i_byer_do_wr,          --i_mir_wr,
 wr_clk      => i_clk,
 
 dout        => i_ofifo_do,
-rd_en       => i_ofifo_rd,
+rd_en       => '1',--i_ofifo_rd,
 rd_clk      => i_ofifo_clk,
 
 empty       => i_ofifo_empty,

@@ -1,4 +1,4 @@
-+-------------------------------------------------------------------------
+--------------------------------------------------------------------------
 -- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
@@ -136,15 +136,15 @@ signal i_sum_y2            : unsigned((G_DWIDTH + 2) - 1 downto 0) := (others =>
 
 signal i_delt_xm           : unsigned((G_DWIDTH + 2) - 1 downto 0) := (others => '0');
 signal i_delt_ym           : unsigned((G_DWIDTH + 2) - 1 downto 0) := (others => '0');
---signal sr_delt_xm          : unsigned((G_DWIDTH + 2) - 1 downto 0) := (others => '0');
---signal sr_delt_ym          : unsigned((G_DWIDTH + 2) - 1 downto 0) := (others => '0');
+signal sr_delt_xm          : unsigned((G_DWIDTH + 2) - 1 downto 0) := (others => '0');
+signal sr_delt_ym          : unsigned((G_DWIDTH + 2) - 1 downto 0) := (others => '0');
 
 signal i_mult_01           : unsigned(((G_DWIDTH + 2) * 2) - 1 downto 0) := (others => '0');
 signal i_mult_02           : unsigned(((G_DWIDTH + 2) * 2) - 1 downto 0) := (others => '0');
 signal i_mult_01_div       : unsigned(((G_DWIDTH + 2) * 2) - 1 downto 0) := (others => '0');
 signal i_mult_02_div       : unsigned(((G_DWIDTH + 2) * 2) - 1 downto 0) := (others => '0');
 
-signal tmp_grad_out        : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
+signal tmp_grad_out        : unsigned(((G_DWIDTH + 2) * 2) - 1 downto 0) := (others => '0');
 signal i_grad_out          : unsigned(G_DWIDTH - 1 downto 0) := (others => '0');
 
 
@@ -186,8 +186,8 @@ p_out_dwnp_wr      => i_matrix_wr ,
 p_in_dwnp_rdy_n    => p_in_dwnp_rdy_n,
 p_out_dwnp_eof     => i_dwnp_eof,
 p_out_dwnp_eol     => i_dwnp_eol,
-p_out_line_evod    => i_line_evod,
-p_out_pix_evod     => i_pix_evod,
+p_out_line_evod    => open,
+p_out_pix_evod     => open,
 
 -------------------------------
 --DBG
@@ -211,19 +211,20 @@ begin
 if rising_edge(p_in_clk) then
     if p_in_dwnp_rdy_n = '0' then
 
+      --i_matrix(NumLine)(NumPix)
       --------------------------------------------
       --0
       --------------------------------------------
       i_pix02_line0_sum <= RESIZE(i_matrix(0)(0), i_pix02_line0_sum'length) + RESIZE(i_matrix(0)(2), i_pix02_line0_sum'length);
       i_pix02_line2_sum <= RESIZE(i_matrix(2)(0), i_pix02_line2_sum'length) + RESIZE(i_matrix(2)(2), i_pix02_line2_sum'length);
 
-      i_pix0_line02_sum <= RESIZE(i_matrix(0)(0), i_pix02_line1_sum'length) + RESIZE(i_matrix(2)(0), i_pix02_line1_sum'length);
-      i_pix2_line02_sum <= RESIZE(i_matrix(2)(0), i_pix1_line02_sum'length) + RESIZE(i_matrix(2)(2), i_pix1_line02_sum'length);
+      i_pix0_line02_sum <= RESIZE(i_matrix(0)(0), i_pix0_line02_sum'length) + RESIZE(i_matrix(2)(0), i_pix0_line02_sum'length);
+      i_pix2_line02_sum <= RESIZE(i_matrix(0)(2), i_pix2_line02_sum'length) + RESIZE(i_matrix(2)(2), i_pix2_line02_sum'length);
 
-      i_pix1_line0_x2 <= i_matrix(0)(1) & '0';
-      i_pix1_line2_x2 <= i_matrix(2)(1) & '0';
-      i_pix0_line1_x2 <= i_matrix(1)(0) & '0';
-      i_pix2_line1_x2 <= i_matrix(1)(2) & '0';
+      i_pix1_line0_x2 <= RESIZE(i_matrix(0)(1), G_DWIDTH) & '0';
+      i_pix1_line2_x2 <= RESIZE(i_matrix(2)(1), G_DWIDTH) & '0';
+      i_pix0_line1_x2 <= RESIZE(i_matrix(1)(0), G_DWIDTH) & '0';
+      i_pix2_line1_x2 <= RESIZE(i_matrix(1)(2), G_DWIDTH) & '0';
 
       --------------------
       --1
@@ -252,29 +253,29 @@ if rising_edge(p_in_clk) then
       --------------------
       --3
       --------------------
-      --accurate calculation gradient
-      if i_delt_xm > i_delt_ym then
-        i_mult_01 <= i_delt_xm * TO_UNSIGNED(10#123#, i_delt_xm'length);
-        i_mult_02 <= i_delt_ym * TO_UNSIGNED(10#13# , i_delt_ym'length);
-      else
-        i_mult_01 <= i_delt_ym * TO_UNSIGNED(10#123#, i_delt_ym'length);
-        i_mult_02 <= i_delt_xm * TO_UNSIGNED(10#13# , i_delt_xm'length);
-      end if;
+--      --accurate calculation gradient
+--      if i_delt_xm > i_delt_ym then
+--        i_mult_01 <= i_delt_xm * TO_UNSIGNED(10#123#, i_delt_xm'length);
+--        i_mult_02 <= i_delt_ym * TO_UNSIGNED(10#13# , i_delt_ym'length);
+--      else
+--        i_mult_01 <= i_delt_ym * TO_UNSIGNED(10#123#, i_delt_ym'length);
+--        i_mult_02 <= i_delt_xm * TO_UNSIGNED(10#13# , i_delt_xm'length);
+--      end if;
 
---      --simple calculation gradient
---      sr_delt_xm <= i_delt_xm;
---      sr_delt_ym <= i_delt_ym;
+      --simple calculation gradient
+      sr_delt_xm <= i_delt_xm;
+      sr_delt_ym <= i_delt_ym;
 
       --------------------
       --4  GRADIENT = (dx^2 + dy^2)^0.5
       --------------------
-      --accurate calculation gradient
-      --((delta_xm * 123)/128) + ((delt_ym * 13)/32)
-      tmp_grad_out <= (TO_UNSIGNED(0, 7) & i_mult_01(i_mult_01'high downto 7))
-                        + (TO_UNSIGNED(0, 5) & i_mult_02(i_mult_02'high downto 5));
+--      --accurate calculation gradient
+--      --((delta_xm * 123)/128) + ((delt_ym * 13)/32)
+--      tmp_grad_out <= (TO_UNSIGNED(0, 7) & i_mult_01(i_mult_01'high downto 7))
+--                        + (TO_UNSIGNED(0, 5) & i_mult_02(i_mult_02'high downto 5));
 
---      --simple calculation gradient
---      tmp_grad_out <= RESIZE(sr_delt_xm, tmp_grad_out'length) + RESIZE(sr_delt_ym, tmp_grad_out'length);
+      --simple calculation gradient
+      tmp_grad_out <= RESIZE(sr_delt_xm, tmp_grad_out'length) + RESIZE(sr_delt_ym, tmp_grad_out'length);
 
       --------------------
       --5
