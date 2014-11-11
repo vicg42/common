@@ -25,6 +25,7 @@ vcom -work work ../../vfilter_core.vhd
 vcom -work work ../../vmirx_main.vhd
 vcom -work work ../../vdebayer_main.vhd
 vcom -work work ../../vsobel_main.vhd
+vcom -work work ../../vmedian_main.vhd
 
 vcom -work work ../testbanch/test_module_tb.vhd
 
