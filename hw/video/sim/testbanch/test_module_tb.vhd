@@ -26,7 +26,7 @@ G_VFR_LINE_COUNT : integer := 5;
 G_MIRX : std_logic := '0';
 G_BRAM_SIZE_BYTE : integer := 8192;
 G_PIX_SIZE : integer := 8;
-G_DI_WIDTH : integer := 32;
+G_DI_WIDTH : integer := 8;
 G_DO_WIDTH : integer := 8
 );
 port(
@@ -220,6 +220,48 @@ p_in_rst           : in    std_logic
 );
 end component vsobel_main;
 
+component vmedian_main is
+generic(
+G_BRAM_SIZE_BYTE : integer := 12;
+G_DWIDTH : integer := 8
+);
+port(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);
+p_in_cfg_init      : in    std_logic;
+
+----------------------------
+--Upstream Port (IN)
+----------------------------
+p_in_upp_data      : in    std_logic_vector(G_DWIDTH - 1 downto 0);
+p_in_upp_wr        : in    std_logic;
+p_out_upp_rdy_n    : out   std_logic;
+p_in_upp_eof       : in    std_logic;
+
+----------------------------
+--Downstream Port (OUT)
+----------------------------
+p_out_dwnp_data    : out   std_logic_vector(G_DWIDTH - 1 downto 0);
+p_out_dwnp_wr      : out   std_logic;
+p_in_dwnp_rdy_n    : in    std_logic;
+p_out_dwnp_eof     : out   std_logic;
+p_out_dwnp_eol     : out   std_logic;
+
+-------------------------------
+--DBG
+-------------------------------
+p_in_tst           : in    std_logic_vector(31 downto 0);
+p_out_tst          : out   std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk           : in    std_logic;
+p_in_rst           : in    std_logic
+);
+end component vmedian_main;
 
 component sim_fifo8x8bit
 port(
@@ -289,7 +331,7 @@ signal i_sobel_do           : std_logic_vector(G_DO_WIDTH - 1 downto 0);
 signal i_sobel_wr           : std_logic;
 signal i_sobel_rdy_n        : std_logic;
 signal i_sobel_eof          : std_logic;
-
+signal i_srambler_out       : std_logic_vector(31 downto 0);
 
 
 begin --architecture behavior
@@ -332,7 +374,7 @@ p_in_cfg_pix_count  => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
-p_in_upp_data       => std_logic_vector(i_di),
+p_in_upp_data       => i_srambler_out(G_DI_WIDTH - 1 downto 0),--std_logic_vector(i_di),
 p_in_upp_wr         => i_di_wr,
 p_out_upp_rdy_n     => i_di_rdy_n,
 p_in_upp_eof        => i_di_eof,
@@ -449,7 +491,49 @@ p_in_rst            => i_rst
 --p_in_rst           => i_rst
 --);
 
-m_sobel : vsobel_main
+--m_sobel : vsobel_main
+--generic map(
+--G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
+--G_DWIDTH => 8
+--)
+--port map(
+---------------------------------
+----CFG
+---------------------------------
+--p_in_cfg_pix_count => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
+--p_in_cfg_init      => '0',
+--
+------------------------------
+----Upstream Port (IN)
+------------------------------
+--p_in_upp_data      => i_mir_do(7 downto 0),
+--p_in_upp_wr        => i_mir_wr,
+--p_out_upp_rdy_n    => i_sobel_rdy_n,
+--p_in_upp_eof       => i_mir_eof,
+--
+------------------------------
+----Downstream Port (OUT)
+------------------------------
+--p_out_dwnp_data    => i_sobel_do,
+--p_out_dwnp_wr      => i_sobel_wr,
+--p_in_dwnp_rdy_n    => i_ofifo_pfull,
+--p_out_dwnp_eof     => open,
+--p_out_dwnp_eol     => open,
+--
+---------------------------------
+----DBG
+---------------------------------
+--p_in_tst           => (others => '0'),
+--p_out_tst          => open,
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk           => i_clk,
+--p_in_rst           => i_rst
+--);
+
+m_median : vmedian_main
 generic map(
 G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
 G_DWIDTH => 8
@@ -492,7 +576,6 @@ p_in_rst           => i_rst
 );
 
 
-
 m_ofifo : sim_fifo8x8bit
 port map(
 din         => i_sobel_do(7 downto 0),--i_byer_do(7 downto 0), --i_mir_do,
@@ -533,6 +616,8 @@ if rising_edge(i_clk) then
     i_di(8 * (i + 1) - 1 downto (8 * i)) <= TO_UNSIGNED((i + 1), 8);
     end loop;
 
+    i_srambler_out <= srambler32_0(std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)));
+
   else
 
     case i_fsm_cs is
@@ -564,6 +649,8 @@ if rising_edge(i_clk) then
             for i in 0 to (i_di'length / 8) - 1 loop
             i_di(8 * (i + 1) - 1 downto (8 * i)) <= i_di(8 * (i + 1) - 1 downto (8 * i)) + (i_di'length / 8);
             end loop;
+
+            i_srambler_out <= srambler32_0(i_srambler_out(31 downto 16));
           else
             i_di_wr <= '1';
           end if;
