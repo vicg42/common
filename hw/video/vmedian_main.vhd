@@ -5,10 +5,8 @@
 -- Create Date : 10.11.2014 12:51:18
 -- Module Name : vmedian_main
 --
--- Назначение/Описание :
---
--- Revision:
--- Revision 0.01 - File Created
+-- DOC: D:\Help\Book&Doc\Video\Median\01 - An Efficient FPGA Implementation
+-- of Median Filter for Removal of Salt and Pepper Noise.dpf
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -376,10 +374,8 @@ if rising_edge(p_in_clk) then
 
       if i_calc2_4 >= i_calc2_6 then
         i_calc3_6H <= i_calc2_4;
---        i_calc3_6L <= i_calc2_6;
       else
         i_calc3_6H <= i_calc2_6;
---        i_calc3_6L <= i_calc2_4;
       end if;
 
 
@@ -419,10 +415,8 @@ if rising_edge(p_in_clk) then
       i_calc5_1 <= i_calc4_1L;
 
       if i_calc4_2 >= i_calc4_3H then
---        i_calc5_2H <= i_calc4_2;
         i_calc5_2L <= i_calc4_3H;
       else
---        i_calc5_2H <= i_calc4_3H;
         i_calc5_2L <= i_calc4_2;
       end if;
 
@@ -450,10 +444,8 @@ if rising_edge(p_in_clk) then
 
       if i_calc6_1L >= i_calc6_2 then
         i_calc7_2H <= i_calc6_1L;
---        i_calc7_2L <= i_calc6_2;
       else
         i_calc7_2H <= i_calc6_2;
---        i_calc7_2L <= i_calc6_1L;
       end if;
 
 
@@ -461,10 +453,8 @@ if rising_edge(p_in_clk) then
       --8
       --------------------
       if i_calc7_1 >= i_calc7_2H then
---        i_calc8_1H <= i_calc7_1;
         i_calc8_1L <= i_calc7_2H;
       else
---        i_calc8_1H <= i_calc7_2H;
         i_calc8_1L <= i_calc7_1;
       end if;
 

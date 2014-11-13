@@ -304,6 +304,7 @@ signal i_di_rdy_n           : std_logic;
 
 signal i_do_rdy_n           : std_logic;
 
+signal i_mir_di             : std_logic_vector(8 - 1 downto 0);
 signal i_mir_do             : std_logic_vector(G_DO_WIDTH - 1 downto 0);
 signal i_mir_wr             : std_logic;
 signal i_mir_eof            : std_logic;
@@ -331,6 +332,11 @@ signal i_sobel_do           : std_logic_vector(G_DO_WIDTH - 1 downto 0);
 signal i_sobel_wr           : std_logic;
 signal i_sobel_rdy_n        : std_logic;
 signal i_sobel_eof          : std_logic;
+
+signal i_median_do          : std_logic_vector(G_DO_WIDTH - 1 downto 0);
+signal i_median_wr          : std_logic;
+signal i_median_rdy_n       : std_logic;
+
 signal i_srambler_out       : std_logic_vector(31 downto 0);
 
 
@@ -355,6 +361,7 @@ begin
 end process clkgen2;
 
 
+i_mir_di <= (i_srambler_out(15 downto 12) & i_srambler_out(3 downto 0));
 
 m_vmirx: vmirx_main
 generic map(
@@ -374,7 +381,7 @@ p_in_cfg_pix_count  => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
-p_in_upp_data       => i_srambler_out(G_DI_WIDTH - 1 downto 0),--std_logic_vector(i_di),
+p_in_upp_data       => i_mir_di,--std_logic_vector(i_di),
 p_in_upp_wr         => i_di_wr,
 p_out_upp_rdy_n     => i_di_rdy_n,
 p_in_upp_eof        => i_di_eof,
@@ -382,11 +389,11 @@ p_in_upp_eof        => i_di_eof,
 ----------------------------
 --Downstream Port (OUT)
 ----------------------------
-p_out_dwnp_data     => i_mir_do      ,--i_mir_do      ,--p_out_dwnp_data,                 i_mir_do      ,--
-p_out_dwnp_wr       => i_mir_wr      ,--i_mir_wr      ,--p_out_dwnp_wr  ,                 i_mir_wr      ,--
-p_in_dwnp_rdy_n     => i_sobel_rdy_n ,--i_matrix_rdy_n,--i_bayer_rdy_n,--i_do_rdy_n     , i_ofifo_pfull ,--
-p_out_dwnp_eof      => i_mir_eof     ,--i_mir_eof     ,--p_out_dwnp_eof ,                 i_mir_eof     ,--
-p_out_dwnp_eol      => i_mir_eol     ,--i_mir_eol     ,--p_out_dwnp_eof ,                 i_mir_eol     ,--
+p_out_dwnp_data     => i_mir_do      ,--i_mir_do      ,--i_mir_do      ,--p_out_dwnp_data,                 i_mir_do      ,--
+p_out_dwnp_wr       => i_mir_wr      ,--i_mir_wr      ,--i_mir_wr      ,--p_out_dwnp_wr  ,                 i_mir_wr      ,--
+p_in_dwnp_rdy_n     => i_median_rdy_n,--i_sobel_rdy_n ,--i_matrix_rdy_n,--i_bayer_rdy_n,--i_do_rdy_n     , i_ofifo_pfull ,--
+p_out_dwnp_eof      => i_mir_eof     ,--i_mir_eof     ,--i_mir_eof     ,--p_out_dwnp_eof ,                 i_mir_eof     ,--
+p_out_dwnp_eol      => i_mir_eol     ,--i_mir_eol     ,--i_mir_eol     ,--p_out_dwnp_eof ,                 i_mir_eol     ,--
 
 -------------------------------
 --DBG
@@ -550,14 +557,14 @@ p_in_cfg_init      => '0',
 ----------------------------
 p_in_upp_data      => i_mir_do(7 downto 0),
 p_in_upp_wr        => i_mir_wr,
-p_out_upp_rdy_n    => i_sobel_rdy_n,
+p_out_upp_rdy_n    => i_median_rdy_n,
 p_in_upp_eof       => i_mir_eof,
 
 ----------------------------
 --Downstream Port (OUT)
 ----------------------------
-p_out_dwnp_data    => i_sobel_do,
-p_out_dwnp_wr      => i_sobel_wr,
+p_out_dwnp_data    => i_median_do,
+p_out_dwnp_wr      => i_median_wr,
 p_in_dwnp_rdy_n    => i_ofifo_pfull,
 p_out_dwnp_eof     => open,
 p_out_dwnp_eol     => open,
@@ -578,8 +585,8 @@ p_in_rst           => i_rst
 
 m_ofifo : sim_fifo8x8bit
 port map(
-din         => i_sobel_do(7 downto 0),--i_byer_do(7 downto 0), --i_mir_do,
-wr_en       => i_sobel_wr,--i_byer_do_wr,          --i_mir_wr,
+din         => i_median_do(7 downto 0),--i_sobel_do(7 downto 0),--i_byer_do(7 downto 0), --i_mir_do,
+wr_en       => i_median_wr,            --i_sobel_wr,            --i_byer_do_wr,          --i_mir_wr,
 wr_clk      => i_clk,
 
 dout        => i_ofifo_do,
