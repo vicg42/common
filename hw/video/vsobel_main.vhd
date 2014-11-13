@@ -255,18 +255,17 @@ if rising_edge(p_in_clk) then
       --------------------
       --3  GRADIENT = (dx^2 + dy^2)^0.5
       --------------------
-      --simple calculation gradient
+      --simple calculation gradient just (dx + dy)
       i_grad_tmp <= RESIZE(i_delt_xm, i_grad_tmp'length) + RESIZE(i_delt_ym, i_grad_tmp'length);
 
       --------------------
-      --4
+      --4   Normirovka
       --------------------
-      if i_grad_tmp >= TO_UNSIGNED(pwr(2, G_DWIDTH) - 1, i_grad_tmp'length) then
-        i_grad_out <= (others => '1');
-      else
-        i_grad_out <= i_grad_tmp(i_grad_out'range);
-      end if;
---      i_grad_tmp1 <= i_grad_tmp * TO_UNSIGNED(10#2040#, i_grad_tmp'length);
+      --i_grad_out - 255...0
+      --i_grad_tmp - 2040 ...0
+      --i_grad_tmp(max) / i_grad_out(max) = 2040 / 255 = 8
+      i_grad_out <= i_grad_tmp(i_grad_tmp'high downto 3); --DIV 8
+
 
 --      --------------------
 --      --3
