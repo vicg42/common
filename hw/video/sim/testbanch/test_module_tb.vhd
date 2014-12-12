@@ -23,10 +23,10 @@ entity test_module_tb is
 generic(
 G_VFR_PIX_COUNT : integer := 8;
 G_VFR_LINE_COUNT : integer := 5;
-G_MIRX : std_logic := '0';
+G_MIRX : std_logic := '1';
 G_BRAM_SIZE_BYTE : integer := 8192;
 G_PIX_SIZE : integer := 8;
-G_DI_WIDTH : integer := 8;
+G_DI_WIDTH : integer := 32;
 G_DO_WIDTH : integer := 8
 );
 port(
@@ -41,12 +41,57 @@ architecture behavior of test_module_tb is
 constant CI_CLK_PERIOD          : TIME := 6.6 ns; --150MHz
 constant CI_OFIFO_CLK_PERIOD    : TIME := 7.6 ns;
 
-component vmirx_main
+--component vmirx_main
+--generic(
+--G_BRAM_SIZE_BYTE : integer := 8;
+--G_PIX_SIZE : integer := 8;
+--G_DI_WIDTH : integer := 8;
+--G_DO_WIDTH : integer := 8
+--);
+--port(
+---------------------------------
+----CFG
+---------------------------------
+--p_in_cfg_mirx       : in    std_logic;                    --1/0 - mirx ON/OFF
+--p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--Count byte
+--
+------------------------------
+----Upstream Port (IN)
+------------------------------
+--p_in_upp_data       : in    std_logic_vector(G_DI_WIDTH - 1 downto 0);
+--p_in_upp_wr         : in    std_logic;
+--p_out_upp_rdy_n     : out   std_logic;
+--p_in_upp_eof        : in    std_logic;
+--
+------------------------------
+----Downstream Port (OUT)
+------------------------------
+--p_out_dwnp_data     : out   std_logic_vector(G_DO_WIDTH - 1 downto 0);
+--p_out_dwnp_wr       : out   std_logic;
+--p_in_dwnp_rdy_n     : in    std_logic;
+--p_out_dwnp_eof      : out   std_logic;
+--p_out_dwnp_eol      : out   std_logic;
+--
+---------------------------------
+----DBG
+---------------------------------
+--p_in_tst            : in    std_logic_vector(31 downto 0);
+--p_out_tst           : out   std_logic_vector(31 downto 0);
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk            : in    std_logic;
+--p_in_rst            : in    std_logic
+--);
+--end component vmirx_main;
+
+component vmirx_main is
 generic(
 G_BRAM_SIZE_BYTE : integer := 8;
-G_PIX_SIZE : integer := 8;
-G_DI_WIDTH : integer := 8;
-G_DO_WIDTH : integer := 8
+G_PIX_SIZE : integer := 8;--value 8, 16
+G_DI_WIDTH : integer := 8;--value 8, 16, 32 ...
+G_DO_WIDTH : integer := 8 --value 8, 16, 32 ...
 );
 port(
 -------------------------------
@@ -54,6 +99,9 @@ port(
 -------------------------------
 p_in_cfg_mirx       : in    std_logic;                    --1/0 - mirx ON/OFF
 p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--Count byte
+p_in_cfg_skp_count  : in    std_logic_vector(15 downto 0);--Count byte
+p_in_cfg_act_count  : in    std_logic_vector(15 downto 0);--Count byte
+p_out_busy          : out   std_logic;
 
 ----------------------------
 --Upstream Port (IN)
@@ -62,6 +110,7 @@ p_in_upp_data       : in    std_logic_vector(G_DI_WIDTH - 1 downto 0);
 p_in_upp_wr         : in    std_logic;
 p_out_upp_rdy_n     : out   std_logic;
 p_in_upp_eof        : in    std_logic;
+p_in_upp_clk        : in    std_logic;
 
 ----------------------------
 --Downstream Port (OUT)
@@ -71,6 +120,7 @@ p_out_dwnp_wr       : out   std_logic;
 p_in_dwnp_rdy_n     : in    std_logic;
 p_out_dwnp_eof      : out   std_logic;
 p_out_dwnp_eol      : out   std_logic;
+p_in_dwnp_clk       : in    std_logic;
 
 -------------------------------
 --DBG
@@ -81,7 +131,6 @@ p_out_tst           : out   std_logic_vector(31 downto 0);
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
 p_in_rst            : in    std_logic
 );
 end component vmirx_main;
@@ -304,6 +353,7 @@ signal i_di_rdy_n           : std_logic;
 
 signal i_do_rdy_n           : std_logic;
 
+signal i_mir_busy           : std_logic;
 signal i_mir_di             : std_logic_vector(8 - 1 downto 0);
 signal i_mir_do             : std_logic_vector(G_DO_WIDTH - 1 downto 0);
 signal i_mir_wr             : std_logic;
@@ -361,7 +411,52 @@ begin
 end process clkgen2;
 
 
-i_mir_di <= (i_srambler_out(15 downto 12) & i_srambler_out(3 downto 0));
+--i_mir_di <= (i_srambler_out(15 downto 12) & i_srambler_out(3 downto 0));
+
+--m_vmirx: vmirx_main
+--generic map(
+--G_BRAM_SIZE_BYTE => G_BRAM_SIZE_BYTE,
+--G_PIX_SIZE => G_PIX_SIZE,
+--G_DI_WIDTH => G_DI_WIDTH,
+--G_DO_WIDTH => G_DO_WIDTH
+--)
+--port map
+--(
+---------------------------------
+----CFG
+---------------------------------
+--p_in_cfg_mirx       => G_MIRX,
+--p_in_cfg_pix_count  => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
+--
+------------------------------
+----Upstream Port (IN)
+------------------------------
+--p_in_upp_data       => i_mir_di,--std_logic_vector(i_di),
+--p_in_upp_wr         => i_di_wr,
+--p_out_upp_rdy_n     => i_di_rdy_n,
+--p_in_upp_eof        => i_di_eof,
+--
+------------------------------
+----Downstream Port (OUT)
+------------------------------
+--p_out_dwnp_data     => i_mir_do      ,--i_mir_do      ,--i_mir_do      ,--p_out_dwnp_data,                 i_mir_do      ,--
+--p_out_dwnp_wr       => i_mir_wr      ,--i_mir_wr      ,--i_mir_wr      ,--p_out_dwnp_wr  ,                 i_mir_wr      ,--
+--p_in_dwnp_rdy_n     => i_median_rdy_n,--i_sobel_rdy_n ,--i_matrix_rdy_n,--i_bayer_rdy_n,--i_do_rdy_n     , i_ofifo_pfull ,--
+--p_out_dwnp_eof      => i_mir_eof     ,--i_mir_eof     ,--i_mir_eof     ,--p_out_dwnp_eof ,                 i_mir_eof     ,--
+--p_out_dwnp_eol      => i_mir_eol     ,--i_mir_eol     ,--i_mir_eol     ,--p_out_dwnp_eof ,                 i_mir_eol     ,--
+--
+---------------------------------
+----DBG
+---------------------------------
+--p_in_tst            => (others => '0'),
+--p_out_tst           => open,
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk            => i_clk,
+--p_in_rst            => i_rst
+--);
 
 m_vmirx: vmirx_main
 generic map(
@@ -370,30 +465,34 @@ G_PIX_SIZE => G_PIX_SIZE,
 G_DI_WIDTH => G_DI_WIDTH,
 G_DO_WIDTH => G_DO_WIDTH
 )
-port map
-(
+port map (
 -------------------------------
 --CFG
 -------------------------------
 p_in_cfg_mirx       => G_MIRX,
 p_in_cfg_pix_count  => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
+p_in_cfg_skp_count  => std_logic_vector(TO_UNSIGNED(0 ,16)),
+p_in_cfg_act_count  => std_logic_vector(TO_UNSIGNED(G_VFR_PIX_COUNT ,16)),
+p_out_busy          => i_mir_busy,
 
 ----------------------------
 --Upstream Port (IN)
 ----------------------------
-p_in_upp_data       => i_mir_di,--std_logic_vector(i_di),
+p_in_upp_data       => std_logic_vector(i_di),--i_mir_di,--
 p_in_upp_wr         => i_di_wr,
 p_out_upp_rdy_n     => i_di_rdy_n,
 p_in_upp_eof        => i_di_eof,
+p_in_upp_clk        => i_clk,
 
 ----------------------------
 --Downstream Port (OUT)
 ----------------------------
-p_out_dwnp_data     => i_mir_do      ,--i_mir_do      ,--i_mir_do      ,--p_out_dwnp_data,                 i_mir_do      ,--
-p_out_dwnp_wr       => i_mir_wr      ,--i_mir_wr      ,--i_mir_wr      ,--p_out_dwnp_wr  ,                 i_mir_wr      ,--
-p_in_dwnp_rdy_n     => i_median_rdy_n,--i_sobel_rdy_n ,--i_matrix_rdy_n,--i_bayer_rdy_n,--i_do_rdy_n     , i_ofifo_pfull ,--
-p_out_dwnp_eof      => i_mir_eof     ,--i_mir_eof     ,--i_mir_eof     ,--p_out_dwnp_eof ,                 i_mir_eof     ,--
-p_out_dwnp_eol      => i_mir_eol     ,--i_mir_eol     ,--i_mir_eol     ,--p_out_dwnp_eof ,                 i_mir_eol     ,--
+p_out_dwnp_data     => i_mir_do      ,--i_mir_do      ,--i_mir_do      ,--i_mir_do      ,--p_out_dwnp_data,
+p_out_dwnp_wr       => i_mir_wr      ,--i_mir_wr      ,--i_mir_wr      ,--i_mir_wr      ,--p_out_dwnp_wr  ,
+p_in_dwnp_rdy_n     => i_ofifo_pfull ,--i_median_rdy_n,--i_sobel_rdy_n ,--i_matrix_rdy_n,--i_bayer_rdy_n,--i_do_rdy_n     ,
+p_out_dwnp_eof      => i_mir_eof     ,--i_mir_eof     ,--i_mir_eof     ,--i_mir_eof     ,--p_out_dwnp_eof ,
+p_out_dwnp_eol      => i_mir_eol     ,--i_mir_eol     ,--i_mir_eol     ,--i_mir_eol     ,--p_out_dwnp_eof ,
+p_in_dwnp_clk        => i_clk,
 
 -------------------------------
 --DBG
@@ -404,7 +503,6 @@ p_out_tst           => open,
 -------------------------------
 --System
 -------------------------------
-p_in_clk            => i_clk,
 p_in_rst            => i_rst
 );
 
@@ -585,8 +683,8 @@ p_in_rst           => i_rst
 
 m_ofifo : sim_fifo8x8bit
 port map(
-din         => i_median_do(7 downto 0),--i_sobel_do(7 downto 0),--i_byer_do(7 downto 0), --i_mir_do,
-wr_en       => i_median_wr,            --i_sobel_wr,            --i_byer_do_wr,          --i_mir_wr,
+din         => i_mir_do,--i_median_do(7 downto 0),--i_sobel_do(7 downto 0),--i_byer_do(7 downto 0), --
+wr_en       => i_mir_wr,--i_median_wr,            --i_sobel_wr,            --i_byer_do_wr,          --
 wr_clk      => i_clk,
 
 dout        => i_ofifo_do,
@@ -670,7 +768,7 @@ if rising_edge(i_clk) then
       ------------------------------------------------
       when S_LINE_COUNT =>
 
-        if i_mir_eol = '1' then
+        if i_mir_busy = '0' then
           if i_cntline = TO_UNSIGNED(G_VFR_LINE_COUNT - 1 ,i_cntline'length) then
             i_cntline <= (others => '0');
             i_fsm_cs <= S_DELAY_NFR;--S_IDLE;
