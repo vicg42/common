@@ -148,20 +148,22 @@ end component cfgdev_ftdi;
 component cfgdev_host
 generic(
 G_DBG : string:="OFF";
-G_HOST_DWIDTH : integer:=32
+G_HOST_DWIDTH_H2D : integer := 32;
+G_HOST_DWIDTH_D2H : integer := 32;
+C_FMODULE_DWIDTH  : integer := 16
 );
 port(
 -------------------------------
 --Ñâÿçü ñ HOST
 -------------------------------
 --host -> dev
-p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH-1 downto 0);
+p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH_H2D - 1 downto 0);
 p_in_htxbuf_wr       : in   std_logic;
 p_out_htxbuf_full    : out  std_logic;
 p_out_htxbuf_empty   : out  std_logic;
 
 --host <- dev
-p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH-1 downto 0);
+p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH_H2D - 1 downto 0);
 p_in_hrxbuf_rd       : in   std_logic;
 p_out_hrxbuf_full    : out  std_logic;
 p_out_hrxbuf_empty   : out  std_logic;
@@ -180,8 +182,8 @@ p_out_cfg_radr_ld    : out    std_logic;
 p_out_cfg_radr_fifo  : out    std_logic;
 p_out_cfg_wr         : out    std_logic;
 p_out_cfg_rd         : out    std_logic;
-p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);
-p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);
+p_out_cfg_txdata     : out    std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
+p_in_cfg_rxdata      : in     std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
 p_in_cfg_txrdy       : in     std_logic;
 p_in_cfg_rxrdy       : in     std_logic;
 p_out_cfg_done       : out    std_logic;

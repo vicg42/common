@@ -3,19 +3,21 @@
 ##
 vlib work
 
+vcom -93 "../../../lib/vicg/reduce_pack.vhd"
 vcom -93 "../../../lib/vicg/vicg_common_pkg.vhd"
 
-vcom -93 "../../../uart/src/bbfifo_16x8.vhd"
-vcom -93 "../../../uart/src/kcuart_rx.vhd"
-vcom -93 "../../../uart/src/kcuart_tx.vhd"
-vcom -93 "../../../uart/src/uart_rx.vhd"
-vcom -93 "../../../uart/src/uart_tx.vhd"
-vcom -93 "../../../uart/uart_main_rev01.vhd"
+#vcom -93 "../../../uart/src/bbfifo_16x8.vhd"
+#vcom -93 "../../../uart/src/kcuart_rx.vhd"
+#vcom -93 "../../../uart/src/kcuart_tx.vhd"
+#vcom -93 "../../../uart/src/uart_rx.vhd"
+#vcom -93 "../../../uart/src/uart_tx.vhd"
+#vcom -93 "../../../uart/uart_main_rev01.vhd"
 
-vcom -93 "../../../cfgdev_ctrl/cfgdev_pkg.vhd"
-vcom -93 "../../core_gen/*.vhd"
-vcom -93 "../../cfgdev_host_eth.vhd"
+vcom -93 "../../cfgdev_pkg.vhd"
+vcom -93 "../../cfgdev_host.vhd"
+vcom -93 "../../core_gen/cfgdev_fifo32bx32b.vhd"
 
+vcom -93 "../testbanch/cfgdev_buf.vhd"
 vcom -93 "../testbanch/cfgdev_host_tb.vhd"
 
 vsim -t 1ps   -lib work cfgdev_host_tb

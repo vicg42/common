@@ -24,6 +24,10 @@ use unisim.vcomponents.all;
 use work.cfgdev_pkg.all;
 
 entity cfgdev_host_tb is
+generic(
+C_HOST_DWIDTH : integer:=32;
+C_FMODULE_DWIDTH : integer:=16
+);
 port(
 p_out_tst : out std_logic
 );
@@ -33,10 +37,11 @@ architecture behavior of cfgdev_host_tb is
 
 constant CI_OPT : integer := 1;
 
-constant C_HOST_DWIDTH    : integer:=32;
-
 constant C_HOSTCLK_PERIOD : TIME := 6.6 ns; --150MHz
 constant C_USRCLK_PERIOD  : TIME := 10 ns;
+
+--for m_devcfg : cfgdev_host use entity work.cfgdev_host(behav1);
+for m_devcfg : cfgdev_host use entity work.cfgdev_host(behav2);
 
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;--50 ns;
@@ -60,8 +65,8 @@ signal i_cfg_adr_ld             : std_logic;
 signal i_cfg_adr_fifo           : std_logic;
 signal i_cfg_wd                 : std_logic;
 signal i_cfg_rd                 : std_logic;
-signal i_cfg_txd                : std_logic_vector(15 downto 0);
-signal i_cfg_rxd                : std_logic_vector(15 downto 0);
+signal i_cfg_txd                : std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
+signal i_cfg_rxd                : std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
 signal i_cfg_done               : std_logic;
 
 signal i_cfg_adr_cnt            : std_logic_vector(i_cfg_adr'range);
@@ -83,7 +88,7 @@ signal i_reg4                   : std_logic_vector(i_cfg_rxd'range);
 --signal i_pkts     : TUsrPkts;
 constant CI_USRD_COUNT_MAX : integer := 6;
 constant CI_CFGPKT_HEADER_DCOUNT : integer := C_CFGPKT_HEADER_DCOUNT + CI_OPT;
-type TUsrPkt is array (0 to C_CFGPKT_HEADER_DCOUNT + CI_OPT + CI_USRD_COUNT_MAX - 1) of std_logic_vector(15 downto 0);
+type TUsrPkt is array (0 to CI_CFGPKT_HEADER_DCOUNT + CI_USRD_COUNT_MAX - 1) of std_logic_vector(15 downto 0);
 type TUsrPkts is array (0 to 10) of TUsrPkt;
 signal i_pkts     : TUsrPkts;
 
@@ -124,29 +129,29 @@ p_out_tst<=i_cfg_done;
 m_devcfg : cfgdev_host
 generic map(
 G_DBG => "OFF",
-G_HOST_DWIDTH => C_HOST_DWIDTH
+G_HOST_DWIDTH_H2D => C_HOST_DWIDTH,
+G_HOST_DWIDTH_D2H => C_HOST_DWIDTH,
+C_FMODULE_DWIDTH  => C_FMODULE_DWIDTH
 )
 port map
 (
 -------------------------------
 --Связь с HOST
 -------------------------------
-p_out_host_rxrdy     => i_host_rxrdy,
-p_out_host_rxd       => i_host_rxd(C_HOST_DWIDTH - 1 downto 0),
-p_in_host_rd         => i_host_rd   ,
+p_out_hrxbuf_do      => i_host_rxd(C_HOST_DWIDTH - 1 downto 0),
+p_in_hrxbuf_rd       => i_host_rd   ,
+p_out_hrxbuf_full    => open,
+p_out_hrxbuf_empty   => open,
 
-p_out_host_txrdy     => i_host_txrdy,
-p_in_host_txd        => i_host_txd(C_HOST_DWIDTH - 1 downto 0),
-p_in_host_wr         => i_host_wr  ,
+p_in_htxbuf_di       => i_host_txd(C_HOST_DWIDTH - 1 downto 0),
+p_in_htxbuf_wr       => i_host_wr  ,
+p_out_htxbuf_full    => open,
+p_out_htxbuf_empty   => open,
 
-p_out_host_irq       => open,
-p_in_host_clk        => i_host_clk,
+p_out_hirq           => open,
+p_out_herr           => open,
 
--------------------------------
---
--------------------------------
-p_out_module_rdy     => open,
-p_out_module_error   => open,
+p_in_hclk            => i_host_clk,
 
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
@@ -179,40 +184,40 @@ p_in_rst             => p_in_rst
 );
 
 
---//Счетчик адреса регистров
+--Счетчик адреса регистров
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_cfg_adr_cnt<=(others=>'0');
+    i_cfg_adr_cnt <= (others => '0');
   elsif p_in_clk'event and p_in_clk='1' then
-    if i_cfg_adr_ld='1' then
-      i_cfg_adr_cnt<=i_cfg_adr;
+    if i_cfg_adr_ld = '1' then
+      i_cfg_adr_cnt <= i_cfg_adr;
     else
-      if i_cfg_adr_fifo='0' and (i_cfg_wd='1' or i_cfg_rd='1') then
-        i_cfg_adr_cnt<=i_cfg_adr_cnt+1;
+      if i_cfg_adr_fifo = '0' and (i_cfg_wd = '1' or i_cfg_rd = '1') then
+        i_cfg_adr_cnt <= i_cfg_adr_cnt + 1;
       end if;
     end if;
   end if;
 end process;
 
---//Запись регистров
+--Запись регистров
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_reg0<=(others=>'0');
-    i_reg1<=(others=>'0');
-    i_reg2<=(others=>'0');
-    i_reg3<=(others=>'0');
-    i_reg4<=(others=>'0');
+    i_reg0 <= (others => '0');
+    i_reg1 <= (others => '0');
+    i_reg2 <= (others => '0');
+    i_reg3 <= (others => '0');
+    i_reg4 <= (others => '0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    if i_cfg_wd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then i_reg0<=i_cfg_txd(i_reg0'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then i_reg1<=i_cfg_txd(i_reg1'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then i_reg2<=i_cfg_txd(i_reg2'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then i_reg3<=i_cfg_txd(i_reg3'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then i_reg4<=i_cfg_txd(i_reg4'high downto 0);
+    if i_cfg_wd = '1' then
+        if    i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then i_reg0 <= i_cfg_txd(i_reg0'high downto 0);
+        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then i_reg1 <= i_cfg_txd(i_reg1'high downto 0);
+        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then i_reg2 <= i_cfg_txd(i_reg2'high downto 0);
+        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then i_reg3 <= i_cfg_txd(i_reg3'high downto 0);
+        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then i_reg4 <= i_cfg_txd(i_reg4'high downto 0);
 
         end if;
     end if;
@@ -220,28 +225,28 @@ begin
   end if;
 end process;
 
---//Чтение регистров
+--Чтение регистров
 process(p_in_rst,p_in_clk)
   variable rxd : std_logic_vector(i_cfg_rxd'range);
 begin
   if p_in_rst='1' then
-      rxd:=(others=>'0');
-    i_cfg_rxd<=(others=>'0');
+      rxd := (others => '0');
+    i_cfg_rxd <=(others => '0');
   elsif p_in_clk'event and p_in_clk='1' then
-    rxd:=(others=>'0');
+    rxd := (others => '0');
 
-    if i_cfg_rd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg0, rxd'length);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg1, rxd'length);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg2, rxd'length);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg3, rxd'length);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg4, rxd'length);
+    if i_cfg_rd = '1' then
+        if    i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then rxd := EXT(i_reg0, rxd'length);
+        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then rxd := EXT(i_reg1, rxd'length);
+        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then rxd := EXT(i_reg2, rxd'length);
+        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then rxd := EXT(i_reg3, rxd'length);
+        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then rxd := EXT(i_reg4, rxd'length);
 
         end if;
 
         i_cfg_rxd<=rxd;
 
-    end if;--//if p_in_cfg_rd='1' then
+    end if;--if p_in_cfg_rd='1' then
   end if;
 end process;
 
@@ -255,9 +260,9 @@ process
   variable pkt_x   : integer:=0;
 begin
 
---//-----------------
---//Инициализация:
---//-----------------
+-------------------
+--Инициализация:
+-------------------
 for i in 0 to i_pkts'length-1 loop
   for x in 0 to i_pkts(i)'length-1 loop
     i_pkts(i)(x) <= (others=>'0');
@@ -268,15 +273,15 @@ i_host_rd <= '1';
 i_host_wr <= '0';
 i_host_txd <= (others=>'0');
 
---//Pkt0
+--Pkt0
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#0A#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(0)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--//Start Adr
-i_pkts(0)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#06#, i_pkts(0)(2)'length);--//Len
+i_pkts(0)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--Start Adr
+i_pkts(0)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#06#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(0)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT + 6) * 2, i_pkts(0)(0)'length);
+i_pkts(0)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT + 6) * 2, i_pkts(0)(0)'length);
 end if;
 
 i_pkts(0)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1011#, i_pkts(0)(0)'length);
@@ -286,15 +291,15 @@ i_pkts(0)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#4014#, i_pkts(0)(0)'length);
 i_pkts(0)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#5015#, i_pkts(0)(0)'length);
 i_pkts(0)(8 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#6016#, i_pkts(0)(0)'length);
 
---//Pkt1
+--Pkt1
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(1)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--//Start Adr
-i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0)(2)'length);--//Len
+i_pkts(1)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--Start Adr
+i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(1)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(1)(0)'length);
+i_pkts(1)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(1)(0)'length);
 end if;
 
 i_pkts(1)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(0)'length);
@@ -303,15 +308,15 @@ i_pkts(1)(5 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#03#, i_pkts(0)(0)'length);
 i_pkts(1)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0)(0)'length);
 i_pkts(1)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0)(0)'length);
 
---//Pkt2
+--Pkt2
 i_pkts(2)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
 i_pkts(2)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
 i_pkts(2)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(2)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(1)'length);--//Start Adr
-i_pkts(2)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0)(2)'length);--//Len
+i_pkts(2)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(1)'length);--Start Adr
+i_pkts(2)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(2)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(2)(0)'length);
+i_pkts(2)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(2)(0)'length);
 end if;
 
 i_pkts(2)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(0)'length);
@@ -321,15 +326,15 @@ i_pkts(2)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0)(0)'length);
 i_pkts(2)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0)(0)'length);
 
 
---//Pkt3
+--Pkt3
 i_pkts(3)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
 i_pkts(3)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
 i_pkts(3)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(3)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--//Start Adr
-i_pkts(3)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0)(2)'length);--//Len
+i_pkts(3)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--Start Adr
+i_pkts(3)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(3)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT + 2) * 2, i_pkts(3)(0)'length);
+i_pkts(3)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT + 2) * 2, i_pkts(3)(0)'length);
 end if;
 
 i_pkts(3)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1021#, i_pkts(0)(0)'length);
@@ -339,15 +344,15 @@ i_pkts(3)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#4024#, i_pkts(0)(0)'length);
 i_pkts(3)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#5025#, i_pkts(0)(0)'length);
 
 
---//Pkt4
+--Pkt4
 i_pkts(4)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
 i_pkts(4)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
 i_pkts(4)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(4)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(1)'length);--//Start Adr
-i_pkts(4)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0)(2)'length);--//Len
+i_pkts(4)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(1)'length);--Start Adr
+i_pkts(4)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(4)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT + 3) * 2, i_pkts(4)(0)'length);
+i_pkts(4)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT + 3) * 2, i_pkts(4)(0)'length);
 end if;
 
 i_pkts(4)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1031#, i_pkts(0)(0)'length);
@@ -357,9 +362,9 @@ i_pkts(4)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#4034#, i_pkts(0)(0)'length);
 i_pkts(4)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#5035#, i_pkts(0)(0)'length);
 
 
---//-----------------
---//Работа:
---//-----------------
+-------------------
+--Работа:
+-------------------
 wait until p_in_rst='0';
 wait for 1 us;
 
@@ -368,7 +373,7 @@ wait for 1 us;
 --DWIDTH 32Bit
 --------------------------------------
 if C_HOST_DWIDTH = 32 then
---//PKT(Write)
+--PKT(Write)
 wait until rising_edge(i_host_clk);
 i_host_txd(31 downto 0) <= i_pkts(0)(1) & i_pkts(0)(0);
 i_host_wr <= '1';
@@ -425,7 +430,7 @@ end if; --if C_HOST_DWIDTH = 32 then
 --DWIDTH 64Bit
 --------------------------------------
 if C_HOST_DWIDTH = 64 then
---//PKT(Write)
+--PKT(Write)
 wait until rising_edge(i_host_clk);
 i_host_txd(63 downto 0) <= i_pkts(0)(3) & i_pkts(0)(2) & i_pkts(0)(1) & i_pkts(0)(0);
 i_host_wr <= '1';
@@ -463,7 +468,7 @@ end if; --if C_HOST_DWIDTH = 64 then
 --DWIDTH 128Bit
 --------------------------------------
 if C_HOST_DWIDTH = 128 then
---//PKT(Write)
+--PKT(Write)
 wait until rising_edge(i_host_clk);
 i_host_txd(127 downto 0) <= i_pkts(0)(7) & i_pkts(0)(6) & i_pkts(0)(5) & i_pkts(0)(4) & i_pkts(0)(3) & i_pkts(0)(2) & i_pkts(0)(1) & i_pkts(0)(0);
 i_host_wr <= '1';
