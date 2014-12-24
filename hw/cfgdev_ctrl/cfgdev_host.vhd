@@ -1024,6 +1024,7 @@ elsif rising_edge(p_in_cfg_clk) then
 
       end if;
 
+
     ----------------------------------
     --
     ----------------------------------
@@ -1050,10 +1051,10 @@ elsif rising_edge(p_in_cfg_clk) then
               end if;
 
           else
-              i_pkt_dheader(CI_CFGPKT_H_ETHLEN_IDX) <= TO_UNSIGNED(CI_CFGPKT_HEADER_DCOUNT * 2
-                                                                   , i_pkt_dheader(CI_CFGPKT_H_ETHLEN_IDX)'length)
-                                                       + (i_pkt_dheader(CI_CFGPKT_H_DLEN_IDX)
-                                                                     (C_CFGPKT_DLEN_M_BIT - 1 downto C_CFGPKT_DLEN_L_BIT) & '0');
+--              i_pkt_dheader(CI_CFGPKT_H_ETHLEN_IDX) <= TO_UNSIGNED(CI_CFGPKT_HEADER_DCOUNT * 2
+--                                                                   , i_pkt_dheader(CI_CFGPKT_H_ETHLEN_IDX)'length)
+--                                                       + (i_pkt_dheader(CI_CFGPKT_H_DLEN_IDX)
+--                                                                     (C_CFGPKT_DLEN_M_BIT - 1 downto C_CFGPKT_DLEN_L_BIT) & '0');
               i_pkt_cntd <= (others => '0');
               i_cfg_dbyte <= 0;
               fsm_state_cs <= S2_PKTH_TXCHK;
@@ -1086,17 +1087,31 @@ elsif rising_edge(p_in_cfg_clk) then
 
     when S2_CFG_TXD =>
 
-      i_cfg_wr<='0';
+      i_cfg_wr <= '0';
 
       if i_pkt_cntd = (i_pkt_cntd'range => '0') then
-        i_pkt_field_data <= '0';
-        i_cfg_done <= '1';
+--      --NO TxACK
+--        i_pkt_field_data <= '0';
+--        i_cfg_done <= '1';
+--        i_cfg_dbyte <= 0;
+--        fsm_state_cs <= S2_DEV_WAIT_RXRDY;
 
+      --YES TxACK
+        i_pkt_field_data <= '0';
         i_pkt_dheader(CI_CFGPKT_H_ETHLEN_IDX) <= TO_UNSIGNED(CI_CFGPKT_HEADER_DCOUNT * 2
                                                              , i_pkt_dheader(CI_CFGPKT_H_ETHLEN_IDX)'length);
         i_cfg_dbyte <= 0;
-        i_pkt_txack <= '1';
-        fsm_state_cs <= S2_PKTH_TXCHK;
+        fsm_state_cs <= S2_TXACK_CHK;
+
+        --old
+--        i_pkt_field_data <= '0';
+--        i_cfg_done <= '1';
+--
+--        i_pkt_dheader(CI_CFGPKT_H_ETHLEN_IDX) <= TO_UNSIGNED(CI_CFGPKT_HEADER_DCOUNT * 2
+--                                                             , i_pkt_dheader(CI_CFGPKT_H_ETHLEN_IDX)'length);
+--        i_cfg_dbyte <= 0;
+--        i_pkt_txack <= '1';
+--        fsm_state_cs <= S2_PKTH_TXCHK;
 
       else
         i_pkt_cntd <= i_pkt_cntd - 1;
@@ -1111,32 +1126,29 @@ elsif rising_edge(p_in_cfg_clk) then
 
       end if;
 
-
     --################################
-    --Send Data (PC <- FPGA)
+    --TXACK
     --################################
-    when S2_PKTH_TXCHK =>
+    when S2_TXACK_CHK =>
 
-      i_cfg_rgadr_ld <= '0';
-      i_dv_wr <= '0';
-
-      if i_pkt_cntd(2 downto 0) = TO_UNSIGNED(CI_CFGPKT_HEADER_DCOUNT, 3) then
-
-        if i_pkt_txack = '0' then
-        --SW <- FPGA (txask) - header sended, goto read data from fpga modules
-        i_pkt_cntd <= i_pkt_dheader(CI_CFGPKT_H_DLEN_IDX)(C_CFGPKT_DLEN_M_BIT downto C_CFGPKT_DLEN_L_BIT);
-        i_pkt_field_data <= '1';
-        fsm_state_cs <= S2_CFG_WAIT_RXRDY;
-        else
-        --SW <- FPGA (txask)
+      if i_pkt_cntd(2 downto 0) = TO_UNSIGNED(CI_CFGPKT_HEADER_DCOUNT - 1, 3) then
         i_pkt_cntd <= (others => '0');
-        i_pkt_field_data <= '0';
-        i_pkt_txack <= '0';
+        i_cfg_done <= '1';
+
+        if i_cfg_dbyte /= 0 then
+          i_dv_wr <= '1';
+        end if;
+        i_cfg_dbyte <= 0;
+
         fsm_state_cs <= S2_DEV_WAIT_RXRDY;
         end if;
       else
-        i_pkt_cntd <= i_pkt_cntd + 1;
-        fsm_state_cs <= S2_DEV_WAIT_TXRDY;
+
+        if i_cfg_dbyte = 0 then
+          i_dv_wr <= '0';
+        end if;
+
+        fsm_state_cs <= S2_TXACK_TXRDY;
       end if;
 
       for i in 0 to CI_CFGPKT_HEADER_DCOUNT - 1 loop
@@ -1145,8 +1157,7 @@ elsif rising_edge(p_in_cfg_clk) then
         end if;
       end loop;
 
-    ----------------------------------
-    when S2_DEV_WAIT_TXRDY =>
+    when S2_TXACK_TXRDY =>
 
       if i_txbuf_full = '0' then
 
@@ -1158,43 +1169,64 @@ elsif rising_edge(p_in_cfg_clk) then
         end loop;
 
         if i_cfg_dbyte = CI_CFG_DBYTE_SIZE - 1 then
-          i_cfg_dbyte <= 0;
---          i_dv_wr <= '1';
-          fsm_state_cs <= S2_DEV_TXD;
+          i_cfg_dbyte <= 0; i_dv_wr <= '1';
         else
-
           i_cfg_dbyte <= i_cfg_dbyte + 1;
-
-          if i_pkt_field_data = '1' then
-            fsm_state_cs <= S2_CFG_WAIT_RXRDY;
-          else
-            fsm_state_cs <= S2_PKTH_TXCHK;
-          end if;
-
         end if;
+
+        i_pkt_cntd <= i_pkt_cntd + 1;
+
+        fsm_state_cs <= S2_TXACK_CHK;
 
       end if;
 
-    ----------------------------------
-    --Send Data to PC
-    ----------------------------------
-    when S2_DEV_TXD =>
 
-      i_dv_wr <= '1';
 
-      if i_pkt_field_data = '1' then
+    --################################
+    --Send Data (PC <- FPGA)
+    --################################
+    when S2_PKTH_TXCHK =>
 
-        if i_pkt_cntd = (i_pkt_cntd'range => '0') then
-          i_cfg_done <= '1';
-          i_pkt_field_data <= '0';
-          fsm_state_cs <= S2_DEV_WAIT_RXRDY;
+      if i_cfg_dbyte = 0 then
+        i_dv_wr <= '0';
+      end if;
 
-        else
-          fsm_state_cs <= S2_CFG_WAIT_RXRDY;
-        end if;
+      if i_pkt_cntd(2 downto 0) = TO_UNSIGNED(CI_CFGPKT_HEADER_DCOUNT - 1, 3) then
+
+        i_pkt_cntd <= i_pkt_dheader(CI_CFGPKT_H_DLEN_IDX)(C_CFGPKT_DLEN_M_BIT downto C_CFGPKT_DLEN_L_BIT);
+        fsm_state_cs <= S2_CFG_WAIT_RXRDY;
 
       else
+        fsm_state_cs <= S2_PKTH_TXRDY;
+      end if;
+
+      for i in 0 to CI_CFGPKT_HEADER_DCOUNT - 1 loop
+        if i_pkt_cntd(1 downto 0) = i then
+          i_cfg_d <= i_pkt_dheader(i);
+        end if;
+      end loop;
+
+    ----------------------------------
+    when S2_PKTH_TXRDY =>
+
+      if i_txbuf_full = '0' then
+
+        for i in 0 to CI_CFG_DBYTE_SIZE - 1 loop
+          if i_cfg_dbyte = i then
+            i_dv_dout((i_cfg_d'length * (i + 1)) - 1
+                          downto (i_cfg_d'length * i)) <= i_cfg_d;
+          end if;
+        end loop;
+
+        if i_cfg_dbyte = CI_CFG_DBYTE_SIZE - 1 then
+          i_cfg_dbyte <= 0; i_dv_wr <= '1';
+        else
+          i_cfg_dbyte <= i_cfg_dbyte + 1;
+        end if;
+
+        i_pkt_cntd <= i_pkt_cntd + 1;
         fsm_state_cs <= S2_PKTH_TXCHK;
+
       end if;
 
     ----------------------------------
@@ -1226,6 +1258,28 @@ elsif rising_edge(p_in_cfg_clk) then
         fsm_state_cs <= S2_DEV_WAIT_TXRDY;
       end if;
 
+
+--    ----------------------------------
+--    --Send Data to PC
+--    ----------------------------------
+--    when S2_DEV_TXD =>
+--
+--      i_dv_wr <= '1';
+--
+--      if i_pkt_field_data = '1' then
+--
+--        if i_pkt_cntd = (i_pkt_cntd'range => '0') then
+--          i_cfg_done <= '1';
+--          i_pkt_field_data <= '0';
+--          fsm_state_cs <= S2_DEV_WAIT_RXRDY;
+--
+--        else
+--          fsm_state_cs <= S2_CFG_WAIT_RXRDY;
+--        end if;
+--
+--      else
+--        fsm_state_cs <= S2_PKTH_TXCHK;
+--      end if;
   end case;
 --  end if;--if p_in_clken = '1' then
 end if;
