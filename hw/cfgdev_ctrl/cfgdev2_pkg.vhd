@@ -70,8 +70,8 @@ p_out_cfg_wr         : out    std_logic;
 p_out_cfg_rd         : out    std_logic;
 p_out_cfg_txdata     : out    std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
 p_in_cfg_rxdata      : in     std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
-p_in_cfg_txrdy       : in     std_logic;
-p_in_cfg_rxrdy       : in     std_logic;
+p_in_cfg_txbuf_empty : in     std_logic;
+p_in_cfg_rxbuf_full  : in     std_logic;
 p_out_cfg_done       : out    std_logic;
 p_in_cfg_clk         : in     std_logic;
 
