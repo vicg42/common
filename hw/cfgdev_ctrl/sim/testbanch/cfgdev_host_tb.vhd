@@ -35,9 +35,9 @@ end cfgdev_host_tb;
 
 architecture behavior of cfgdev_host_tb is
 
-constant CI_OPT : integer := 1;
+constant CI_OPT : integer := 0;
 
-constant C_HOSTCLK_PERIOD : TIME := 6.6 ns; --150MHz
+constant C_HOSTCLK_PERIOD : TIME := 10 ns; --150MHz
 constant C_USRCLK_PERIOD  : TIME := 10 ns;
 
 --for m_devcfg : cfgdev_host use entity work.cfgdev_host(behav1);
@@ -226,29 +226,11 @@ begin
 end process;
 
 --Чтение регистров
-process(p_in_rst,p_in_clk)
-  variable rxd : std_logic_vector(i_cfg_rxd'range);
-begin
-  if p_in_rst='1' then
-      rxd := (others => '0');
-    i_cfg_rxd <=(others => '0');
-  elsif p_in_clk'event and p_in_clk='1' then
-    rxd := (others => '0');
-
-    if i_cfg_rd = '1' then
-        if    i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then rxd := EXT(i_reg0, rxd'length);
-        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then rxd := EXT(i_reg1, rxd'length);
-        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then rxd := EXT(i_reg2, rxd'length);
-        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then rxd := EXT(i_reg3, rxd'length);
-        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then rxd := EXT(i_reg4, rxd'length);
-
-        end if;
-
-        i_cfg_rxd<=rxd;
-
-    end if;--if p_in_cfg_rd='1' then
-  end if;
-end process;
+i_cfg_rxd <= EXT(i_reg4, i_cfg_rxd'length) when i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) else
+             EXT(i_reg3, i_cfg_rxd'length) when i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) else
+             EXT(i_reg2, i_cfg_rxd'length) when i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) else
+             EXT(i_reg1, i_cfg_rxd'length) when i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) else
+             EXT(i_reg0, i_cfg_rxd'length);
 
 
 
@@ -297,7 +279,7 @@ i_pkts(1)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
 i_pkts(1)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--Start Adr
-i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0)(2)'length);--Len
+i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
 i_pkts(1)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(1)(0)'length);
 end if;
@@ -417,6 +399,8 @@ i_host_wr <= '0';
 
 wait until rising_edge(i_host_clk);
 i_host_txd(31 downto 0) <= i_pkts(1)(3) & i_pkts(1)(2);
+--i_host_txd(15 downto 0) <= i_pkts(1)(2);
+--i_host_txd(31 downto 16) <= (others => '0');
 i_host_wr <= '1';
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
