@@ -7,13 +7,13 @@
 --
 -- architecture behav1 :
 --  Rules:
---  Write:  HOST -> FPGA
---   1. HOST (CfgPkt(Header(WR) + data)) -> FPGA
---   2. HOST <- FPGA (CfgPkt(Header(WR))
+--  Write:  HOST -> CFG
+--   1. HOST (CfgPkt(Header(WR) + data)) -> CFG
+--   2. HOST <- CFG (CfgPkt(Header(WR))
 --
---  Read :  HOST <- FPGA
---   1. HOST (CfgPkt(Header(RD)) -> FPGA
---   2. HOST  <- FPGA (CfgPkt(Header(RD) + Data)
+--  Read :  HOST <- CFG
+--   1. HOST (CfgPkt(Header(RD)) -> CFG
+--   2. HOST  <- CFG (CfgPkt(Header(RD) + Data)
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -28,22 +28,21 @@ use work.reduce_pack.all;
 entity cfgdev2_host is
 generic(
 G_DBG : string := "OFF";
-G_HOST_DWIDTH_H2D : integer := 32;
-G_HOST_DWIDTH_D2H : integer := 32;
-C_FMODULE_DWIDTH  : integer := 16
+G_HOST_DWIDTH : integer := 32;
+G_CFG_DWIDTH : integer := 16
 );
 port(
 -------------------------------
 --HOST
 -------------------------------
 --host -> dev
-p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH_H2D - 1 downto 0);
+p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 p_in_htxbuf_wr       : in   std_logic;
 p_out_htxbuf_full    : out  std_logic;
 p_out_htxbuf_empty   : out  std_logic;
 
 --host <- dev
-p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH_H2D - 1 downto 0);
+p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 p_in_hrxbuf_rd       : in   std_logic;
 p_out_hrxbuf_full    : out  std_logic;
 p_out_hrxbuf_empty   : out  std_logic;
@@ -52,16 +51,16 @@ p_out_hirq           : out  std_logic;
 p_in_hclk            : in   std_logic;
 
 -------------------------------
---FPGA DEV
+--CFG
 -------------------------------
 p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0); --dev number
-p_out_cfg_radr       : out    std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0); --adr register
+p_out_cfg_radr       : out    std_logic_vector(G_CFG_DWIDTH - 1 downto 0); --adr register
 p_out_cfg_radr_ld    : out    std_logic;
 p_out_cfg_radr_fifo  : out    std_logic;
 p_out_cfg_wr         : out    std_logic;
 p_out_cfg_rd         : out    std_logic;
-p_out_cfg_txdata     : out    std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
-p_in_cfg_rxdata      : in     std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
+p_out_cfg_txdata     : out    std_logic_vector(G_CFG_DWIDTH - 1 downto 0);
+p_in_cfg_rxdata      : in     std_logic_vector(G_CFG_DWIDTH - 1 downto 0);
 p_in_cfg_txbuf_empty : in     std_logic;
 p_in_cfg_rxbuf_full  : in     std_logic;
 p_out_cfg_done       : out    std_logic;
@@ -82,18 +81,18 @@ end entity cfgdev2_host;
 
 architecture behav1 of cfgdev2_host is
 
---constant CI_CFGPKT_H_ETHLEN_IDX : integer := 0;
---constant CI_CFGPKT_H_CTRL_IDX   : integer := 1;
---constant CI_CFGPKT_H_RADR_IDX   : integer := 2;
---constant CI_CFGPKT_H_DLEN_IDX   : integer := 3;
+--constant CI_CFGPKTH_ETHLEN_CHNK : integer := 0;
+--constant CI_CFGPKTH_CTRL_CHNK   : integer := 1;
+--constant CI_CFGPKTH_RADR_CHNK   : integer := 2;
+--constant CI_CFGPKTH_DLEN_CHNK   : integer := 3;
 --
---constant CI_CFGPKT_HEADER_DCOUNT : integer := C_CFGPKT_HEADER_DCOUNT + 1;
+--constant CI_CFGPKTH_DCOUNT : integer := C_CFGPKTH_DCOUNT + 1;
 
-constant CI_CFGPKT_H_CTRL_IDX   : integer := 0;
-constant CI_CFGPKT_H_RADR_IDX   : integer := 1;
-constant CI_CFGPKT_H_DLEN_IDX   : integer := 2;
+constant CI_CFGPKTH_CTRL_CHNK   : integer := 0;
+constant CI_CFGPKTH_RADR_CHNK   : integer := 1;
+constant CI_CFGPKTH_DLEN_CHNK   : integer := 2;
 
-constant CI_CFGPKT_HEADER_DCOUNT : integer := C_CFGPKT_HEADER_DCOUNT;
+constant CI_CFGPKTH_DCOUNT : integer := C_CFGPKTH_DCOUNT;
 
 component cfgdev_buf
 generic(
@@ -148,7 +147,7 @@ signal i_fdev_wr                        : std_logic;
 signal i_fdev_rd                        : std_logic;
 signal i_fdev_done                      : std_logic;
 
-type TDevCfg_PktHeader is array (0 to CI_CFGPKT_HEADER_DCOUNT - 1) of unsigned(i_fdev_txd'range);
+type TDevCfg_PktHeader is array (0 to CI_CFGPKTH_DCOUNT - 1) of unsigned(i_fdev_txd'range);
 signal i_pkth                           : TDevCfg_PktHeader;
 signal i_pkt_dcnt                       : unsigned(i_fdev_txd'range);
 
@@ -173,21 +172,20 @@ p_out_hirq <= '0';
 --------------------------------------------------
 --
 --------------------------------------------------
---HOST -> FPGA
+--HOST -> CFG
 p_out_htxbuf_full <= i_hbufr_full;
 p_out_htxbuf_empty <= i_hbufr_empty;
 
-gen_htxbuf_di_swap : for i in 0 to G_HOST_DWIDTH_H2D / G_HOST_DWIDTH_D2H - 1 generate begin
-i_htxbuf_di_swap((p_in_htxbuf_di'length - (G_HOST_DWIDTH_D2H * i)) - 1 downto
-                    (p_in_htxbuf_di'length - (G_HOST_DWIDTH_D2H * (i + 1))))
+gen_htxbuf_di_swap : for i in 0 to G_HOST_DWIDTH / G_HOST_DWIDTH - 1 generate begin
+i_htxbuf_di_swap((p_in_htxbuf_di'length - (G_HOST_DWIDTH * i)) - 1 downto
+                    (p_in_htxbuf_di'length - (G_HOST_DWIDTH * (i + 1))))
 
-                  <= p_in_htxbuf_di((G_HOST_DWIDTH_D2H * (i + 1) - 1) downto (G_HOST_DWIDTH_D2H * i));
+                  <= p_in_htxbuf_di((G_HOST_DWIDTH * (i + 1) - 1) downto (G_HOST_DWIDTH * i));
 end generate gen_htxbuf_di_swap;
 
 m_rxbuf : cfgdev_buf
 generic map(
-G_DIWIDTH => G_HOST_DWIDTH_H2D,
-G_DOWIDTH => G_HOST_DWIDTH_D2H
+G_DWIDTH => G_HOST_DWIDTH
 )
 port map(
 din         => i_htxbuf_di_swap,
@@ -208,14 +206,14 @@ rst         => i_hbufr_rst
 i_hbufr_rst <= p_in_rst or i_hbufr_clr;
 i_hbufr_rd <= OR_reduce(i_chnkcnt) and not i_hbufr_empty;
 
---HOST <- FPGA
+--HOST <- CFG
 p_out_hrxbuf_full <= i_hbufw_full;
 p_out_hrxbuf_empty <= i_hbufw_empty;
 
 m_txbuf : cfgdev_buf
 generic map(
-G_DIWIDTH => G_HOST_DWIDTH_D2H,
-G_DOWIDTH => G_HOST_DWIDTH_H2D
+G_DIWIDTH => G_HOST_DWIDTH,
+G_DOWIDTH => G_HOST_DWIDTH
 )
 port map(
 din         => i_hbufw_di,
@@ -233,20 +231,20 @@ prog_full   => i_hbufw_full,
 rst         => p_in_rst
 );
 
-gen_hrxbuf_do_swap : for i in 0 to G_HOST_DWIDTH_H2D / G_HOST_DWIDTH_D2H - 1 generate begin
-p_out_hrxbuf_do((i_hrxbuf_do_swap'length - (G_HOST_DWIDTH_D2H * i)) - 1 downto
-                    (i_hrxbuf_do_swap'length - (G_HOST_DWIDTH_D2H * (i + 1))))
+gen_hrxbuf_do_swap : for i in 0 to G_HOST_DWIDTH / G_HOST_DWIDTH - 1 generate begin
+p_out_hrxbuf_do((i_hrxbuf_do_swap'length - (G_HOST_DWIDTH * i)) - 1 downto
+                    (i_hrxbuf_do_swap'length - (G_HOST_DWIDTH * (i + 1))))
 
-                  <= i_hrxbuf_do_swap((G_HOST_DWIDTH_D2H * (i + 1) - 1) downto (G_HOST_DWIDTH_D2H * i));
+                  <= i_hrxbuf_do_swap((G_HOST_DWIDTH * (i + 1) - 1) downto (G_HOST_DWIDTH * i));
 end generate gen_hrxbuf_do_swap;
 
 
 --------------------------------------------------
 --
 --------------------------------------------------
-p_out_cfg_dadr      <= std_logic_vector(i_pkth(CI_CFGPKT_H_CTRL_IDX)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT));
-p_out_cfg_radr_fifo <=                  i_pkth(CI_CFGPKT_H_CTRL_IDX)(C_CFGPKT_FIFO_BIT);
-p_out_cfg_radr      <= std_logic_vector(i_pkth(CI_CFGPKT_H_RADR_IDX));
+p_out_cfg_dadr      <= std_logic_vector(i_pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT));
+p_out_cfg_radr_fifo <=                  i_pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_FIFO_BIT);
+p_out_cfg_radr      <= std_logic_vector(i_pkth(CI_CFGPKTH_RADR_CHNK));
 p_out_cfg_radr_ld   <= i_fdev_radr_ld;
 p_out_cfg_rd        <= i_fdev_rd and not i_hbufw_full and not p_in_cfg_rxbuf_full;
 p_out_cfg_wr        <= i_fdev_wr;
@@ -310,7 +308,7 @@ elsif rising_edge(p_in_cfg_clk) then
           i_pkt_dcnt <= (others => '0');
 
           --analize packet type
-          if pkth(CI_CFGPKT_H_CTRL_IDX)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
+          if pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
             i_chnkcnt <= i_chnkcnt + 1;
             fsm_state_cs <= S2_HBUFR_RxD;
           else
@@ -338,13 +336,13 @@ elsif rising_edge(p_in_cfg_clk) then
 
       i_pkth <= pkth;
 
-    --Write data to fpga dev
+    --Write data to cfg devices
     when S2_HBUFR_RxD =>
 
       i_fdev_radr_ld <= '0';
 
       if i_hbufr_empty = '0' and p_in_cfg_txbuf_empty = '0' then
-        if i_pkt_dcnt = i_pkth(CI_CFGPKT_H_DLEN_IDX) - 1 then
+        if i_pkt_dcnt = i_pkth(CI_CFGPKTH_DLEN_CHNK) - 1 then
           i_chnkcnt <= (others => '0');
           i_pkt_dcnt <= (others => '0');
           i_hbufr_clr <= '1';
@@ -378,7 +376,7 @@ elsif rising_edge(p_in_cfg_clk) then
 
       if i_hbufw_full = '0' then
         if i_pkt_dcnt(1 downto 0) = TO_UNSIGNED(i_pkth'length - 1, 2) then
-          if pkth(CI_CFGPKT_H_CTRL_IDX)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
+          if pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
             i_chnkcnt <= (others => '0');
             i_pkt_dcnt <= (others => '0');
             i_hbufw_wr <= '1';
@@ -414,12 +412,12 @@ elsif rising_edge(p_in_cfg_clk) then
         end if;
       end loop;
 
-    --read data from fpga dev and write it to host buf
+    --read data from cfg devices and write it to host buf
     when S2_HBUFW_TxD =>
 
       if i_hbufw_full = '0' and p_in_cfg_rxbuf_full = '0' then
 
-        if i_pkt_dcnt = i_pkth(CI_CFGPKT_H_DLEN_IDX) - 1 then
+        if i_pkt_dcnt = i_pkth(CI_CFGPKTH_DLEN_CHNK) - 1 then
           i_chnkcnt <= (others => '0');
           i_pkt_dcnt <= (others => '0');
           i_fdev_rd <= '0';

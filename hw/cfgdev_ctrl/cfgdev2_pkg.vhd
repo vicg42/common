@@ -26,16 +26,16 @@ constant C_CFGPKT_DADR_M_BIT    : integer := 5;
 --HEADER(1)/ Register adress
 --HEADER(2)/ Data Length
 
-constant C_CFGPKT_HEADER_DCOUNT : integer:=3;
+constant C_CFGPKTH_DCOUNT : integer := 3;--packet header
 
 --C_CFGPKT_WR_BIT/ Bit Map:
-constant C_CFGPKT_WR            : std_logic:='0';
-constant C_CFGPKT_RD            : std_logic:='1';
+constant C_CFGPKT_WR            : std_logic := '0';
+constant C_CFGPKT_RD            : std_logic := '1';
 
 
 component cfgdev2_host
 generic(
-G_DBG : string:="OFF";
+G_DBG : string := "OFF";
 G_HOST_DWIDTH_H2D : integer := 32;
 G_HOST_DWIDTH_D2H : integer := 32;
 C_FMODULE_DWIDTH  : integer := 16
