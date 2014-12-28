@@ -60,9 +60,11 @@ p_out_cfg_radr_fifo  : out    std_logic;
 p_out_cfg_wr         : out    std_logic;
 p_out_cfg_rd         : out    std_logic;
 p_out_cfg_txdata     : out    std_logic_vector(G_CFG_DWIDTH - 1 downto 0);
-p_in_cfg_rxdata      : in     std_logic_vector(G_CFG_DWIDTH - 1 downto 0);
+p_in_cfg_txbuf_full  : in     std_logic;
 p_in_cfg_txbuf_empty : in     std_logic;
+p_in_cfg_rxdata      : in     std_logic_vector(G_CFG_DWIDTH - 1 downto 0);
 p_in_cfg_rxbuf_full  : in     std_logic;
+p_in_cfg_rxbuf_empty : in     std_logic;
 p_out_cfg_done       : out    std_logic;
 p_in_cfg_clk         : in     std_logic;
 
@@ -246,7 +248,7 @@ p_out_cfg_dadr      <= std_logic_vector(i_pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_DA
 p_out_cfg_radr_fifo <=                  i_pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_FIFO_BIT);
 p_out_cfg_radr      <= std_logic_vector(i_pkth(CI_CFGPKTH_RADR_CHNK));
 p_out_cfg_radr_ld   <= i_fdev_radr_ld;
-p_out_cfg_rd        <= i_fdev_rd and not i_hbufw_full and not p_in_cfg_rxbuf_full;
+p_out_cfg_rd        <= i_fdev_rd and not i_hbufw_full and not p_in_cfg_rxbuf_empty;
 p_out_cfg_wr        <= i_fdev_wr;
 p_out_cfg_txdata    <= std_logic_vector(i_fdev_txd);
 
@@ -309,8 +311,10 @@ elsif rising_edge(p_in_cfg_clk) then
 
           --analize packet type
           if pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
+            if p_in_cfg_txbuf_full = '0' then
             i_chnkcnt <= i_chnkcnt + 1;
-            fsm_state_cs <= S2_HBUFR_RxD;
+            fsm_state_cs <= S2_HBUFR_RxD; i_fdev_wr <= '1';
+            end if;
           else
             i_chnkcnt <= (others => '0');
             i_hbufr_clr <= '1';
@@ -341,7 +345,7 @@ elsif rising_edge(p_in_cfg_clk) then
 
       i_fdev_radr_ld <= '0';
 
-      if i_hbufr_empty = '0' and p_in_cfg_txbuf_empty = '0' then
+      if i_hbufr_empty = '0' and p_in_cfg_txbuf_full = '0' then
         if i_pkt_dcnt = i_pkth(CI_CFGPKTH_DLEN_CHNK) - 1 then
           i_chnkcnt <= (others => '0');
           i_pkt_dcnt <= (others => '0');
@@ -382,7 +386,7 @@ elsif rising_edge(p_in_cfg_clk) then
             i_hbufw_wr <= '1';
             fsm_state_cs <= S2_HBUFR_IDLE;
           else
-            if p_in_cfg_rxbuf_full = '0' then
+            if p_in_cfg_rxbuf_empty = '0' then
               i_chnkcnt <= i_chnkcnt + 1;
               i_pkt_dcnt <= (others => '0');
               i_hbufw_wr <= OR_reduce(i_chnkcnt);
@@ -415,7 +419,7 @@ elsif rising_edge(p_in_cfg_clk) then
     --read data from cfg devices and write it to host buf
     when S2_HBUFW_TxD =>
 
-      if i_hbufw_full = '0' and p_in_cfg_rxbuf_full = '0' then
+      if i_hbufw_full = '0' and p_in_cfg_rxbuf_empty = '0' then
 
         if i_pkt_dcnt = i_pkth(CI_CFGPKTH_DLEN_CHNK) - 1 then
           i_chnkcnt <= (others => '0');

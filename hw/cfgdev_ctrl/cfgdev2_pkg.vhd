@@ -36,22 +36,21 @@ constant C_CFGPKT_RD            : std_logic := '1';
 component cfgdev2_host
 generic(
 G_DBG : string := "OFF";
-G_HOST_DWIDTH_H2D : integer := 32;
-G_HOST_DWIDTH_D2H : integer := 32;
-C_FMODULE_DWIDTH  : integer := 16
+G_HOST_DWIDTH : integer := 32;
+G_CFG_DWIDTH : integer := 16
 );
 port(
 -------------------------------
 --HOST
 -------------------------------
 --host -> dev
-p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH_H2D - 1 downto 0);
+p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 p_in_htxbuf_wr       : in   std_logic;
 p_out_htxbuf_full    : out  std_logic;
 p_out_htxbuf_empty   : out  std_logic;
 
 --host <- dev
-p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH_H2D - 1 downto 0);
+p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 p_in_hrxbuf_rd       : in   std_logic;
 p_out_hrxbuf_full    : out  std_logic;
 p_out_hrxbuf_empty   : out  std_logic;
@@ -60,18 +59,20 @@ p_out_hirq           : out  std_logic;
 p_in_hclk            : in   std_logic;
 
 -------------------------------
---FPGA DEV
+--CFG
 -------------------------------
-p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0);
-p_out_cfg_radr       : out    std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
+p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0); --dev number
+p_out_cfg_radr       : out    std_logic_vector(G_CFG_DWIDTH - 1 downto 0); --adr register
 p_out_cfg_radr_ld    : out    std_logic;
 p_out_cfg_radr_fifo  : out    std_logic;
 p_out_cfg_wr         : out    std_logic;
 p_out_cfg_rd         : out    std_logic;
-p_out_cfg_txdata     : out    std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
-p_in_cfg_rxdata      : in     std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
+p_out_cfg_txdata     : out    std_logic_vector(G_CFG_DWIDTH - 1 downto 0);
+p_in_cfg_txbuf_full  : in     std_logic;
 p_in_cfg_txbuf_empty : in     std_logic;
+p_in_cfg_rxdata      : in     std_logic_vector(G_CFG_DWIDTH - 1 downto 0);
 p_in_cfg_rxbuf_full  : in     std_logic;
+p_in_cfg_rxbuf_empty : in     std_logic;
 p_out_cfg_done       : out    std_logic;
 p_in_cfg_clk         : in     std_logic;
 
