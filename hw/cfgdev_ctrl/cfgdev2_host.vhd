@@ -252,8 +252,11 @@ p_out_cfg_rd        <= i_fdev_rd and not i_hbufw_full and not p_in_cfg_rxbuf_emp
 p_out_cfg_wr        <= i_fdev_wr;
 p_out_cfg_txdata    <= std_logic_vector(i_fdev_txd);
 
-p_out_cfg_done      <= i_fdev_done;--Операция завершена
-
+p_out_cfg_done      <= not i_hbufr_empty and not p_in_cfg_txbuf_full
+                                when fsm_state_cs = S2_HBUFR_RxD
+                                  and pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR
+                                    and (i_pkt_dcnt = i_pkth(CI_CFGPKTH_DLEN_CHNK) - 1)
+                      else i_fdev_done;
 
 
 --------------------------------------------------
@@ -324,6 +327,11 @@ elsif rising_edge(p_in_cfg_clk) then
         else
           i_chnkcnt <= i_chnkcnt + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
+
+--          i_chnkcnt <= i_chnkcnt + 1;
+--          if i_chnkcnt = (i_chnkcnt'range => '1') then
+--            i_pkt_dcnt <= i_pkt_dcnt + 1;
+--          end if;
         end if;
       end if;
 
@@ -338,6 +346,13 @@ elsif rising_edge(p_in_cfg_clk) then
         end if;
       end loop;
 
+--      for i in 0 to CI_CHUNK_COUNT - 1 loop
+--        if i_chnkcnt = i then
+--          i_fdev_txd((i_hbufr_do'length * (i + 1)) - 1
+--                          downto (i_hbufr_do'length * i)) <= UNSIGNED(i_hbufr_do);
+--        end if;
+--      end loop;
+
       i_pkth <= pkth;
 
     --Write data to cfg devices
@@ -351,7 +366,7 @@ elsif rising_edge(p_in_cfg_clk) then
           i_pkt_dcnt <= (others => '0');
           i_hbufr_clr <= '1';
           i_fdev_wr <= '0';
-          i_fdev_done <= '1';
+          --i_fdev_done <= '1';
 --          fsm_state_cs <= S2_HBUFR_IDLE;--for case TXACK OFF
           fsm_state_cs <= S2_HBUFW_TxH;
         else
@@ -370,6 +385,13 @@ elsif rising_edge(p_in_cfg_clk) then
                                            downto (i_fdev_txd'length * i)));
         end if;
       end loop;
+
+--      for i in 0 to CI_CHUNK_COUNT - 1 loop
+--        if i_chnkcnt = i then
+--          i_fdev_txd((i_hbufr_do'length * (i + 1)) - 1
+--                          downto (i_hbufr_do'length * i)) <= UNSIGNED(i_hbufr_do);
+--        end if;
+--      end loop;
 
     --write packet header to host buf
     when S2_HBUFW_TxH =>
