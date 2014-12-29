@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 24.12.2014 15:13:26
--- Module Name : cfgdev2_host
+-- Module Name : cfgdev_host
 --
 -- architecture behav1 :
 --  Rules:
@@ -22,10 +22,10 @@ use ieee.numeric_std.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.cfgdev2_pkg.all;
+use work.cfgdev_pkg.all;
 use work.reduce_pack.all;
 
-entity cfgdev2_host is
+entity cfgdev_host is
 generic(
 G_DBG : string := "OFF";
 G_HOST_DWIDTH : integer := 32;
@@ -79,9 +79,9 @@ p_out_tst            : out    std_logic_vector(31 downto 0);
 -------------------------------
 p_in_rst             : in     std_logic
 );
-end entity cfgdev2_host;
+end entity cfgdev_host;
 
-architecture behav1 of cfgdev2_host is
+architecture behav1 of cfgdev_host is
 
 --constant CI_CFGPKTH_ETHLEN_CHNK : integer := 0;
 --constant CI_CFGPKTH_CTRL_CHNK   : integer := 1;
@@ -98,15 +98,14 @@ constant CI_CFGPKTH_DCOUNT : integer := C_CFGPKTH_DCOUNT;
 
 component cfgdev_buf
 generic(
-G_DIWIDTH : integer := 32;
-G_DOWIDTH : integer := 32
+G_DWIDTH : integer := 32
 );
 port(
-din         : in  std_logic_vector(G_DIWIDTH - 1 downto 0);
+din         : in  std_logic_vector(G_DWIDTH - 1 downto 0);
 wr_en       : in  std_logic;
 wr_clk      : in  std_logic;
 
-dout        : out std_logic_vector(G_DOWIDTH - 1 downto 0);
+dout        : out std_logic_vector(G_DWIDTH - 1 downto 0);
 rd_en       : in  std_logic;
 rd_clk      : in  std_logic;
 
@@ -206,7 +205,7 @@ rst         => i_hbufr_rst
 );
 
 i_hbufr_rst <= p_in_rst or i_hbufr_clr;
-i_hbufr_rd <= OR_reduce(i_chnkcnt) and not i_hbufr_empty;
+i_hbufr_rd <= AND_reduce(i_chnkcnt) and not i_hbufr_empty;
 
 --HOST <- CFG
 p_out_hrxbuf_full <= i_hbufw_full;
@@ -214,8 +213,7 @@ p_out_hrxbuf_empty <= i_hbufw_empty;
 
 m_txbuf : cfgdev_buf
 generic map(
-G_DIWIDTH => G_HOST_DWIDTH,
-G_DOWIDTH => G_HOST_DWIDTH
+G_DWIDTH => G_HOST_DWIDTH
 )
 port map(
 din         => i_hbufw_di,
@@ -252,11 +250,7 @@ p_out_cfg_rd        <= i_fdev_rd and not i_hbufw_full and not p_in_cfg_rxbuf_emp
 p_out_cfg_wr        <= i_fdev_wr;
 p_out_cfg_txdata    <= std_logic_vector(i_fdev_txd);
 
-p_out_cfg_done      <= not i_hbufr_empty and not p_in_cfg_txbuf_full
-                                when fsm_state_cs = S2_HBUFR_RxD
-                                  and pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR
-                                    and (i_pkt_dcnt = i_pkth(CI_CFGPKTH_DLEN_CHNK) - 1)
-                      else i_fdev_done;
+p_out_cfg_done      <= i_fdev_done;
 
 
 --------------------------------------------------
@@ -316,7 +310,7 @@ elsif rising_edge(p_in_cfg_clk) then
           if pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
             if p_in_cfg_txbuf_full = '0' then
             i_chnkcnt <= i_chnkcnt + 1;
-            fsm_state_cs <= S2_HBUFR_RxD; i_fdev_wr <= '1';
+            fsm_state_cs <= S2_HBUFR_RxD; --i_fdev_wr <= '1';
             end if;
           else
             i_chnkcnt <= (others => '0');
@@ -328,10 +322,6 @@ elsif rising_edge(p_in_cfg_clk) then
           i_chnkcnt <= i_chnkcnt + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
 
---          i_chnkcnt <= i_chnkcnt + 1;
---          if i_chnkcnt = (i_chnkcnt'range => '1') then
---            i_pkt_dcnt <= i_pkt_dcnt + 1;
---          end if;
         end if;
       end if;
 
@@ -346,13 +336,6 @@ elsif rising_edge(p_in_cfg_clk) then
         end if;
       end loop;
 
---      for i in 0 to CI_CHUNK_COUNT - 1 loop
---        if i_chnkcnt = i then
---          i_fdev_txd((i_hbufr_do'length * (i + 1)) - 1
---                          downto (i_hbufr_do'length * i)) <= UNSIGNED(i_hbufr_do);
---        end if;
---      end loop;
-
       i_pkth <= pkth;
 
     --Write data to cfg devices
@@ -361,16 +344,16 @@ elsif rising_edge(p_in_cfg_clk) then
       i_fdev_radr_ld <= '0';
 
       if i_hbufr_empty = '0' and p_in_cfg_txbuf_full = '0' then
+        i_fdev_wr <= '1';
+
         if i_pkt_dcnt = i_pkth(CI_CFGPKTH_DLEN_CHNK) - 1 then
           i_chnkcnt <= (others => '0');
           i_pkt_dcnt <= (others => '0');
           i_hbufr_clr <= '1';
-          i_fdev_wr <= '0';
-          --i_fdev_done <= '1';
+          i_fdev_done <= '1';
 --          fsm_state_cs <= S2_HBUFR_IDLE;--for case TXACK OFF
           fsm_state_cs <= S2_HBUFW_TxH;
         else
-          i_fdev_wr <= '1';
           i_chnkcnt <= i_chnkcnt + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
         end if;
@@ -397,7 +380,7 @@ elsif rising_edge(p_in_cfg_clk) then
     when S2_HBUFW_TxH =>
 
       i_fdev_radr_ld <= '0';
-      i_fdev_done <= '0';
+      i_fdev_done <= '0'; i_fdev_wr <= '0';
       i_hbufr_clr <= '0';
 
       if i_hbufw_full = '0' then

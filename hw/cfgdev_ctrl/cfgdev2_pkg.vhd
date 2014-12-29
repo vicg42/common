@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 24.12.2014 15:07:49
--- Module Name : cfgdev2_pkg
+-- Module Name : cfgdev_pkg
 --
 -- Description :
 --
@@ -15,7 +15,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 
-package cfgdev2_pkg is
+package cfgdev_pkg is
 
 --HEADER(0)/ Bit map:
 constant C_CFGPKT_WR_BIT        : integer := 0;
@@ -33,7 +33,7 @@ constant C_CFGPKT_WR            : std_logic := '0';
 constant C_CFGPKT_RD            : std_logic := '1';
 
 
-component cfgdev2_host
+component cfgdev_host
 generic(
 G_DBG : string := "OFF";
 G_HOST_DWIDTH : integer := 32;
@@ -87,6 +87,6 @@ p_out_tst            : out    std_logic_vector(31 downto 0);
 -------------------------------
 p_in_rst             : in     std_logic
 );
-end component cfgdev2_host;
+end component cfgdev_host;
 
-end package cfgdev2_pkg;
+end package cfgdev_pkg;
