@@ -25,7 +25,7 @@ use work.cfgdev_pkg.all;
 
 entity cfgdev_host_tb is
 generic(
-C_HOST_DWIDTH : integer:=32;
+C_HOST_DWIDTH : integer:=8;
 C_FMODULE_DWIDTH : integer:=16
 );
 port(
@@ -261,12 +261,12 @@ if CI_OPT = 1 then
 i_pkts(0)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT + 6) * 2, i_pkts(0)(0)'length);
 end if;
 
-i_pkts(0)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#11#, i_pkts(0)(0)'length);
-i_pkts(0)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#12#, i_pkts(0)(0)'length);
-i_pkts(0)(5 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#13#, i_pkts(0)(0)'length);
-i_pkts(0)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#14#, i_pkts(0)(0)'length);
-i_pkts(0)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#15#, i_pkts(0)(0)'length);
-i_pkts(0)(8 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#16#, i_pkts(0)(0)'length);
+i_pkts(0)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1011#, i_pkts(0)(0)'length);
+i_pkts(0)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#2012#, i_pkts(0)(0)'length);
+i_pkts(0)(5 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#3013#, i_pkts(0)(0)'length);
+i_pkts(0)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#4014#, i_pkts(0)(0)'length);
+i_pkts(0)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#5015#, i_pkts(0)(0)'length);
+i_pkts(0)(8 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#6016#, i_pkts(0)(0)'length);
 
 --Pkt1
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
@@ -369,6 +369,7 @@ i_host_wr <= '1';
 wait until rising_edge(i_host_clk);
 i_host_txd(7 downto 0) <= i_pkts(0)(2)((8 * 2) - 1 downto (8 * 1));
 i_host_wr <= '1';
+
 wait until rising_edge(i_host_clk);
 i_host_txd(7 downto 0) <= i_pkts(0)(3)((8 * 1) - 1 downto (8 * 0));
 i_host_wr <= '1';
@@ -381,53 +382,62 @@ i_host_wr <= '1';
 wait until rising_edge(i_host_clk);
 i_host_txd(7 downto 0) <= i_pkts(0)(4)((8 * 2) - 1 downto (8 * 1));
 i_host_wr <= '1';
+
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(0)(5)((8 * 1) - 1 downto (8 * 0));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(0)(5)((8 * 2) - 1 downto (8 * 1));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(0)(6)((8 * 1) - 1 downto (8 * 0));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(0)(6)((8 * 2) - 1 downto (8 * 1));
+i_host_wr <= '1';
+
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(0)(7)((8 * 1) - 1 downto (8 * 0));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(0)(7)((8 * 2) - 1 downto (8 * 1));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(0)(8)((8 * 1) - 1 downto (8 * 0));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(0)(8)((8 * 2) - 1 downto (8 * 1));
+i_host_wr <= '1';
+
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
-
---
---wait until rising_edge(i_host_clk);
---i_host_txd(31 downto 0) <= i_pkts(0)(7) & i_pkts(0)(6);
---i_host_wr <= '1';
---wait until rising_edge(i_host_clk);
---i_host_wr <= '0';
---
---wait until rising_edge(i_host_clk);
---i_host_txd(31 downto 0) <= CONV_STD_LOGIC_VECTOR(0, 16) & i_pkts(0)(8);
---i_host_wr <= '1';
---wait until rising_edge(i_host_clk);
---i_host_wr <= '0';
-
---
---wait until rising_edge(i_host_clk);
---i_host_txd(31 downto 0) <= i_pkts(0)(7) & i_pkts(0)(6);
---i_host_wr <= '1';
---wait until rising_edge(i_host_clk);
---i_host_wr <= '0';
---
---wait until rising_edge(i_host_clk);
---i_host_txd(31 downto 0) <= CONV_STD_LOGIC_VECTOR(0, 16) & i_pkts(0)(8);
---i_host_wr <= '1';
---wait until rising_edge(i_host_clk);
---i_host_wr <= '0';
-
 
 
 wait until rising_edge(i_host_clk) and i_cfg_done = '1';
 wait for 1 us;
---
---wait until rising_edge(i_host_clk);
---i_host_txd(31 downto 0) <= i_pkts(1)(1) & i_pkts(1)(0);
---i_host_wr <= '1';
---wait until rising_edge(i_host_clk);
---i_host_wr <= '0';
---
---wait until rising_edge(i_host_clk);
---i_host_txd(31 downto 0) <= i_pkts(1)(3) & i_pkts(1)(2);
-----i_host_txd(15 downto 0) <= i_pkts(1)(2);
-----i_host_txd(31 downto 16) <= (others => '0');
---i_host_wr <= '1';
---wait until rising_edge(i_host_clk);
---i_host_wr <= '0';
+
+
+--PKT(Read)
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(1)(0)((8 * 1) - 1 downto (8 * 0));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(1)(0)((8 * 2) - 1 downto (8 * 1));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(1)(1)((8 * 1) - 1 downto (8 * 0));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(1)(1)((8 * 2) - 1 downto (8 * 1));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(1)(2)((8 * 1) - 1 downto (8 * 0));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(1)(2)((8 * 2) - 1 downto (8 * 1));
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_wr <= '0';
 
 end if; --if C_HOST_DWIDTH = 8 then
 
