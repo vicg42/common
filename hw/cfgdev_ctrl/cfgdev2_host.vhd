@@ -270,7 +270,7 @@ i_pkt_dcount <= i_pkth(CI_CFGPKTH_DLEN_CHNK);
 end generate gen_33;
 
 gen_44 : if G_HOST_DWIDTH < G_CFG_DWIDTH generate begin
-i_pkt_dcount <= i_pkth(CI_CFGPKTH_DLEN_CHNK)(i_pkth(CI_CFGPKTH_DLEN_CHNK)'high downto 0) & RESIZE(0, CI_OPT_BIT);
+i_pkt_dcount <= i_pkth(CI_CFGPKTH_DLEN_CHNK)(i_pkth(CI_CFGPKTH_DLEN_CHNK)'high downto 0) & TO_UNSIGNED(0, CI_OPT_BIT);
 end generate gen_44;
 
 process(p_in_rst,p_in_cfg_clk)

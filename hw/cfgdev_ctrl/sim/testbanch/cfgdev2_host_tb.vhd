@@ -37,8 +37,8 @@ architecture behavior of cfgdev_host_tb is
 
 constant CI_OPT : integer := 0;
 
-constant C_HOSTCLK_PERIOD : TIME := 10 ns; --150MHz
-constant C_USRCLK_PERIOD  : TIME := 10 ns;
+constant C_HOSTCLK_PERIOD : TIME := 30 ns;
+constant C_CFGCLK_PERIOD  : TIME := 6 ns;
 
 --for m_devcfg : cfgdev_host use entity work.cfgdev_host(behav1);
 for m_devcfg : cfgdev_host use entity work.cfgdev_host(behav1);
@@ -46,7 +46,7 @@ for m_devcfg : cfgdev_host use entity work.cfgdev_host(behav1);
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;--50 ns;
 
-signal p_in_clk                 : std_logic;
+signal p_in_cfgclk                 : std_logic;
 signal p_in_rst                 : std_logic;
 
 signal i_ftdi_d                 : std_logic_vector(7 downto 0);
@@ -96,12 +96,16 @@ signal i_pkts     : TUsrPkts;
 signal i_host_rxrdy : std_logic;
 signal i_host_rxd   : std_logic_vector(256 downto 0);
 signal i_host_rd    : std_logic;
+signal i_hrxbuf_empty: std_logic;
+
 
 signal i_host_txrdy : std_logic;
 signal i_host_txd   : std_logic_vector(256 downto 0);
 signal i_host_wr    : std_logic;
 
 signal i_host_clk   : std_logic;
+
+signal tst_usr      : std_logic;
 
 
 --MAIN
@@ -117,15 +121,15 @@ end process;
 
 gen_clk_usr : process
 begin
-  p_in_clk<='0';
-  wait for C_USRCLK_PERIOD/2;
-  p_in_clk<='1';
-  wait for C_USRCLK_PERIOD/2;
+  p_in_cfgclk<='0';
+  wait for C_CFGCLK_PERIOD/2;
+  p_in_cfgclk<='1';
+  wait for C_CFGCLK_PERIOD/2;
 end process;
 
 p_in_rst<='1','0' after 1 us;
 
-p_out_tst<=i_cfg_done;
+p_out_tst <= i_cfg_done;
 
 m_devcfg : cfgdev_host
 generic map(
@@ -140,7 +144,7 @@ port map (
 p_out_hrxbuf_do      => i_host_rxd(C_HOST_DWIDTH - 1 downto 0),
 p_in_hrxbuf_rd       => i_host_rd   ,
 p_out_hrxbuf_full    => open,
-p_out_hrxbuf_empty   => open,
+p_out_hrxbuf_empty   => i_hrxbuf_empty,
 
 p_in_htxbuf_di       => i_host_txd(C_HOST_DWIDTH - 1 downto 0),
 p_in_htxbuf_wr       => i_host_wr  ,
@@ -166,7 +170,7 @@ p_in_cfg_rxdata      => i_cfg_rxd,
 p_in_cfg_rxbuf_full  => '0',
 p_in_cfg_rxbuf_empty => '0',
 p_out_cfg_done       => i_cfg_done,
-p_in_cfg_clk         => p_in_clk,
+p_in_cfg_clk         => p_in_cfgclk,
 
 -------------------------------
 --DBG
@@ -180,13 +184,15 @@ p_out_tst            => open,
 p_in_rst             => p_in_rst
 );
 
+i_host_rd <= not i_hrxbuf_empty;
+
 
 --Счетчик адреса регистров
-process(p_in_rst,p_in_clk)
+process(p_in_rst,p_in_cfgclk)
 begin
   if p_in_rst='1' then
     i_cfg_adr_cnt <= (others => '0');
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif p_in_cfgclk'event and p_in_cfgclk='1' then
     if i_cfg_adr_ld = '1' then
       i_cfg_adr_cnt <= i_cfg_adr;
     else
@@ -198,14 +204,14 @@ begin
 end process;
 
 --Запись регистров
-process(p_in_rst,p_in_clk)
+process(p_in_rst,p_in_cfgclk)
 begin
   if p_in_rst='1' then
     for i in 0 to i_reg'length - 1 loop
       i_reg(i) <= (others => '0');
     end loop;
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif p_in_cfgclk'event and p_in_cfgclk='1' then
 
     if i_cfg_wd = '1' then
         if    i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then i_reg(0) <= i_cfg_txd(i_reg(0)'high downto 0);
@@ -246,7 +252,6 @@ for i in 0 to i_pkts'length-1 loop
   end loop;
 end loop;
 
-i_host_rd <= '1';
 i_host_wr <= '0';
 i_host_txd <= (others=>'0');
 
@@ -273,8 +278,8 @@ i_pkts(1)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(1)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--Start Adr
-i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0)(2)'length);--Len
+i_pkts(1)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#00#, i_pkts(0)(1)'length);--Start Adr
+i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#06#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
 i_pkts(1)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(1)(0)'length);
 end if;
@@ -351,91 +356,43 @@ wait for 1 us;
 --------------------------------------
 if C_HOST_DWIDTH = 8 then
 --PKT(Write)
+--HEADER
+for i in 0 to 3 - 1 loop
 wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(0)((8 * 1) - 1 downto (8 * 0));
+i_host_txd(7 downto 0) <= i_pkts(0)(i)((8 * 1) - 1 downto (8 * 0));
 i_host_wr <= '1';
 wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(0)((8 * 2) - 1 downto (8 * 1));
+i_host_txd(7 downto 0) <= i_pkts(0)(i)((8 * 2) - 1 downto (8 * 1));
+i_host_wr <= '1';
+end loop;
+--DATA
+for i in 0 to 6 - 1 loop
+wait until rising_edge(i_host_clk);
+i_host_txd(7 downto 0) <= i_pkts(0)(3 + i)((8 * 1) - 1 downto (8 * 0));
 i_host_wr <= '1';
 wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(1)((8 * 1) - 1 downto (8 * 0));
+i_host_txd(7 downto 0) <= i_pkts(0)(3 + i)((8 * 2) - 1 downto (8 * 1));
 i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(1)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(2)((8 * 1) - 1 downto (8 * 0));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(2)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
-
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(3)((8 * 1) - 1 downto (8 * 0));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(3)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(4)((8 * 1) - 1 downto (8 * 0));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(4)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
-
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(5)((8 * 1) - 1 downto (8 * 0));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(5)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(6)((8 * 1) - 1 downto (8 * 0));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(6)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
-
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(7)((8 * 1) - 1 downto (8 * 0));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(7)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(8)((8 * 1) - 1 downto (8 * 0));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(8)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
-
+end loop;
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
 
 
-wait until rising_edge(i_host_clk) and i_cfg_done = '1';
-wait for 1 us;
+wait until rising_edge(p_in_cfgclk) and i_cfg_done = '1';
+tst_usr <= '1';
+wait for 500 ns;
 
 
 --PKT(Read)
+--HEADER
+for i in 0 to 3 - 1 loop
 wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(1)(0)((8 * 1) - 1 downto (8 * 0));
+i_host_txd(7 downto 0) <= i_pkts(1)(i)((8 * 1) - 1 downto (8 * 0));
 i_host_wr <= '1';
 wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(1)(0)((8 * 2) - 1 downto (8 * 1));
+i_host_txd(7 downto 0) <= i_pkts(1)(i)((8 * 2) - 1 downto (8 * 1));
 i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(1)(1)((8 * 1) - 1 downto (8 * 0));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(1)(1)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(1)(2)((8 * 1) - 1 downto (8 * 0));
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(1)(2)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
+end loop;
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
 
@@ -479,7 +436,7 @@ i_host_wr <= '0';
 
 
 
-wait until rising_edge(i_host_clk) and i_cfg_done = '1';
+wait until rising_edge(p_in_cfgclk) and i_cfg_done = '1';
 wait for 1 us;
 
 wait until rising_edge(i_host_clk);
@@ -526,7 +483,7 @@ i_host_wr <= '0';
 
 
 
-wait until rising_edge(i_host_clk) and i_cfg_done = '1';
+wait until rising_edge(p_in_cfgclk) and i_cfg_done = '1';
 wait for 1 us;
 
 wait until rising_edge(i_host_clk);
