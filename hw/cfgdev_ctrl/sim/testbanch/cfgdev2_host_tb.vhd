@@ -25,13 +25,21 @@ use work.cfgdev_pkg.all;
 
 entity cfgdev_host_tb is
 generic(
-C_HOST_DWIDTH : integer:=8;
-C_FMODULE_DWIDTH : integer:=16
+C_TSTREG_COUNT_MAX : integer := 10;
+
+C_TSTWR_FSTADR : integer := 0;--first adr
+C_TSTWR_DCOUNT : integer := 5;
+
+C_TSTRD_FSTADR : integer := 0;--first adr
+C_TSTRD_DCOUNT : integer := 5;
+
+C_HOST_DWIDTH : integer := 8;
+C_CFG_DWIDTH  : integer := 32
 );
 port(
 p_out_tst : out std_logic
 );
-end cfgdev_host_tb;
+end entity cfgdev_host_tb;
 
 architecture behavior of cfgdev_host_tb is
 
@@ -46,70 +54,41 @@ for m_devcfg : cfgdev_host use entity work.cfgdev_host(behav1);
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;--50 ns;
 
-signal p_in_cfgclk                 : std_logic;
-signal p_in_rst                 : std_logic;
+signal p_in_cfgclk      : std_logic;
+signal p_in_rst         : std_logic;
 
-signal i_ftdi_d                 : std_logic_vector(7 downto 0);
-signal i_ftdi_dout              : std_logic_vector(7 downto 0);
-signal i_ftdi_din               : std_logic_vector(7 downto 0);
-signal i_ftd_rcv                : std_logic;
-signal i_ftdi_rd_n              : std_logic;
-signal i_ftdi_wr_n              : std_logic;
-signal i_ftdi_txe_n             : std_logic;
-signal i_ftdi_rxf_n             : std_logic;
-signal i_ftdi_pwren_n           : std_logic;
+signal i_dev_adr        : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
+signal i_cfg_adr        : std_logic_vector(C_CFG_DWIDTH - 1 downto 0);
+signal i_cfg_ald        : std_logic;
+signal i_cfg_fifo       : std_logic;
+signal i_cfg_wr         : std_logic;
+signal i_cfg_rd         : std_logic;
+signal i_cfg_txd        : std_logic_vector(C_CFG_DWIDTH - 1 downto 0);
+signal i_cfg_rxd        : std_logic_vector(C_CFG_DWIDTH - 1 downto 0);
+signal i_cfg_done       : std_logic;
 
-signal i_dev_adr                : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
-signal i_cfg_adr                : std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
-signal i_cfg_adr_ld             : std_logic;
-signal i_cfg_adr_fifo           : std_logic;
-signal i_cfg_wd                 : std_logic;
-signal i_cfg_rd                 : std_logic;
-signal i_cfg_txd                : std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
-signal i_cfg_rxd                : std_logic_vector(C_FMODULE_DWIDTH - 1 downto 0);
-signal i_cfg_done               : std_logic;
+signal i_cfg_acnt       : std_logic_vector(i_cfg_adr'range);
+type TUsrRegs is array (0 to C_TSTREG_COUNT_MAX - 1) of std_logic_vector(i_cfg_rxd'range);
+signal i_reg            : TUsrRegs;
 
-signal i_cfg_adr_cnt            : std_logic_vector(i_cfg_adr'range);
-type TUsrRegs is array (0 to 4) of std_logic_vector(i_cfg_rxd'range);
-signal i_reg                    : TUsrRegs;
---signal i_reg1                   : std_logic_vector(i_cfg_rxd'range);
---signal i_reg2                   : std_logic_vector(i_cfg_rxd'range);
---signal i_reg3                   : std_logic_vector(i_cfg_rxd'range);
---signal i_reg4                   : std_logic_vector(i_cfg_rxd'range);
-
-
---type TUsrPktHeader is array (0 to C_CFGPKTH_DCOUNT + CI_OPT - 1) of std_logic_vector(15 downto 0);
---type TUsrPktData is array (0 to 5) of std_logic_vector(15 downto 0);
---type TUsrPkt is record
---h : TUsrPktHeader;
---d : TUsrPktData;
---end record;
---
---type TUsrPkts is array (0 to 7) of TUsrPkt;
---signal i_pkts     : TUsrPkts;
 constant CI_USRD_COUNT_MAX : integer := 6;
 constant CI_CFGPKT_HEADER_DCOUNT : integer := C_CFGPKTH_DCOUNT + CI_OPT;
-type TUsrPkt is array (0 to CI_CFGPKT_HEADER_DCOUNT + CI_USRD_COUNT_MAX - 1) of std_logic_vector(i_cfg_txd'range);
+
+type TUsrPkt is array (0 to CI_CFGPKT_HEADER_DCOUNT + CI_USRD_COUNT_MAX - 1)
+                                              of std_logic_vector(i_cfg_txd'range);
 type TUsrPkts is array (0 to 10) of TUsrPkt;
-signal i_pkts     : TUsrPkts;
+signal i_pkts           : TUsrPkts;
 
-signal i_host_rxrdy : std_logic;
-signal i_host_rxd   : std_logic_vector(256 downto 0);
-signal i_host_rd    : std_logic;
-signal i_hrxbuf_empty: std_logic;
-
-
-signal i_host_txrdy : std_logic;
-signal i_host_txd   : std_logic_vector(256 downto 0);
-signal i_host_wr    : std_logic;
-
-signal i_host_clk   : std_logic;
-
-signal tst_usr      : std_logic;
+signal i_host_clk       : std_logic;
+signal i_host_rxd       : std_logic_vector(256 downto 0);
+signal i_host_rd        : std_logic;
+signal i_hrxbuf_empty   : std_logic;
+signal i_host_txd       : std_logic_vector(256 downto 0);
+signal i_host_wr        : std_logic;
 
 
---MAIN
-begin
+
+begin --architecture behavior
 
 gen_host_clk : process
 begin
@@ -135,7 +114,7 @@ m_devcfg : cfgdev_host
 generic map(
 G_DBG => "OFF",
 G_HOST_DWIDTH => C_HOST_DWIDTH,
-G_CFG_DWIDTH => C_FMODULE_DWIDTH
+G_CFG_DWIDTH => C_CFG_DWIDTH
 )
 port map (
 -------------------------------
@@ -159,9 +138,9 @@ p_in_hclk            => i_host_clk,
 -------------------------------
 p_out_cfg_dadr       => i_dev_adr,
 p_out_cfg_radr       => i_cfg_adr,
-p_out_cfg_radr_ld    => i_cfg_adr_ld,
-p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
-p_out_cfg_wr         => i_cfg_wd,
+p_out_cfg_radr_ld    => i_cfg_ald,
+p_out_cfg_radr_fifo  => i_cfg_fifo,
+p_out_cfg_wr         => i_cfg_wr,
 p_out_cfg_rd         => i_cfg_rd,
 p_out_cfg_txdata     => i_cfg_txd,
 p_in_cfg_txbuf_full  => '0',
@@ -187,58 +166,53 @@ p_in_rst             => p_in_rst
 i_host_rd <= not i_hrxbuf_empty;
 
 
---Счетчик адреса регистров
+--Register adress
 process(p_in_rst,p_in_cfgclk)
 begin
-  if p_in_rst='1' then
-    i_cfg_adr_cnt <= (others => '0');
-  elsif p_in_cfgclk'event and p_in_cfgclk='1' then
-    if i_cfg_adr_ld = '1' then
-      i_cfg_adr_cnt <= i_cfg_adr;
-    else
-      if i_cfg_adr_fifo = '0' and (i_cfg_wd = '1' or i_cfg_rd = '1') then
-        i_cfg_adr_cnt <= i_cfg_adr_cnt + 1;
-      end if;
+if p_in_rst='1' then
+  i_cfg_acnt <= (others => '0');
+elsif p_in_cfgclk'event and p_in_cfgclk='1' then
+  if i_cfg_ald = '1' then
+    i_cfg_acnt <= i_cfg_adr;
+  else
+    if i_cfg_fifo = '0' and (i_cfg_wr = '1' or i_cfg_rd = '1') then
+      i_cfg_acnt <= i_cfg_acnt + 1;
     end if;
   end if;
+end if;
 end process;
 
---Запись регистров
+--write to reg
 process(p_in_rst,p_in_cfgclk)
 begin
-  if p_in_rst='1' then
+if p_in_rst='1' then
+  for i in 0 to i_reg'length - 1 loop
+    i_reg(i) <= (others => '0');
+  end loop;
+elsif p_in_cfgclk'event and p_in_cfgclk='1' then
+  if i_cfg_wr = '1' then
     for i in 0 to i_reg'length - 1 loop
-      i_reg(i) <= (others => '0');
+      if i_cfg_acnt = i then
+        i_reg(i) <= i_cfg_txd(i_reg(i)'high downto 0);
+      end if;
     end loop;
-
-  elsif p_in_cfgclk'event and p_in_cfgclk='1' then
-
-    if i_cfg_wd = '1' then
-        if    i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then i_reg(0) <= i_cfg_txd(i_reg(0)'high downto 0);
-        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then i_reg(1) <= i_cfg_txd(i_reg(1)'high downto 0);
-        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then i_reg(2) <= i_cfg_txd(i_reg(2)'high downto 0);
-        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then i_reg(3) <= i_cfg_txd(i_reg(3)'high downto 0);
-        elsif i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then i_reg(4) <= i_cfg_txd(i_reg(4)'high downto 0);
-
-        end if;
-    end if;
-
   end if;
+end if;
 end process;
 
---Чтение регистров
-i_cfg_rxd <= EXT(i_reg(4), i_cfg_rxd'length) when i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) else
-             EXT(i_reg(3), i_cfg_rxd'length) when i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) else
-             EXT(i_reg(2), i_cfg_rxd'length) when i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) else
-             EXT(i_reg(1), i_cfg_rxd'length) when i_cfg_adr_cnt = CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) else
-             EXT(i_reg(0), i_cfg_rxd'length);
-
-
+--read from reg
+process(i_reg, i_cfg_acnt, i_cfg_rxd)
+begin
+for i in 0 to i_reg'length - 1 loop
+  if i_cfg_acnt = i then
+    i_cfg_rxd <= i_reg(i);
+  end if;
+end loop;
+end process;
 
 
 
 process
---  variable dlen_vec: std_logic_vector(15 downto 0):=(others=>'0');
   variable dlen_int: integer:=0;
   variable pkt_x   : integer:=0;
 begin
@@ -260,10 +234,10 @@ i_pkts(0)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(0)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#00#, i_pkts(0)(1)'length);--Start Adr
-i_pkts(0)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#6#, i_pkts(0)(2)'length);--Len
+i_pkts(0)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(C_TSTWR_FSTADR, i_pkts(0)(1)'length);--Start Adr
+i_pkts(0)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(C_TSTWR_DCOUNT, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(0)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT + 6) * 2, i_pkts(0)(0)'length);
+i_pkts(0)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT + C_TSTWR_DCOUNT) * 2, i_pkts(0)(0)'length);
 end if;
 
 i_pkts(0)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1011#, i_pkts(0)(0)'length);
@@ -278,8 +252,8 @@ i_pkts(1)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(1)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#00#, i_pkts(0)(1)'length);--Start Adr
-i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#06#, i_pkts(0)(2)'length);--Len
+i_pkts(1)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(C_TSTRD_FSTADR, i_pkts(0)(1)'length);--Start Adr
+i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(C_TSTRD_DCOUNT, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
 i_pkts(1)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(1)(0)'length);
 end if;
@@ -352,21 +326,21 @@ wait for 1 us;
 
 
 --------------------------------------
---DWIDTH 8Bit
+--C_HOST_DWIDTH < C_CFG_DWIDTH
 --------------------------------------
-if G_HOST_DWIDTH < G_CFG_DWIDTH then --if C_HOST_DWIDTH = 8 then
+if C_HOST_DWIDTH < C_CFG_DWIDTH then
 --PKT(Write)
 --HEADER
 for i in 0 to CI_CFGPKT_HEADER_DCOUNT - 1 loop
-for x in 0 to (C_FMODULE_DWIDTH / C_HOST_DWIDTH) - 1  loop
+for x in 0 to (C_CFG_DWIDTH / C_HOST_DWIDTH) - 1  loop
 wait until rising_edge(i_host_clk);
 i_host_txd(C_HOST_DWIDTH - 1 downto 0) <= i_pkts(0)(i)((C_HOST_DWIDTH * (x + 1)) - 1 downto (C_HOST_DWIDTH * x));
 i_host_wr <= '1';
 end loop;
 end loop;
 --DATA
-for i in 0 to 6 - 1 loop
-for x in 0 to (C_FMODULE_DWIDTH / C_HOST_DWIDTH) - 1  loop
+for i in 0 to C_TSTWR_DCOUNT - 1 loop
+for x in 0 to (C_CFG_DWIDTH / C_HOST_DWIDTH) - 1  loop
 wait until rising_edge(i_host_clk);
 i_host_txd(C_HOST_DWIDTH - 1 downto 0) <= i_pkts(0)(CI_CFGPKT_HEADER_DCOUNT + i)((C_HOST_DWIDTH * (x + 1)) - 1 downto (C_HOST_DWIDTH * x));
 i_host_wr <= '1';
@@ -377,14 +351,13 @@ i_host_wr <= '0';
 
 
 wait until rising_edge(p_in_cfgclk) and i_cfg_done = '1';
-tst_usr <= '1';
-wait for 500 ns;
+wait for 1 us;--500 ns;--
 
 
 --PKT(Read)
 --HEADER
 for i in 0 to CI_CFGPKT_HEADER_DCOUNT - 1 loop
-for x in 0 to (C_FMODULE_DWIDTH / C_HOST_DWIDTH) - 1  loop
+for x in 0 to (C_CFG_DWIDTH / C_HOST_DWIDTH) - 1  loop
 wait until rising_edge(i_host_clk);
 i_host_txd(C_HOST_DWIDTH - 1 downto 0) <= i_pkts(1)(i)((C_HOST_DWIDTH * (x + 1)) - 1 downto (C_HOST_DWIDTH * x));
 i_host_wr <= '1';
@@ -522,7 +495,4 @@ wait;
 end process;
 
 
-
-
---END MAIN
-end behavior;
+end architecture behavior;
