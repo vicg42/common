@@ -1,14 +1,9 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
+-- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 24.12.2014 15:07:49
 -- Module Name : cfgdev_pkg
---
--- Description :
---
--- Revision:
--- Revision 0.01 - File Created
 --
 -------------------------------------------------------------------------
 library ieee;

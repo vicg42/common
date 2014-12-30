@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
+-- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 24.12.2014 15:13:26

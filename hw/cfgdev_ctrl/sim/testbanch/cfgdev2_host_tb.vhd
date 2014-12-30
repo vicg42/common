@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
+-- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 14.07.2011 11:49:04
@@ -35,7 +35,7 @@ end entity cfgdev_host_tb;
 
 architecture behavior of cfgdev_host_tb is
 
-constant CI_OPT : integer := 0;
+constant CI_OPT : integer := 0;--1 - for eth pkt
 
 constant C_HOSTCLK_PERIOD : TIME := 30 ns;
 constant C_CFGCLK_PERIOD  : TIME := 6 ns;
