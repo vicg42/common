@@ -17,6 +17,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
+--use ieee.numeric_std.all;
+use work.reduce_pack.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -27,17 +29,17 @@ entity cfgdev_host_tb is
 generic(
 C_TSTREG_COUNT_MAX : integer := 10;
 
-C_TSTWR_FSTADR : integer := 0;--first adr
+C_TSTWR_FSTADR : integer := 1;--first adr
 C_TSTWR_DCOUNT : integer := 5;
 
-C_TSTRD_FSTADR : integer := 0;--first adr
-C_TSTRD_DCOUNT : integer := 5;
+C_TSTRD_FSTADR : integer := 2;--first adr
+C_TSTRD_DCOUNT : integer := 3;
 
-C_HOST_DWIDTH : integer := 8;
-C_CFG_DWIDTH  : integer := 32
+C_HOST_DWIDTH : integer := 32;
+C_CFG_DWIDTH  : integer := 16
 );
 port(
-p_out_tst : out std_logic
+p_out_tst : out std_logic_vector(31 downto 0)
 );
 end entity cfgdev_host_tb;
 
@@ -86,6 +88,7 @@ signal i_hrxbuf_empty   : std_logic;
 signal i_host_txd       : std_logic_vector(256 downto 0);
 signal i_host_wr        : std_logic;
 
+signal test             : std_logic_vector(31 downto 0);
 
 
 begin --architecture behavior
@@ -108,7 +111,7 @@ end process;
 
 p_in_rst<='1','0' after 1 us;
 
-p_out_tst <= i_cfg_done;
+p_out_tst <= test;
 
 m_devcfg : cfgdev_host
 generic map(
@@ -213,21 +216,18 @@ end process;
 
 
 process
-  variable dlen_int: integer:=0;
-  variable pkt_x   : integer:=0;
 begin
-
 -------------------
---Инициализация:
+--INIT
 -------------------
 for i in 0 to i_pkts'length-1 loop
   for x in 0 to i_pkts(i)'length-1 loop
-    i_pkts(i)(x) <= (others=>'0');
+    i_pkts(i)(x) <= (others => '0');
   end loop;
 end loop;
 
 i_host_wr <= '0';
-i_host_txd <= (others=>'0');
+i_host_txd <= (others => '0'); test <= (others => '0');
 
 --Pkt0
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#0A#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
@@ -319,18 +319,17 @@ i_pkts(4)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#5035#, i_pkts(0)(0)'length);
 
 
 -------------------
---Работа:
+--WORK
 -------------------
 wait until p_in_rst='0';
 wait for 1 us;
 
 
---------------------------------------
+--####################################
 --C_HOST_DWIDTH < C_CFG_DWIDTH
---------------------------------------
+--####################################
 if C_HOST_DWIDTH < C_CFG_DWIDTH then
 --PKT(Write)
---HEADER
 for i in 0 to CI_CFGPKT_HEADER_DCOUNT - 1 loop
 for x in 0 to (C_CFG_DWIDTH / C_HOST_DWIDTH) - 1  loop
 wait until rising_edge(i_host_clk);
@@ -355,7 +354,6 @@ wait for 1 us;--500 ns;--
 
 
 --PKT(Read)
---HEADER
 for i in 0 to CI_CFGPKT_HEADER_DCOUNT - 1 loop
 for x in 0 to (C_CFG_DWIDTH / C_HOST_DWIDTH) - 1  loop
 wait until rising_edge(i_host_clk);
@@ -366,129 +364,50 @@ end loop;
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
 
-end if; --if C_HOST_DWIDTH = 8 then
 
 
---------------------------------------
---DWIDTH 32Bit
---------------------------------------
-if C_HOST_DWIDTH = 32 then
+else
+--####################################
+--C_HOST_DWIDTH >= C_CFG_DWIDTH
+--####################################
 --PKT(Write)
+for i in 0 to (CI_CFGPKT_HEADER_DCOUNT + C_TSTWR_DCOUNT) - 1 loop
 wait until rising_edge(i_host_clk);
-i_host_txd(31 downto 0) <= i_pkts(0)(1) & i_pkts(0)(0);
+i_host_txd((C_CFG_DWIDTH * ((i mod ((C_HOST_DWIDTH / C_CFG_DWIDTH))) + 1)) - 1
+              downto (C_CFG_DWIDTH * (i mod ((C_HOST_DWIDTH / C_CFG_DWIDTH))))) <= i_pkts(0)(i)(C_CFG_DWIDTH - 1 downto 0);
+
+if ((i mod (C_HOST_DWIDTH / C_CFG_DWIDTH)) = ((C_HOST_DWIDTH / C_CFG_DWIDTH) - 1))
+      or (i = (CI_CFGPKT_HEADER_DCOUNT + C_TSTWR_DCOUNT) - 1) then
 i_host_wr <= '1';
+else
+i_host_wr <= '0';
+end if;
+end loop;
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
-
-wait until rising_edge(i_host_clk);
-i_host_txd(31 downto 0) <= i_pkts(0)(3) & i_pkts(0)(2);
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
-
-wait until rising_edge(i_host_clk);
-i_host_txd(31 downto 0) <= i_pkts(0)(5) & i_pkts(0)(4);
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
-
-wait until rising_edge(i_host_clk);
-i_host_txd(31 downto 0) <= i_pkts(0)(7) & i_pkts(0)(6);
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
-
-wait until rising_edge(i_host_clk);
-i_host_txd(31 downto 0) <= CONV_STD_LOGIC_VECTOR(0, 16) & i_pkts(0)(8);
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
-
 
 
 wait until rising_edge(p_in_cfgclk) and i_cfg_done = '1';
 wait for 1 us;
 
-wait until rising_edge(i_host_clk);
-i_host_txd(31 downto 0) <= i_pkts(1)(1) & i_pkts(1)(0);
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
-
-wait until rising_edge(i_host_clk);
-i_host_txd(31 downto 0) <= i_pkts(1)(3) & i_pkts(1)(2);
---i_host_txd(15 downto 0) <= i_pkts(1)(2);
---i_host_txd(31 downto 16) <= (others => '0');
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
-
-end if; --if C_HOST_DWIDTH = 32 then
-
-
-
-
---------------------------------------
---DWIDTH 64Bit
---------------------------------------
-if C_HOST_DWIDTH = 64 then
 --PKT(Write)
+for i in 0 to (CI_CFGPKT_HEADER_DCOUNT) - 1 loop
 wait until rising_edge(i_host_clk);
-i_host_txd(63 downto 0) <= i_pkts(0)(3) & i_pkts(0)(2) & i_pkts(0)(1) & i_pkts(0)(0);
+i_host_txd((C_CFG_DWIDTH * ((i mod ((C_HOST_DWIDTH / C_CFG_DWIDTH))) + 1)) - 1
+              downto (C_CFG_DWIDTH * (i mod ((C_HOST_DWIDTH / C_CFG_DWIDTH))))) <= i_pkts(1)(i)(C_CFG_DWIDTH - 1 downto 0);
+
+if ((i mod (C_HOST_DWIDTH / C_CFG_DWIDTH)) = ((C_HOST_DWIDTH / C_CFG_DWIDTH) - 1))
+      or (i = (CI_CFGPKT_HEADER_DCOUNT) - 1) then
 i_host_wr <= '1';
+else
+i_host_wr <= '0';
+end if;
+end loop;
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
 
-wait until rising_edge(i_host_clk);
-i_host_txd(63 downto 0) <= i_pkts(0)(7) & i_pkts(0)(6) & i_pkts(0)(5) & i_pkts(0)(4);
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
+end if; --C_HOST_DWIDTH < C_CFG_DWIDTH
 
---wait until rising_edge(i_host_clk);
---i_host_txd(63 downto 0) <= EXT(i_pkts(0)(8), 64);
---i_host_wr <= '1';
---wait until rising_edge(i_host_clk);
---i_host_wr <= '0';
-
-
-
-wait until rising_edge(p_in_cfgclk) and i_cfg_done = '1';
-wait for 1 us;
-
-wait until rising_edge(i_host_clk);
-i_host_txd(63 downto 0) <= i_pkts(1)(3) & i_pkts(1)(2) & i_pkts(1)(1) & i_pkts(1)(0);
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
-
-end if; --if C_HOST_DWIDTH = 64 then
-
-
-
---------------------------------------
---DWIDTH 128Bit
---------------------------------------
-if C_HOST_DWIDTH = 128 then
---PKT(Write)
-wait until rising_edge(i_host_clk);
-i_host_txd(127 downto 0) <= i_pkts(0)(7) & i_pkts(0)(6) & i_pkts(0)(5) & i_pkts(0)(4) & i_pkts(0)(3) & i_pkts(0)(2) & i_pkts(0)(1) & i_pkts(0)(0);
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
-
-
-
-wait until rising_edge(i_host_clk) and i_cfg_done = '1';
-wait for 1 us;
-
-wait until rising_edge(i_host_clk);
-i_host_txd(127 downto 0) <= i_pkts(1)(7) & i_pkts(1)(6) & i_pkts(1)(5) & i_pkts(1)(4) & i_pkts(1)(3) & i_pkts(1)(2) & i_pkts(1)(1) & i_pkts(1)(0);
-i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_wr <= '0';
-
-end if; --if C_HOST_DWIDTH = 128 then
 
 wait;
 

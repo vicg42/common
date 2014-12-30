@@ -83,13 +83,6 @@ end entity cfgdev_host;
 
 architecture behav1 of cfgdev_host is
 
---constant CI_CFGPKTH_ETHLEN_CHNK : integer := 0;
---constant CI_CFGPKTH_CTRL_CHNK   : integer := 1;
---constant CI_CFGPKTH_RADR_CHNK   : integer := 2;
---constant CI_CFGPKTH_DLEN_CHNK   : integer := 3;
---
---constant CI_CFGPKTH_DCOUNT : integer := C_CFGPKTH_DCOUNT + 1;
-
 constant CI_CFGPKTH_CTRL_CHNK   : integer := 0;
 constant CI_CFGPKTH_RADR_CHNK   : integer := 1;
 constant CI_CFGPKTH_DLEN_CHNK   : integer := 2;
@@ -137,7 +130,6 @@ signal i_hbufw_wr                       : std_logic;
 signal i_hbufw_full                     : std_logic;
 signal i_hbufw_empty                    : std_logic;
 
---constant CI_CHUNK_COUNT                 : integer := p_in_htxbuf_di'length / p_out_cfg_txdata'length;
 constant CI_CHUNK_COUNT                 : integer := selval (p_in_htxbuf_di'length / p_out_cfg_txdata'length
                                                               , p_out_cfg_txdata'length / p_in_htxbuf_di'length
                                                                 , G_HOST_DWIDTH >= G_CFG_DWIDTH);
