@@ -19,9 +19,11 @@ C_TSTREG_COUNT_MAX : integer := 10;
 
 C_TSTWR_FSTADR : integer := 1;--first adr
 C_TSTWR_DCOUNT : integer := 5;
+C_TSTWR_FIFO   : std_logic := '1'; --0/1 - OFF/ON
 
 C_TSTRD_FSTADR : integer := 2;--first adr
-C_TSTRD_DCOUNT : integer := 3;
+C_TSTRD_DCOUNT : integer := 5;
+C_TSTRD_FIFO   : std_logic := '1';
 
 C_HOST_DWIDTH : integer := 32;
 C_CFG_DWIDTH  : integer := 16
@@ -38,6 +40,27 @@ constant CI_OPT : integer := 0;
 constant C_HOSTCLK_PERIOD : TIME := 30 ns;
 constant C_CFGCLK_PERIOD  : TIME := 6 ns;
 
+component cfgdev_buf
+generic(
+G_DWIDTH : integer := 32
+);
+port(
+din         : in  std_logic_vector(G_DWIDTH - 1 downto 0);
+wr_en       : in  std_logic;
+wr_clk      : in  std_logic;
+
+dout        : out std_logic_vector(G_DWIDTH - 1 downto 0);
+rd_en       : in  std_logic;
+rd_clk      : in  std_logic;
+
+empty       : out std_logic;
+full        : out std_logic;
+prog_full   : out std_logic;
+
+rst         : in  std_logic
+);
+end component cfgdev_buf;
+
 --for m_devcfg : cfgdev_host use entity work.cfgdev_host(behav1);
 for m_devcfg : cfgdev_host use entity work.cfgdev_host(behav1);
 
@@ -47,7 +70,7 @@ constant dly : time := 1 ps;--50 ns;
 signal p_in_cfgclk      : std_logic;
 signal p_in_rst         : std_logic;
 
-signal i_dev_adr        : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
+signal i_cfg_dev        : std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0);
 signal i_cfg_adr        : std_logic_vector(C_CFG_DWIDTH - 1 downto 0);
 signal i_cfg_ald        : std_logic;
 signal i_cfg_fifo       : std_logic;
@@ -56,10 +79,25 @@ signal i_cfg_rd         : std_logic;
 signal i_cfg_txd        : std_logic_vector(C_CFG_DWIDTH - 1 downto 0);
 signal i_cfg_rxd        : std_logic_vector(C_CFG_DWIDTH - 1 downto 0);
 signal i_cfg_done       : std_logic;
+signal i_cfg_txbuf_full : std_logic;
+signal i_cfg_txbuf_empty: std_logic;
+signal i_cfg_rxbuf_full : std_logic;
+signal i_cfg_rxbuf_empty: std_logic;
 
 signal i_cfg_acnt       : unsigned(i_cfg_adr'range);
 type TUsrRegs is array (0 to C_TSTREG_COUNT_MAX - 1) of unsigned(i_cfg_rxd'range);
 signal i_reg            : TUsrRegs;
+
+type TFifo_tst is  record
+di    : std_logic_vector(i_cfg_rxd'range);
+wr    : std_logic;
+do    : std_logic_vector(i_cfg_rxd'range);
+rd    : std_logic;
+full  : std_logic;
+empty : std_logic;
+end record;
+
+signal i_fifo           : TFifo_tst;
 
 constant CI_USRD_COUNT_MAX : integer := 6;
 constant CI_CFGPKT_HEADER_DCOUNT : integer := C_CFGPKTH_DCOUNT + CI_OPT;
@@ -127,18 +165,18 @@ p_in_hclk            => i_host_clk,
 -------------------------------
 --CFG
 -------------------------------
-p_out_cfg_dadr       => i_dev_adr,
+p_out_cfg_dadr       => i_cfg_dev,
 p_out_cfg_radr       => i_cfg_adr,
 p_out_cfg_radr_ld    => i_cfg_ald,
 p_out_cfg_radr_fifo  => i_cfg_fifo,
 p_out_cfg_wr         => i_cfg_wr,
 p_out_cfg_rd         => i_cfg_rd,
 p_out_cfg_txdata     => i_cfg_txd,
-p_in_cfg_txbuf_full  => '0',
-p_in_cfg_txbuf_empty => '0',
+p_in_cfg_txbuf_full  => i_cfg_txbuf_full ,
+p_in_cfg_txbuf_empty => i_cfg_txbuf_empty,
 p_in_cfg_rxdata      => i_cfg_rxd,
-p_in_cfg_rxbuf_full  => '0',
-p_in_cfg_rxbuf_empty => '0',
+p_in_cfg_rxbuf_full  => i_cfg_rxbuf_full ,
+p_in_cfg_rxbuf_empty => i_cfg_rxbuf_empty,
 p_out_cfg_done       => i_cfg_done,
 p_in_cfg_clk         => p_in_cfgclk,
 
@@ -156,6 +194,37 @@ p_in_rst             => p_in_rst
 
 i_host_rd <= not i_hrxbuf_empty;
 
+i_cfg_txbuf_full  <= i_fifo.full and i_cfg_fifo;
+i_cfg_txbuf_empty <= i_fifo.empty and i_cfg_fifo;
+
+i_cfg_rxbuf_full  <= i_cfg_txbuf_full ;
+i_cfg_rxbuf_empty <= i_cfg_txbuf_empty;
+
+
+i_fifo.wr <= i_cfg_wr and i_cfg_fifo;
+i_fifo.rd <= i_cfg_rd and i_cfg_fifo;
+
+i_fifo.di <= i_cfg_txd;
+
+m_fifo : cfgdev_buf
+generic map(
+G_DWIDTH => C_CFG_DWIDTH
+)
+port map(
+din         => i_fifo.di,
+wr_en       => i_fifo.wr,
+wr_clk      => p_in_cfgclk,
+
+dout        => i_fifo.do,
+rd_en       => i_fifo.rd,
+rd_clk      => p_in_cfgclk,
+
+empty       => i_fifo.empty,
+full        => open,
+prog_full   => i_fifo.full,
+
+rst         => p_in_rst
+);
 
 --Register adress
 process(p_in_rst,p_in_cfgclk)
@@ -181,7 +250,7 @@ if p_in_rst='1' then
     i_reg(i) <= (others => '0');
   end loop;
 elsif p_in_cfgclk'event and p_in_cfgclk='1' then
-  if i_cfg_wr = '1' then
+  if i_cfg_wr = '1' and i_cfg_fifo = '0' then
     for i in 0 to i_reg'length - 1 loop
       if i_cfg_acnt = i then
         i_reg(i) <= UNSIGNED(i_cfg_txd(i_reg(i)'high downto 0));
@@ -194,11 +263,15 @@ end process;
 --read from reg
 process(i_reg, i_cfg_acnt, i_cfg_rxd)
 begin
+if i_cfg_fifo = '0' then
 for i in 0 to i_reg'length - 1 loop
   if i_cfg_acnt = i then
     i_cfg_rxd <= std_logic_vector(i_reg(i));
   end if;
 end loop;
+else
+i_cfg_rxd <= i_fifo.do;
+end if;
 end process;
 
 
@@ -220,7 +293,7 @@ i_host_txd <= (others => '0'); test <= (others => '0');
 --Pkt0
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT) <= TO_UNSIGNED(16#0A#, C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT + 1);
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_WR_BIT) <= C_CFGPKT_WR;
-i_pkts(0)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT) <= '0';
+i_pkts(0)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT) <= C_TSTWR_FIFO;
 
 i_pkts(0)(1 + CI_OPT) <= TO_UNSIGNED(C_TSTWR_FSTADR, i_pkts(0)(1)'length);--Start Adr
 i_pkts(0)(2 + CI_OPT) <= TO_UNSIGNED(C_TSTWR_DCOUNT, i_pkts(0)(2)'length);--Len
@@ -238,7 +311,7 @@ i_pkts(0)(8 + CI_OPT) <= TO_UNSIGNED(16#6016#, i_pkts(0)(0)'length);
 --Pkt1
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT) <= TO_UNSIGNED(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT + 1);
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_WR_BIT) <= C_CFGPKT_RD;
-i_pkts(1)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT) <= '0';
+i_pkts(1)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT) <= C_TSTRD_FIFO;
 
 i_pkts(1)(1 + CI_OPT) <= TO_UNSIGNED(C_TSTRD_FSTADR, i_pkts(0)(1)'length);--Start Adr
 i_pkts(1)(2 + CI_OPT) <= TO_UNSIGNED(C_TSTRD_DCOUNT, i_pkts(0)(2)'length);--Len
