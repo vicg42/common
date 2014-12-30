@@ -5,25 +5,13 @@
 -- Create Date : 14.07.2011 11:49:04
 -- Module Name : cfgdev_host_tb
 --
--- Назначение/Описание :
---
---
--- Revision:
--- Revision 0.01 - File Created
---
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_misc.all;
-use ieee.std_logic_unsigned.all;
---use ieee.numeric_std.all;
+use ieee.numeric_std.all;
 use work.reduce_pack.all;
-
-library unisim;
-use unisim.vcomponents.all;
-
 use work.cfgdev_pkg.all;
+
 
 entity cfgdev_host_tb is
 generic(
@@ -69,15 +57,15 @@ signal i_cfg_txd        : std_logic_vector(C_CFG_DWIDTH - 1 downto 0);
 signal i_cfg_rxd        : std_logic_vector(C_CFG_DWIDTH - 1 downto 0);
 signal i_cfg_done       : std_logic;
 
-signal i_cfg_acnt       : std_logic_vector(i_cfg_adr'range);
-type TUsrRegs is array (0 to C_TSTREG_COUNT_MAX - 1) of std_logic_vector(i_cfg_rxd'range);
+signal i_cfg_acnt       : unsigned(i_cfg_adr'range);
+type TUsrRegs is array (0 to C_TSTREG_COUNT_MAX - 1) of unsigned(i_cfg_rxd'range);
 signal i_reg            : TUsrRegs;
 
 constant CI_USRD_COUNT_MAX : integer := 6;
 constant CI_CFGPKT_HEADER_DCOUNT : integer := C_CFGPKTH_DCOUNT + CI_OPT;
 
 type TUsrPkt is array (0 to CI_CFGPKT_HEADER_DCOUNT + CI_USRD_COUNT_MAX - 1)
-                                              of std_logic_vector(i_cfg_txd'range);
+                                              of unsigned(i_cfg_txd'range);
 type TUsrPkts is array (0 to 10) of TUsrPkt;
 signal i_pkts           : TUsrPkts;
 
@@ -85,7 +73,7 @@ signal i_host_clk       : std_logic;
 signal i_host_rxd       : std_logic_vector(256 downto 0);
 signal i_host_rd        : std_logic;
 signal i_hrxbuf_empty   : std_logic;
-signal i_host_txd       : std_logic_vector(256 downto 0);
+signal i_host_txd       : unsigned(256 downto 0);
 signal i_host_wr        : std_logic;
 
 signal test             : std_logic_vector(31 downto 0);
@@ -95,21 +83,21 @@ begin --architecture behavior
 
 gen_host_clk : process
 begin
-  i_host_clk<='0';
-  wait for C_HOSTCLK_PERIOD/2;
-  i_host_clk<='1';
-  wait for C_HOSTCLK_PERIOD/2;
+  i_host_clk <= '0';
+  wait for C_HOSTCLK_PERIOD / 2;
+  i_host_clk <= '1';
+  wait for C_HOSTCLK_PERIOD / 2;
 end process;
 
 gen_clk_usr : process
 begin
-  p_in_cfgclk<='0';
-  wait for C_CFGCLK_PERIOD/2;
-  p_in_cfgclk<='1';
-  wait for C_CFGCLK_PERIOD/2;
+  p_in_cfgclk <= '0';
+  wait for C_CFGCLK_PERIOD / 2;
+  p_in_cfgclk <= '1';
+  wait for C_CFGCLK_PERIOD / 2;
 end process;
 
-p_in_rst<='1','0' after 1 us;
+p_in_rst <= '1', '0' after 1 us;
 
 p_out_tst <= test;
 
@@ -128,7 +116,7 @@ p_in_hrxbuf_rd       => i_host_rd   ,
 p_out_hrxbuf_full    => open,
 p_out_hrxbuf_empty   => i_hrxbuf_empty,
 
-p_in_htxbuf_di       => i_host_txd(C_HOST_DWIDTH - 1 downto 0),
+p_in_htxbuf_di       => std_logic_vector(i_host_txd(C_HOST_DWIDTH - 1 downto 0)),
 p_in_htxbuf_wr       => i_host_wr  ,
 p_out_htxbuf_full    => open,
 p_out_htxbuf_empty   => open,
@@ -176,7 +164,7 @@ if p_in_rst='1' then
   i_cfg_acnt <= (others => '0');
 elsif p_in_cfgclk'event and p_in_cfgclk='1' then
   if i_cfg_ald = '1' then
-    i_cfg_acnt <= i_cfg_adr;
+    i_cfg_acnt <= UNSIGNED(i_cfg_adr);
   else
     if i_cfg_fifo = '0' and (i_cfg_wr = '1' or i_cfg_rd = '1') then
       i_cfg_acnt <= i_cfg_acnt + 1;
@@ -196,7 +184,7 @@ elsif p_in_cfgclk'event and p_in_cfgclk='1' then
   if i_cfg_wr = '1' then
     for i in 0 to i_reg'length - 1 loop
       if i_cfg_acnt = i then
-        i_reg(i) <= i_cfg_txd(i_reg(i)'high downto 0);
+        i_reg(i) <= UNSIGNED(i_cfg_txd(i_reg(i)'high downto 0));
       end if;
     end loop;
   end if;
@@ -208,7 +196,7 @@ process(i_reg, i_cfg_acnt, i_cfg_rxd)
 begin
 for i in 0 to i_reg'length - 1 loop
   if i_cfg_acnt = i then
-    i_cfg_rxd <= i_reg(i);
+    i_cfg_rxd <= std_logic_vector(i_reg(i));
   end if;
 end loop;
 end process;
@@ -230,92 +218,92 @@ i_host_wr <= '0';
 i_host_txd <= (others => '0'); test <= (others => '0');
 
 --Pkt0
-i_pkts(0)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#0A#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
-i_pkts(0)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
-i_pkts(0)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
+i_pkts(0)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT) <= TO_UNSIGNED(16#0A#, C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT + 1);
+i_pkts(0)(0 + CI_OPT)(C_CFGPKT_WR_BIT) <= C_CFGPKT_WR;
+i_pkts(0)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT) <= '0';
 
-i_pkts(0)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(C_TSTWR_FSTADR, i_pkts(0)(1)'length);--Start Adr
-i_pkts(0)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(C_TSTWR_DCOUNT, i_pkts(0)(2)'length);--Len
+i_pkts(0)(1 + CI_OPT) <= TO_UNSIGNED(C_TSTWR_FSTADR, i_pkts(0)(1)'length);--Start Adr
+i_pkts(0)(2 + CI_OPT) <= TO_UNSIGNED(C_TSTWR_DCOUNT, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(0)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT + C_TSTWR_DCOUNT) * 2, i_pkts(0)(0)'length);
+i_pkts(0)(0) <= TO_UNSIGNED((CI_CFGPKT_HEADER_DCOUNT + C_TSTWR_DCOUNT) * 2, i_pkts(0)(0)'length);
 end if;
 
-i_pkts(0)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1011#, i_pkts(0)(0)'length);
-i_pkts(0)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#2012#, i_pkts(0)(0)'length);
-i_pkts(0)(5 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#3013#, i_pkts(0)(0)'length);
-i_pkts(0)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#4014#, i_pkts(0)(0)'length);
-i_pkts(0)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#5015#, i_pkts(0)(0)'length);
-i_pkts(0)(8 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#6016#, i_pkts(0)(0)'length);
+i_pkts(0)(3 + CI_OPT) <= TO_UNSIGNED(16#1011#, i_pkts(0)(0)'length);
+i_pkts(0)(4 + CI_OPT) <= TO_UNSIGNED(16#2012#, i_pkts(0)(0)'length);
+i_pkts(0)(5 + CI_OPT) <= TO_UNSIGNED(16#3013#, i_pkts(0)(0)'length);
+i_pkts(0)(6 + CI_OPT) <= TO_UNSIGNED(16#4014#, i_pkts(0)(0)'length);
+i_pkts(0)(7 + CI_OPT) <= TO_UNSIGNED(16#5015#, i_pkts(0)(0)'length);
+i_pkts(0)(8 + CI_OPT) <= TO_UNSIGNED(16#6016#, i_pkts(0)(0)'length);
 
 --Pkt1
-i_pkts(1)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
-i_pkts(1)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
-i_pkts(1)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
+i_pkts(1)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT) <= TO_UNSIGNED(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT + 1);
+i_pkts(1)(0 + CI_OPT)(C_CFGPKT_WR_BIT) <= C_CFGPKT_RD;
+i_pkts(1)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT) <= '0';
 
-i_pkts(1)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(C_TSTRD_FSTADR, i_pkts(0)(1)'length);--Start Adr
-i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(C_TSTRD_DCOUNT, i_pkts(0)(2)'length);--Len
+i_pkts(1)(1 + CI_OPT) <= TO_UNSIGNED(C_TSTRD_FSTADR, i_pkts(0)(1)'length);--Start Adr
+i_pkts(1)(2 + CI_OPT) <= TO_UNSIGNED(C_TSTRD_DCOUNT, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(1)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(1)(0)'length);
+i_pkts(1)(0) <= TO_UNSIGNED((CI_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(1)(0)'length);
 end if;
 
-i_pkts(1)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(0)'length);
-i_pkts(1)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(0)'length);
-i_pkts(1)(5 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#03#, i_pkts(0)(0)'length);
-i_pkts(1)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0)(0)'length);
-i_pkts(1)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0)(0)'length);
+i_pkts(1)(3 + CI_OPT) <= TO_UNSIGNED(16#01#, i_pkts(0)(0)'length);
+i_pkts(1)(4 + CI_OPT) <= TO_UNSIGNED(16#02#, i_pkts(0)(0)'length);
+i_pkts(1)(5 + CI_OPT) <= TO_UNSIGNED(16#03#, i_pkts(0)(0)'length);
+i_pkts(1)(6 + CI_OPT) <= TO_UNSIGNED(16#04#, i_pkts(0)(0)'length);
+i_pkts(1)(7 + CI_OPT) <= TO_UNSIGNED(16#04#, i_pkts(0)(0)'length);
 
 --Pkt2
-i_pkts(2)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
-i_pkts(2)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
-i_pkts(2)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
+i_pkts(2)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT) <= TO_UNSIGNED(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT + 1);
+i_pkts(2)(0 + CI_OPT)(C_CFGPKT_WR_BIT) <= C_CFGPKT_RD;
+i_pkts(2)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT) <= '0';
 
-i_pkts(2)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(1)'length);--Start Adr
-i_pkts(2)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0)(2)'length);--Len
+i_pkts(2)(1 + CI_OPT) <= TO_UNSIGNED(16#02#, i_pkts(0)(1)'length);--Start Adr
+i_pkts(2)(2 + CI_OPT) <= TO_UNSIGNED(10#02#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(2)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(2)(0)'length);
+i_pkts(2)(0) <= TO_UNSIGNED((CI_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(2)(0)'length);
 end if;
 
-i_pkts(2)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(0)'length);
-i_pkts(2)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(0)'length);
-i_pkts(2)(5 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#03#, i_pkts(0)(0)'length);
-i_pkts(2)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0)(0)'length);
-i_pkts(2)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0)(0)'length);
+i_pkts(2)(3 + CI_OPT) <= TO_UNSIGNED(16#01#, i_pkts(0)(0)'length);
+i_pkts(2)(4 + CI_OPT) <= TO_UNSIGNED(16#02#, i_pkts(0)(0)'length);
+i_pkts(2)(5 + CI_OPT) <= TO_UNSIGNED(16#03#, i_pkts(0)(0)'length);
+i_pkts(2)(6 + CI_OPT) <= TO_UNSIGNED(16#04#, i_pkts(0)(0)'length);
+i_pkts(2)(7 + CI_OPT) <= TO_UNSIGNED(16#04#, i_pkts(0)(0)'length);
 
 
 --Pkt3
-i_pkts(3)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
-i_pkts(3)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
-i_pkts(3)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
+i_pkts(3)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT) <= TO_UNSIGNED(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT + 1);
+i_pkts(3)(0 + CI_OPT)(C_CFGPKT_WR_BIT) <= C_CFGPKT_WR;
+i_pkts(3)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT) <= '0';
 
-i_pkts(3)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--Start Adr
-i_pkts(3)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0)(2)'length);--Len
+i_pkts(3)(1 + CI_OPT) <= TO_UNSIGNED(16#01#, i_pkts(0)(1)'length);--Start Adr
+i_pkts(3)(2 + CI_OPT) <= TO_UNSIGNED(10#02#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(3)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT + 2) * 2, i_pkts(3)(0)'length);
+i_pkts(3)(0) <= TO_UNSIGNED((CI_CFGPKT_HEADER_DCOUNT + 2) * 2, i_pkts(3)(0)'length);
 end if;
 
-i_pkts(3)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1021#, i_pkts(0)(0)'length);
-i_pkts(3)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#2022#, i_pkts(0)(0)'length);
-i_pkts(3)(5 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#3023#, i_pkts(0)(0)'length);
-i_pkts(3)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#4024#, i_pkts(0)(0)'length);
-i_pkts(3)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#5025#, i_pkts(0)(0)'length);
+i_pkts(3)(3 + CI_OPT) <= TO_UNSIGNED(16#1021#, i_pkts(0)(0)'length);
+i_pkts(3)(4 + CI_OPT) <= TO_UNSIGNED(16#2022#, i_pkts(0)(0)'length);
+i_pkts(3)(5 + CI_OPT) <= TO_UNSIGNED(16#3023#, i_pkts(0)(0)'length);
+i_pkts(3)(6 + CI_OPT) <= TO_UNSIGNED(16#4024#, i_pkts(0)(0)'length);
+i_pkts(3)(7 + CI_OPT) <= TO_UNSIGNED(16#5025#, i_pkts(0)(0)'length);
 
 
 --Pkt4
-i_pkts(4)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
-i_pkts(4)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
-i_pkts(4)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
+i_pkts(4)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT) <= TO_UNSIGNED(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT + 1);
+i_pkts(4)(0 + CI_OPT)(C_CFGPKT_WR_BIT) <= C_CFGPKT_WR;
+i_pkts(4)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT) <= '0';
 
-i_pkts(4)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(1)'length);--Start Adr
-i_pkts(4)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0)(2)'length);--Len
+i_pkts(4)(1 + CI_OPT) <= TO_UNSIGNED(16#02#, i_pkts(0)(1)'length);--Start Adr
+i_pkts(4)(2 + CI_OPT) <= TO_UNSIGNED(10#03#, i_pkts(0)(2)'length);--Len
 if CI_OPT = 1 then
-i_pkts(4)(0) <= CONV_STD_LOGIC_VECTOR((CI_CFGPKT_HEADER_DCOUNT + 3) * 2, i_pkts(4)(0)'length);
+i_pkts(4)(0) <= TO_UNSIGNED((CI_CFGPKT_HEADER_DCOUNT + 3) * 2, i_pkts(4)(0)'length);
 end if;
 
-i_pkts(4)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1031#, i_pkts(0)(0)'length);
-i_pkts(4)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#2032#, i_pkts(0)(0)'length);
-i_pkts(4)(5 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#3033#, i_pkts(0)(0)'length);
-i_pkts(4)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#4034#, i_pkts(0)(0)'length);
-i_pkts(4)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#5035#, i_pkts(0)(0)'length);
+i_pkts(4)(3 + CI_OPT) <= TO_UNSIGNED(16#1031#, i_pkts(0)(0)'length);
+i_pkts(4)(4 + CI_OPT) <= TO_UNSIGNED(16#2032#, i_pkts(0)(0)'length);
+i_pkts(4)(5 + CI_OPT) <= TO_UNSIGNED(16#3033#, i_pkts(0)(0)'length);
+i_pkts(4)(6 + CI_OPT) <= TO_UNSIGNED(16#4034#, i_pkts(0)(0)'length);
+i_pkts(4)(7 + CI_OPT) <= TO_UNSIGNED(16#5035#, i_pkts(0)(0)'length);
 
 
 -------------------
