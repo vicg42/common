@@ -354,25 +354,23 @@ wait for 1 us;
 --------------------------------------
 --DWIDTH 8Bit
 --------------------------------------
-if C_HOST_DWIDTH = 8 then
+if G_HOST_DWIDTH < G_CFG_DWIDTH then --if C_HOST_DWIDTH = 8 then
 --PKT(Write)
 --HEADER
-for i in 0 to 3 - 1 loop
+for i in 0 to CI_CFGPKT_HEADER_DCOUNT - 1 loop
+for x in 0 to (C_FMODULE_DWIDTH / C_HOST_DWIDTH) - 1  loop
 wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(i)((8 * 1) - 1 downto (8 * 0));
+i_host_txd(C_HOST_DWIDTH - 1 downto 0) <= i_pkts(0)(i)((C_HOST_DWIDTH * (x + 1)) - 1 downto (C_HOST_DWIDTH * x));
 i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(i)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
+end loop;
 end loop;
 --DATA
 for i in 0 to 6 - 1 loop
+for x in 0 to (C_FMODULE_DWIDTH / C_HOST_DWIDTH) - 1  loop
 wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(3 + i)((8 * 1) - 1 downto (8 * 0));
+i_host_txd(C_HOST_DWIDTH - 1 downto 0) <= i_pkts(0)(CI_CFGPKT_HEADER_DCOUNT + i)((C_HOST_DWIDTH * (x + 1)) - 1 downto (C_HOST_DWIDTH * x));
 i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(0)(3 + i)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
+end loop;
 end loop;
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
@@ -385,13 +383,12 @@ wait for 500 ns;
 
 --PKT(Read)
 --HEADER
-for i in 0 to 3 - 1 loop
+for i in 0 to CI_CFGPKT_HEADER_DCOUNT - 1 loop
+for x in 0 to (C_FMODULE_DWIDTH / C_HOST_DWIDTH) - 1  loop
 wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(1)(i)((8 * 1) - 1 downto (8 * 0));
+i_host_txd(C_HOST_DWIDTH - 1 downto 0) <= i_pkts(1)(i)((C_HOST_DWIDTH * (x + 1)) - 1 downto (C_HOST_DWIDTH * x));
 i_host_wr <= '1';
-wait until rising_edge(i_host_clk);
-i_host_txd(7 downto 0) <= i_pkts(1)(i)((8 * 2) - 1 downto (8 * 1));
-i_host_wr <= '1';
+end loop;
 end loop;
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
