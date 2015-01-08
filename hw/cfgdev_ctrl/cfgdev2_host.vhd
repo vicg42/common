@@ -130,7 +130,7 @@ signal i_hbufw_wr                       : std_logic;
 signal i_hbufw_full                     : std_logic;
 signal i_hbufw_empty                    : std_logic;
 
-constant CI_CHUNK_COUNT                 : integer := selval (p_in_htxbuf_di'length / p_out_cfg_txdata'length
+constant CI_CHUNK_COUNT                 : integer := selval(p_in_htxbuf_di'length / p_out_cfg_txdata'length
                                                               , p_out_cfg_txdata'length / p_in_htxbuf_di'length
                                                                 , G_HOST_DWIDTH > G_CFG_DWIDTH);
 signal i_chnkcnt                        : unsigned(selval(1, log2(CI_CHUNK_COUNT), G_HOST_DWIDTH = G_CFG_DWIDTH) - 1 downto 0);
@@ -144,8 +144,8 @@ signal i_fdev_done                      : std_logic;
 type TDevCfg_PktHeader is array (0 to CI_CFGPKTH_DCOUNT - 1) of unsigned(i_fdev_txd'range);
 signal i_pkth                           : TDevCfg_PktHeader;
 
-constant CI_CFGPKTH_COUNT : integer := i_pkth'length * selval (1 , CI_CHUNK_COUNT, G_HOST_DWIDTH > G_CFG_DWIDTH);
-constant CI_OPT_BIT : integer := selval (0 , log2(CI_CHUNK_COUNT), G_HOST_DWIDTH > G_CFG_DWIDTH);
+constant CI_CFGPKTH_COUNT : integer := i_pkth'length * selval(1 , CI_CHUNK_COUNT, G_HOST_DWIDTH > G_CFG_DWIDTH);
+constant CI_OPT_BIT : integer := selval(0 , log2(CI_CHUNK_COUNT), G_HOST_DWIDTH > G_CFG_DWIDTH);
 
 signal i_pkt_dcnt                       : unsigned((G_CFG_DWIDTH + CI_OPT_BIT) - 1 downto 0);
 signal i_pkt_dcount                     : unsigned((G_CFG_DWIDTH + CI_OPT_BIT) - 1 downto 0);
@@ -287,11 +287,11 @@ gen_44 : if G_HOST_DWIDTH < G_CFG_DWIDTH generate begin
 i_pkt_dcount <= i_pkth(CI_CFGPKTH_DLEN_CHNK)(i_pkth(CI_CFGPKTH_DLEN_CHNK)'high downto 0) & TO_UNSIGNED(0, CI_OPT_BIT);
 end generate gen_44;
 
-process(p_in_rst,p_in_cfg_clk)
+process(p_in_rst, p_in_cfg_clk)
   variable pkth : TDevCfg_PktHeader;
 begin
-
-if p_in_rst = '1' then
+if rising_edge(p_in_cfg_clk) then
+  if p_in_rst = '1' then
 
   fsm_state_cs <= S2_HBUFR_IDLE;
 
@@ -313,7 +313,7 @@ if p_in_rst = '1' then
   i_hbufw_di <= (others => '0');
   i_hbufw_wr <= '0';
 
-elsif rising_edge(p_in_cfg_clk) then
+  else
 
   case fsm_state_cs is
 
@@ -455,7 +455,7 @@ elsif rising_edge(p_in_cfg_clk) then
 
       if i_hbufw_full = '0' then
         if i_pkt_dcnt(6 downto 0) = TO_UNSIGNED(CI_CFGPKTH_COUNT - 1, 7) then
-          if pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
+          if i_pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
             i_chnkcnt <= (others => '0');
             i_pkt_dcnt <= (others => '0');
             i_hbufw_wr <= '1';
@@ -499,8 +499,8 @@ elsif rising_edge(p_in_cfg_clk) then
       for i in 0 to CI_CHUNK_COUNT - 1 loop
           for y in 0 to i_pkth'length - 1 loop
             if i_pkt_dcnt(6 downto 0) = y then
-              i_hbufw_di((pkth(y)'length * (i + 1)) - 1
-                              downto (pkth(y)'length * i)) <= std_logic_vector(i_pkth(y));
+              i_hbufw_di((i_pkth(y)'length * (i + 1)) - 1
+                              downto (i_pkth(y)'length * i)) <= std_logic_vector(i_pkth(y));
             end if;
           end loop;
       end loop;
@@ -510,8 +510,8 @@ elsif rising_edge(p_in_cfg_clk) then
         if i_chnkcnt = i then
           for y in 0 to i_pkth'length - 1 loop
             if i_pkt_dcnt(6 downto 0) = y then
-              i_hbufw_di((pkth(y)'length * (i + 1)) - 1
-                              downto (pkth(y)'length * i)) <= std_logic_vector(i_pkth(y));
+              i_hbufw_di((i_pkth(y)'length * (i + 1)) - 1
+                              downto (i_pkth(y)'length * i)) <= std_logic_vector(i_pkth(y));
             end if;
           end loop;
         end if;
@@ -582,7 +582,7 @@ elsif rising_edge(p_in_cfg_clk) then
       end if;
 
   end case;
-
+  end if;
 end if;
 end process;
 
