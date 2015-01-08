@@ -19,14 +19,14 @@ C_TSTREG_COUNT_MAX : integer := 10;
 
 C_TSTWR_FSTADR : integer := 1;--first adr
 C_TSTWR_DCOUNT : integer := 5;
-C_TSTWR_FIFO   : std_logic := '1'; --0/1 - OFF/ON
+C_TSTWR_FIFO   : std_logic := '0'; --0/1 - OFF/ON
 
 C_TSTRD_FSTADR : integer := 2;--first adr
-C_TSTRD_DCOUNT : integer := 5;
-C_TSTRD_FIFO   : std_logic := '1';
+C_TSTRD_DCOUNT : integer := 4;
+C_TSTRD_FIFO   : std_logic := '0';
 
-C_HOST_DWIDTH : integer := 32;
-C_CFG_DWIDTH  : integer := 16
+C_HOST_DWIDTH : integer := 8;
+C_CFG_DWIDTH  : integer := 8
 );
 port(
 p_out_tst : out std_logic_vector(31 downto 0)

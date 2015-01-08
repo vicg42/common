@@ -154,6 +154,7 @@ signal tst_fsm_cs                       : unsigned(3 downto 0) := (others => '0'
 signal tst_fsm_cs_dly                   : std_logic_vector(tst_fsm_cs'range) := (others => '0');
 signal tst_hbufr_empty                  : std_logic;
 signal tst_hbufw_full                   : std_logic;
+signal tst_hbufr_do                     : std_logic_vector(p_in_htxbuf_di'range);
 
 begin --architecture behav1
 
@@ -168,11 +169,11 @@ begin --architecture behav1
 process(p_in_cfg_clk)
 begin
   if rising_edge(p_in_cfg_clk) then
-
+    tst_hbufr_do <= i_hbufr_do;
     tst_hbufr_empty <= i_hbufr_empty;
     tst_hbufw_full <= i_hbufw_full;
     tst_fsm_cs_dly <= std_logic_vector(tst_fsm_cs);
-    p_out_tst(0) <= OR_reduce(tst_fsm_cs_dly) or tst_hbufr_empty or tst_hbufw_full;
+    p_out_tst(0) <= OR_reduce(tst_fsm_cs_dly) or tst_hbufr_empty or tst_hbufw_full or OR_reduce(tst_hbufr_do);
 
   end if;
 end process;
@@ -288,7 +289,6 @@ i_pkt_dcount <= i_pkth(CI_CFGPKTH_DLEN_CHNK)(i_pkth(CI_CFGPKTH_DLEN_CHNK)'high d
 end generate gen_44;
 
 process(p_in_rst, p_in_cfg_clk)
-  variable pkth : TDevCfg_PktHeader;
 begin
 if rising_edge(p_in_cfg_clk) then
   if p_in_rst = '1' then
@@ -305,7 +305,6 @@ if rising_edge(p_in_cfg_clk) then
   i_fdev_done <= '0';
 
   for i in 0 to i_pkth'length - 1 loop
-  pkth(i) := (others => '0');
   i_pkth(i) <= (others => '0');
   end loop;
 
@@ -338,7 +337,7 @@ if rising_edge(p_in_cfg_clk) then
           i_pkt_dcnt <= (others => '0');
 
           --analize packet type
-          if pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
+          if i_pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
             if p_in_cfg_txbuf_full = '0' then
             i_chnkcnt <= i_chnkcnt + 1;
             fsm_state_cs <= S2_HBUFR_RxD;
@@ -354,45 +353,44 @@ if rising_edge(p_in_cfg_clk) then
           i_pkt_dcnt <= i_pkt_dcnt + 1;
 
         end if;
-      end if;
 
-      if G_HOST_DWIDTH = G_CFG_DWIDTH  then
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-          for y in 0 to i_pkth'length - 1 loop
-            if i_pkt_dcnt(6 downto 0) = y then
-              pkth(y) := UNSIGNED(i_hbufr_do((pkth(y)'length * (i + 1)) - 1
-                                               downto (pkth(y)'length * i)));
-            end if;
-          end loop;
-      end loop;
+        if G_HOST_DWIDTH = G_CFG_DWIDTH  then
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+            for y in 0 to i_pkth'length - 1 loop
+              if i_pkt_dcnt(6 downto 0) = y then
+                i_pkth(y) <= UNSIGNED(i_hbufr_do((i_pkth(y)'length * (i + 1)) - 1
+                                                 downto (i_pkth(y)'length * i)));
+              end if;
+            end loop;
+        end loop;
 
-      elsif G_HOST_DWIDTH > G_CFG_DWIDTH  then
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-        if i_chnkcnt = i then
-          for y in 0 to i_pkth'length - 1 loop
-            if i_pkt_dcnt(6 downto 0) = y then
-              pkth(y) := UNSIGNED(i_hbufr_do((pkth(y)'length * (i + 1)) - 1
-                                               downto (pkth(y)'length * i)));
-            end if;
-          end loop;
+        elsif G_HOST_DWIDTH > G_CFG_DWIDTH  then
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+          if i_chnkcnt = i then
+            for y in 0 to i_pkth'length - 1 loop
+              if i_pkt_dcnt(6 downto 0) = y then
+                i_pkth(y) <= UNSIGNED(i_hbufr_do((i_pkth(y)'length * (i + 1)) - 1
+                                                 downto (i_pkth(y)'length * i)));
+              end if;
+            end loop;
+          end if;
+        end loop;
+
+        else
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+          if i_chnkcnt = i then
+            for y in 0 to i_pkth'length - 1 loop
+              if i_pkt_dcnt(6 downto CI_OPT_BIT) = y then
+                i_pkth(y)((i_hbufr_do'length * (i + 1)) - 1
+                                downto (i_hbufr_do'length * i)) <= UNSIGNED(i_hbufr_do);
+              end if;
+            end loop;
+          end if;
+        end loop;
+
         end if;
-      end loop;
-
-      else
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-        if i_chnkcnt = i then
-          for y in 0 to i_pkth'length - 1 loop
-            if i_pkt_dcnt(6 downto CI_OPT_BIT) = y then
-              pkth(y)((i_hbufr_do'length * (i + 1)) - 1
-                              downto (i_hbufr_do'length * i)) := UNSIGNED(i_hbufr_do);
-            end if;
-          end loop;
-        end if;
-      end loop;
 
       end if;
-
-      i_pkth <= pkth;
 
     --Write data to cfg devices
     when S2_HBUFR_RxD =>
@@ -418,33 +416,34 @@ if rising_edge(p_in_cfg_clk) then
           i_pkt_dcnt <= i_pkt_dcnt + 1;
         end if;
 
+        if G_HOST_DWIDTH = G_CFG_DWIDTH  then
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+            i_fdev_txd <= UNSIGNED(i_hbufr_do((i_fdev_txd'length * (i + 1)) - 1
+                                             downto (i_fdev_txd'length * i)));
+        end loop;
+
+        elsif G_HOST_DWIDTH > G_CFG_DWIDTH  then
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+          if i_chnkcnt = i then
+            i_fdev_txd <= UNSIGNED(i_hbufr_do((i_fdev_txd'length * (i + 1)) - 1
+                                             downto (i_fdev_txd'length * i)));
+          end if;
+        end loop;
+
+        else
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+          if i_chnkcnt = i then
+            i_fdev_txd((i_hbufr_do'length * (i + 1)) - 1
+                            downto (i_hbufr_do'length * i)) <= UNSIGNED(i_hbufr_do);
+          end if;
+        end loop;
+
+        end if;
+
       else
         i_fdev_wr <= '0';
       end if;
 
-      if G_HOST_DWIDTH = G_CFG_DWIDTH  then
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-          i_fdev_txd <= UNSIGNED(i_hbufr_do((i_fdev_txd'length * (i + 1)) - 1
-                                           downto (i_fdev_txd'length * i)));
-      end loop;
-
-      elsif G_HOST_DWIDTH > G_CFG_DWIDTH  then
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-        if i_chnkcnt = i then
-          i_fdev_txd <= UNSIGNED(i_hbufr_do((i_fdev_txd'length * (i + 1)) - 1
-                                           downto (i_fdev_txd'length * i)));
-        end if;
-      end loop;
-
-      else
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-        if i_chnkcnt = i then
-          i_fdev_txd((i_hbufr_do'length * (i + 1)) - 1
-                          downto (i_hbufr_do'length * i)) <= UNSIGNED(i_hbufr_do);
-        end if;
-      end loop;
-
-      end if;
 
     --write packet header to host buf
     when S2_HBUFW_TxH =>
@@ -491,45 +490,47 @@ if rising_edge(p_in_cfg_clk) then
           end if;
 
         end if;
+
+        if G_HOST_DWIDTH = G_CFG_DWIDTH  then
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+            for y in 0 to i_pkth'length - 1 loop
+              if i_pkt_dcnt(6 downto 0) = y then
+                i_hbufw_di((i_pkth(y)'length * (i + 1)) - 1
+                                downto (i_pkth(y)'length * i)) <= std_logic_vector(i_pkth(y));
+              end if;
+            end loop;
+        end loop;
+
+        elsif G_HOST_DWIDTH > G_CFG_DWIDTH  then
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+          if i_chnkcnt = i then
+            for y in 0 to i_pkth'length - 1 loop
+              if i_pkt_dcnt(6 downto 0) = y then
+                i_hbufw_di((i_pkth(y)'length * (i + 1)) - 1
+                                downto (i_pkth(y)'length * i)) <= std_logic_vector(i_pkth(y));
+              end if;
+            end loop;
+          end if;
+        end loop;
+
+        else
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+          if i_chnkcnt = i then
+            for y in 0 to i_pkth'length - 1 loop
+              if i_pkt_dcnt(6 downto CI_OPT_BIT) = y then
+                i_hbufw_di <= std_logic_vector(i_pkth(y)((i_hbufw_di'length * (i + 1)) - 1
+                                                 downto (i_hbufw_di'length * i)));
+              end if;
+            end loop;
+          end if;
+        end loop;
+
+        end if;
+
       else
         i_hbufw_wr <= '0';
       end if;
 
-      if G_HOST_DWIDTH = G_CFG_DWIDTH  then
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-          for y in 0 to i_pkth'length - 1 loop
-            if i_pkt_dcnt(6 downto 0) = y then
-              i_hbufw_di((i_pkth(y)'length * (i + 1)) - 1
-                              downto (i_pkth(y)'length * i)) <= std_logic_vector(i_pkth(y));
-            end if;
-          end loop;
-      end loop;
-
-      elsif G_HOST_DWIDTH > G_CFG_DWIDTH  then
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-        if i_chnkcnt = i then
-          for y in 0 to i_pkth'length - 1 loop
-            if i_pkt_dcnt(6 downto 0) = y then
-              i_hbufw_di((i_pkth(y)'length * (i + 1)) - 1
-                              downto (i_pkth(y)'length * i)) <= std_logic_vector(i_pkth(y));
-            end if;
-          end loop;
-        end if;
-      end loop;
-
-      else
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-        if i_chnkcnt = i then
-          for y in 0 to i_pkth'length - 1 loop
-            if i_pkt_dcnt(6 downto CI_OPT_BIT) = y then
-              i_hbufw_di <= std_logic_vector(i_pkth(y)((i_hbufw_di'length * (i + 1)) - 1
-                                               downto (i_hbufw_di'length * i)));
-            end if;
-          end loop;
-        end if;
-      end loop;
-
-      end if;
 
     --read data from cfg devices and write it to host buf
     when S2_HBUFW_TxD =>
@@ -553,32 +554,33 @@ if rising_edge(p_in_cfg_clk) then
           end if;
 
         end if;
+
+        if G_HOST_DWIDTH = G_CFG_DWIDTH  then
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+            i_hbufw_di((p_in_cfg_rxdata'length * (i + 1)) - 1
+                            downto (p_in_cfg_rxdata'length * i)) <= p_in_cfg_rxdata;
+        end loop;
+
+        elsif G_HOST_DWIDTH > G_CFG_DWIDTH  then
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+          if i_chnkcnt = i then
+            i_hbufw_di((p_in_cfg_rxdata'length * (i + 1)) - 1
+                            downto (p_in_cfg_rxdata'length * i)) <= p_in_cfg_rxdata;
+          end if;
+        end loop;
+
+        else
+        for i in 0 to CI_CHUNK_COUNT - 1 loop
+          if i_chnkcnt = i then
+            i_hbufw_di <= p_in_cfg_rxdata((i_hbufw_di'length * (i + 1)) - 1
+                                              downto (i_hbufw_di'length * i));
+          end if;
+        end loop;
+
+        end if;
+
       else
         i_hbufw_wr <= '0';
-      end if;
-
-      if G_HOST_DWIDTH = G_CFG_DWIDTH  then
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-          i_hbufw_di((p_in_cfg_rxdata'length * (i + 1)) - 1
-                          downto (p_in_cfg_rxdata'length * i)) <= p_in_cfg_rxdata;
-      end loop;
-
-      elsif G_HOST_DWIDTH > G_CFG_DWIDTH  then
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-        if i_chnkcnt = i then
-          i_hbufw_di((p_in_cfg_rxdata'length * (i + 1)) - 1
-                          downto (p_in_cfg_rxdata'length * i)) <= p_in_cfg_rxdata;
-        end if;
-      end loop;
-
-      else
-      for i in 0 to CI_CHUNK_COUNT - 1 loop
-        if i_chnkcnt = i then
-          i_hbufw_di <= p_in_cfg_rxdata((i_hbufw_di'length * (i + 1)) - 1
-                                            downto (i_hbufw_di'length * i));
-        end if;
-      end loop;
-
       end if;
 
   end case;
