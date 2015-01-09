@@ -155,6 +155,8 @@ signal tst_fsm_cs_dly                   : std_logic_vector(tst_fsm_cs'range) := 
 signal tst_hbufr_empty                  : std_logic;
 signal tst_hbufw_full                   : std_logic;
 signal tst_hbufr_do                     : std_logic_vector(p_in_htxbuf_di'range);
+signal tst_hbufw_empty                  : std_logic;
+
 
 begin --architecture behav1
 
@@ -172,8 +174,9 @@ begin
     tst_hbufr_do <= i_hbufr_do;
     tst_hbufr_empty <= i_hbufr_empty;
     tst_hbufw_full <= i_hbufw_full;
+    tst_hbufw_empty <= i_hbufw_empty;
     tst_fsm_cs_dly <= std_logic_vector(tst_fsm_cs);
-    p_out_tst(0) <= OR_reduce(tst_fsm_cs_dly) or tst_hbufr_empty or tst_hbufw_full or OR_reduce(tst_hbufr_do);
+    p_out_tst(0) <= OR_reduce(tst_fsm_cs_dly) or tst_hbufr_empty or tst_hbufw_full or OR_reduce(tst_hbufr_do) or tst_hbufw_empty;
 
   end if;
 end process;
