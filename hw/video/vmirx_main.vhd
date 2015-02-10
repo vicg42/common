@@ -290,7 +290,7 @@ architecture behavioral_2 of vmirx_main is
 
 constant dly : time := 1 ps;
 
-component sim_bram32x8bit --bram_mirx
+component bram_mirx --sim_bram32x8bit
 port(
 addra: in  std_logic_vector(log2(G_BRAM_SIZE_BYTE / (G_DI_WIDTH / 8)) - 1 downto 0);
 dina : in  std_logic_vector(G_DI_WIDTH - 1 downto 0);
@@ -545,7 +545,7 @@ i_buf_di((p_out_dwnp_data'length * (i + 1) - 1)
 
 end generate genw_buf_din;
 
-m_buf : sim_bram32x8bit --bram_mirx
+m_buf : bram_mirx --sim_bram32x8bit
 port map(
 addra => std_logic_vector(i_wbuf_adr(log2(G_BRAM_SIZE_BYTE) - 1
                                                     downto log2(p_in_upp_data'length / 8))),
