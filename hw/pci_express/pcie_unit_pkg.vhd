@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 11.11.2011 9:49:09
@@ -7,20 +6,14 @@
 --
 -- Description :
 --
--- Revision:
--- Revision 0.01 - File Created
---
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
 
 library work;
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
 use work.prj_cfg.all;
-
 
 package pcie_unit_pkg is
 
@@ -37,12 +30,12 @@ p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 --Управление внешними устройствами
 p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr    : out   std_logic;
 p_out_dev_rd    : out   std_logic;
 p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq    : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_irq    : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 p_in_dev_opt    : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt   : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
@@ -63,7 +56,7 @@ p_out_txbuf_full               : out   std_logic;
 --p_in_txbuf_din_be              : in    std_logic_vector(3 downto 0);
 
 --(PC<-FPGA)
-p_out_rxbuf_dout               : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_rxbuf_dout               : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_in_rxbuf_rd                  : in    std_logic;
 p_in_rxbuf_rd_last             : in    std_logic;
 p_out_rxbuf_empty              : out   std_logic;
@@ -113,8 +106,8 @@ p_in_mrd_rcv_err               : in    std_logic;
 --Связь с контроллером прерываний
 p_out_irq_clr                  : out   std_logic;
 p_out_irq_num                  : out   std_logic_vector(4 downto 0);
-p_out_irq_set                  : out   std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
-p_in_irq_status                : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_out_irq_set                  : out   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_in_irq_status                : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 
 --Сигналы управления работой ядра PCI-Express
 p_out_rd_metering              : out   std_logic;
@@ -135,7 +128,7 @@ p_in_rx_engine_tst2     : in    std_logic_vector(9 downto 0);
 p_in_clk                : in    std_logic;
 p_in_rst_n              : in    std_logic
 );
-end component;
+end component pcie_usr_app;
 
 component pcie_mrd_throttle
 port(
@@ -158,7 +151,7 @@ mrd_work_o          : out std_logic;
 clk                 : in  std_logic;
 rst_n               : in  std_logic
 );
-end component;
+end component pcie_mrd_throttle;
 
 component pcie_irq
 port(
@@ -167,8 +160,8 @@ port(
 -----------------------------
 p_in_irq_clr           : in   std_logic;
 p_in_irq_num           : in   std_logic_vector(4 downto 0);
-p_in_irq_set           : in   std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
-p_out_irq_status       : out  std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_irq_set           : in   std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
+p_out_irq_status       : out  std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 
 -----------------------------
 --Связь с ядром PCI-EXPRESS
@@ -192,7 +185,7 @@ p_out_tst              : out  std_logic_vector(31 downto 0);
 p_in_clk               : in   std_logic;
 p_in_rst_n             : in   std_logic
 );
-end component;
+end component pcie_irq;
 
 component pcie_off_on
 port(
@@ -205,7 +198,7 @@ cfg_turnoff_ok_n_o  : out  std_logic;
 clk                 : in   std_logic;
 rst_n               : in   std_logic
 );
-end component;
+end component pcie_off_on;
 
 component pcie_cfg
 port(
@@ -227,18 +220,8 @@ cfg_msi_enable           : out  std_logic;
 clk                 : in   std_logic;
 rst_n               : in   std_logic
 );
-end component;
+end component pcie_cfg;
 
 
-end pcie_unit_pkg;
-
-
-package body pcie_unit_pkg is
-
-end pcie_unit_pkg;
-
-
-
-
-
+end package pcie_unit_pkg;
 

@@ -1,14 +1,10 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 04.11.2011 10:48:05
 -- Module Name : pcie_pkg
 --
 -- Description :
---
--- Revision:
--- Revision 0.01 - File Created
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -19,8 +15,8 @@ package pcie_pkg is
 type TPce2Mem_Ctrl is record
 dir       : std_logic; --C_MEMWR_WRITE/READ from mem_wr_pkg.vhd
 start     : std_logic;
-adr       : std_logic_vector(31 downto 0);--адрес в BYTE
-req_len   : std_logic_vector(17 downto 0);--значение в BYTE. max 128KB
+adr       : std_logic_vector(31 downto 0);--Adress(BYTE)
+req_len   : std_logic_vector(17 downto 0);--Size(BYTE) max=128KB
 trnwr_len : std_logic_vector(7 downto 0); --
 trnrd_len : std_logic_vector(7 downto 0); --
 end record;
@@ -30,18 +26,18 @@ done    : std_logic;
 end record;
 
 
---Номера буферов передатчика ядра PCI-Express:
+--Buffer of core PCI-Express:
 constant C_PCIE_BUF_NON_POSTED_QUEUE    : integer:=0;
 constant C_PCIE_BUF_POSTED_QUEUE        : integer:=1;
 constant C_PCIE_BUF_COMPLETION_QUEUE    : integer:=2;
 constant C_PCIE_BUF_LOOK_AHEAD          : integer:=3;
 
---Константы заголовка пакета:
---(поле FMT)
+--Header MEM pkt:
+--(field FMT)
 constant C_PCIE_FMT_MSG_4DW             : std_logic_vector(1 downto 0):="10";     --Msg  - 4DW, no data
 constant C_PCIE_FMT_MSGD_4DW            : std_logic_vector(1 downto 0):="11";     --MsgD - 4DW, w/ data
 
---(поле FMT + поле TYPE)
+--(field FMT + field TYPE)
 constant C_PCIE_PKT_TYPE_IORD_3DW_ND    : std_logic_vector(6 downto 0):="0000010"; --(0x02) IORd   - 3DW, no data
 constant C_PCIE_PKT_TYPE_IOWR_3DW_WD    : std_logic_vector(6 downto 0):="1000010"; --(0x42) IOWr   - 3DW, w/data
 constant C_PCIE_PKT_TYPE_MWR_3DW_WD     : std_logic_vector(6 downto 0):="1000000"; --(0x40) MWr    - 3DW, w/data
@@ -78,15 +74,4 @@ constant C_PCIE_COMPL_STATUS_UR         : std_logic_vector(2 downto 0):="001";
 constant C_PCIE_COMPL_STATUS_CRS        : std_logic_vector(2 downto 0):="010";
 constant C_PCIE_COMPL_STATUS_CA         : std_logic_vector(2 downto 0):="011";
 
-end pcie_pkg;
-
-
-package body pcie_pkg is
-
-end pcie_pkg;
-
-
-
-
-
-
+end package pcie_pkg;

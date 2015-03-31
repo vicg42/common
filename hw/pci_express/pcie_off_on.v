@@ -1,14 +1,10 @@
 //-------------------------------------------------------------------------
-//-- Company     : Linkos
 //-- Engineer    : Golovachenko Victor
 //--
 //-- Create Date : 11/11/2009
 //-- Module Name : pcie_off_on.v
 //--
 //-- Description : Turn-off Control Unit.
-//--
-//-- Revision:
-//-- Revision 0.01 - File Created
 //--
 //-------------------------------------------------------------------------
 `timescale 1ns/1ns
@@ -22,7 +18,7 @@ module pcie_off_on
                       //Notifies the user that a PME_TURN_Off message has been received
                       //and the main power will soon be removed.
 
-  cfg_turnoff_ok_n_o, //Подтверждение для Configuration To Turnoff
+  cfg_turnoff_ok_n_o, //ACK   Configuration To Turnoff
 
   rst_n,
   clk

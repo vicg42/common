@@ -1,15 +1,11 @@
 //-------------------------------------------------------------------------
-//-- Company     : Linkos
 //-- Engineer    : Golovachenko Victor
 //--
 //-- Create Date : 11/11/2009
 //-- Module Name : pcie_mrd_throttle.v
 //--
 //-- Description : Read Metering Unit.
-//--               Задержка генерации запросов чтения (Когда FPGA-Master на Шине PCI-Express)
-//--
-//-- Revision:
-//-- Revision 0.01 - File Created
+//--               Delay generation request RD (When FPGA-Master on bus PCI-Express)
 //--
 //-------------------------------------------------------------------------
 `timescale 1ns/1ns
@@ -25,7 +21,7 @@ module pcie_mrd_throttle
 
   mrd_work_i,
   mrd_len_i,
-  mrd_pkt_count_i,     //I Кол-во переданых пакетов MRr
+  mrd_pkt_count_i,     //I
 
 //  cpld_found_i,
   cpld_data_size_i,
@@ -47,7 +43,7 @@ input         init_rst_i;
 
 input         mrd_work_i;          // Start MRd Tx Command
 input [31:0]  mrd_len_i;           // Memory Read Size Command (DWs)
-input [15:0]  mrd_pkt_count_i;     // Кол-во переданых пакетов MRr
+input [15:0]  mrd_pkt_count_i;     // Count sended pkt MRr
 
 //input [31:0]  cpld_found_i;        // Current CompletionDs found
 input [31:0]  cpld_data_size_i;    // Current Completion data found

@@ -1,30 +1,22 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 25.08.2012 17:56:21
--- Module Name : pcie_rx.v
+-- Module Name : pcie_rx
 --
--- Description : PCI rxd
---
--- Revision:
--- Revision 0.01 - File Created
+-- Description : PCIE rx controller
 --
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_misc.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 library work;
+use work.reduce_pack.all;
 use work.vicg_common_pkg.all;
 use work.pcie_pkg.all;
 
 entity pcie_rx is
---generic(
---G_PCIE_TRN_DBUS : integer:=64
---);
 port(
 --usr app
 usr_reg_adr_o       : out   std_logic_vector(7 downto 0);
@@ -67,8 +59,8 @@ req_exprom_o        : out   std_logic;
 --dma trn
 dma_init_i          : in    std_logic;
 
-cpld_total_size_o   : out   std_logic_vector(31 downto 0); --ќбщее кол-во данных(DW) от всех прин€тых пакетов CplD
-cpld_malformed_o    : out   std_logic;                     --–езультат сравнение (i_cpld_tlp_len != i_cpld_tlp_cnt)
+cpld_total_size_o   : out   std_logic_vector(31 downto 0); --Total count data(DW) recieve pkt CplD
+cpld_malformed_o    : out   std_logic;                     --result of compare (i_cpld_tlp_len != i_cpld_tlp_cnt)
 
 --“ехнологический порт
 tst_o               : out   std_logic_vector(31 downto 0);
@@ -78,7 +70,7 @@ tst_i               : in    std_logic_vector(31 downto 0);
 clk                 : in    std_logic;
 rst_n               : in    std_logic
 );
-end pcie_rx;
+end entity pcie_rx;
 
 architecture behavioral of pcie_rx is
 
@@ -104,7 +96,7 @@ signal i_fsm_cs            : TFsm_state;
 signal i_bar_exprom        : std_logic;
 signal i_bar_usr           : std_logic;
 
-signal i_cpld_total_size   : std_logic_vector(31 downto 0);
+signal i_cpld_total_size   : unsigned(31 downto 0);
 signal i_cpld_malformed    : std_logic;
 
 signal i_req_compl         : std_logic;
@@ -122,7 +114,7 @@ signal i_req_exprom        : std_logic;
 
 signal i_trn_rdst_rdy_n    : std_logic;
 
-signal i_cpld_tlp_cnt      : std_logic_vector(9 downto 0);
+signal i_cpld_tlp_cnt      : unsigned(9 downto 0);
 signal i_cpld_tlp_len      : std_logic_vector(9 downto 0);
 signal i_cpld_tlp_dlast    : std_logic;
 signal i_cpld_tlp_work     : std_logic;
@@ -133,17 +125,17 @@ signal i_usr_wr            : std_logic;
 signal i_usr_rd            : std_logic;
 
 signal i_trn_dw_skip       : std_logic;
-signal i_trn_dw_sel        : std_logic_vector(trn_rd'length/64 - 1 downto 0);
+signal i_trn_dw_sel        : unsigned((trn_rd'length / 64) - 1 downto 0);
 
 
---MAIN
-begin
+
+begin --architecture behavioral
 
 
 ----------------------------------------
---“ехнологические
+--DBG
 ----------------------------------------
-tst_o <= (others=>'0');
+tst_o <= (others => '0');
 
 
 ----------------------------------------
@@ -163,7 +155,7 @@ usr_txbuf_wr_last_o <= i_cpld_tlp_dlast;
 
 trn_rdst_rdy_n_o <= i_trn_rdst_rdy_n or OR_reduce(i_trn_dw_sel) or (usr_txbuf_full_i and i_cpld_tlp_work);
 
-gen_swap_usr_di : for i in 0 to i_usr_di'length/8 - 1 generate
+gen_swap_usr_di : for i in 0 to (i_usr_di'length / 8) - 1 generate
 i_usr_di_swap((i_usr_di_swap'length - 8*i) - 1 downto
               (i_usr_di_swap'length - 8*(i+1))) <= i_usr_di(8*(i+1) - 1 downto 8*i);
 end generate gen_swap_usr_di;
@@ -181,24 +173,24 @@ req_tag_o     <= i_req_tag;
 req_be_o      <= i_req_be;
 req_addr_o    <= i_req_addr;
 
-cpld_total_size_o <= i_cpld_total_size;
+cpld_total_size_o <= std_logic_vector(i_cpld_total_size);
 cpld_malformed_o <= i_cpld_malformed;
 
 init : process(clk)
 begin
 if rising_edge(clk) then
   if rst_n = '0' then
-    i_cpld_total_size <= (others=>'0');
+    i_cpld_total_size <= (others => '0');
     i_cpld_malformed <= '0';
 
   else
 
-    if dma_init_i = '1' then --»нициализаци€ перед началом DMA транзакции
-      i_cpld_total_size <= (others=>'0');
+    if dma_init_i = '1' then --DMA initialization
+      i_cpld_total_size <= (others => '0');
       i_cpld_malformed <= '0';
 
     else
-      if (i_fsm_cs = S_RX_CPLD_WT) and (i_cpld_tlp_len /= i_cpld_tlp_cnt) then
+      if (i_fsm_cs = S_RX_CPLD_WT) and (UNSIGNED(i_cpld_tlp_len) /= i_cpld_tlp_cnt) then
         i_cpld_malformed <= '1';
       end if;
 
@@ -206,14 +198,14 @@ if rising_edge(clk) then
         and trn_rsof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
 
           if trn_rd(62 downto 56) = C_PCIE_PKT_TYPE_CPLD_3DW_WD then
-            i_cpld_total_size <= i_cpld_total_size + trn_rd(41 downto 32);
+            i_cpld_total_size <= i_cpld_total_size + UNSIGNED(trn_rd(41 downto 32));
           end if;
 
       end if;
 
     end if;
   end if;
-end if;--rst_n,
+end if;
 end process;--init
 
 --Rx State Machine
@@ -228,26 +220,26 @@ if rising_edge(clk) then
 
     i_req_compl <= '0';
     i_req_exprom <= '0';
-    i_req_pkt_type <= (others=>'0');
-    i_req_tc   <= (others=>'0');
+    i_req_pkt_type <= (others => '0');
+    i_req_tc   <= (others => '0');
     i_req_td   <= '0';
     i_req_ep   <= '0';
-    i_req_attr <= (others=>'0');
-    i_req_len  <= (others=>'0');
-    i_req_rid  <= (others=>'0');
-    i_req_tag  <= (others=>'0');
-    i_req_be   <= (others=>'0');
-    i_req_addr <= (others=>'0');
+    i_req_attr <= (others => '0');
+    i_req_len  <= (others => '0');
+    i_req_rid  <= (others => '0');
+    i_req_tag  <= (others => '0');
+    i_req_be   <= (others => '0');
+    i_req_addr <= (others => '0');
 
-    i_cpld_tlp_len <= (others=>'0');
-    i_cpld_tlp_cnt <= (others=>'0');
+    i_cpld_tlp_len <= (others => '0');
+    i_cpld_tlp_cnt <= (others => '0');
     i_cpld_tlp_dlast <= '0';
     i_cpld_tlp_work <= '0';
 
-    i_trn_dw_sel <= (others=>'0');
+    i_trn_dw_sel <= (others => '0');
     i_trn_dw_skip <= '0';
 
-    i_usr_di <= (others=>'0');
+    i_usr_di <= (others => '0');
     i_usr_wr <= '0';
     i_usr_rd <= '0';
 
@@ -260,13 +252,13 @@ if rising_edge(clk) then
         when S_RX_IDLE =>
 
             if trn_rsof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-                case trn_rd(62 downto 56) is --поле FMT (‘ормат пакета) + поле TYPE (“ип пакета)
+                case trn_rd(62 downto 56) is --field FMT (Format pkt) + field TYPE (Type pkt)
                     -------------------------------------------------------------------------
                     --IORd - 3DW, no data (PC<-FPGA)
                     -------------------------------------------------------------------------
                     when C_PCIE_PKT_TYPE_IORD_3DW_ND =>
 
-                      if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+                      if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
                         i_req_pkt_type <= trn_rd(62 downto 56);
                         i_req_tc       <= trn_rd(54 downto 52);
                         i_req_td       <= trn_rd(47);
@@ -285,7 +277,7 @@ if rising_edge(clk) then
                     -------------------------------------------------------------------------
                     when C_PCIE_PKT_TYPE_IOWR_3DW_WD =>
 
-                      if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+                      if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
                         i_req_pkt_type <= trn_rd(62 downto 56);
                         i_req_tc       <= trn_rd(54 downto 52);
                         i_req_td       <= trn_rd(47);
@@ -304,7 +296,7 @@ if rising_edge(clk) then
                     -------------------------------------------------------------------------
                    when C_PCIE_PKT_TYPE_MWR_3DW_WD =>
 
-                     if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+                     if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
                         i_fsm_cs <= S_RX_MWR_QW1;
                      end if;
 
@@ -313,7 +305,7 @@ if rising_edge(clk) then
                    --  -------------------------------------------------------------------------
                    -- when C_PCIE_PKT_TYPE_MWR_4DW_WD =>
 
-                   --   if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+                   --   if trn_rd(41 downto 32) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
                    --      i_fsm_cs <= S_RX_MWR_QW41;
                    --   end if;
 
@@ -322,7 +314,7 @@ if rising_edge(clk) then
                     -------------------------------------------------------------------------
                     when C_PCIE_PKT_TYPE_MRD_3DW_ND =>
 
-                      if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+                      if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
                         i_req_pkt_type <= trn_rd(62 downto 56);
                         i_req_tc       <= trn_rd(54 downto 52);
                         i_req_td       <= trn_rd(47);
@@ -345,7 +337,7 @@ if rising_edge(clk) then
                     -- -------------------------------------------------------------------------
                     -- when C_PCIE_PKT_TYPE_MRD_4DW_ND =>
 
-                    --   if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+                    --   if UNSIGNED(trn_rd(41 downto 32)) = TO_UNSIGNED(16#01#, 10) then --Length data payload (DW)
                     --     i_req_pkt_type <= trn_rd(62 downto 56);
                     --     i_req_tc       <= trn_rd(54 downto 52);
                     --     i_req_td       <= trn_rd(47);
@@ -378,9 +370,9 @@ if rising_edge(clk) then
                     when C_PCIE_PKT_TYPE_CPLD_3DW_WD =>
 
                         i_cpld_tlp_len <= trn_rd(41 downto 32); --Length data payload (DW)
-                        i_cpld_tlp_cnt <= (others=>'0');
+                        i_cpld_tlp_cnt <= (others => '0');
                         i_cpld_tlp_work <= '1';
-                        i_trn_dw_sel <= (others=>'1');
+                        i_trn_dw_sel <= (others => '1');
                         i_trn_dw_skip <= '1';
                         i_fsm_cs <= S_RX_CPLD_QWN;
 
@@ -405,11 +397,11 @@ if rising_edge(clk) then
                 i_usr_wr <= '1';
               end if;
 
-              i_req_compl <= '1'; --«апрос передачи пакета Cpl
+              i_req_compl <= '1'; ----Request send pkt Cpl
               i_trn_rdst_rdy_n <= '1';
               i_fsm_cs <= S_RX_IOWR_WT;
             else
-              if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
                 i_fsm_cs <= S_RX_IDLE;
               end if;
             end if;
@@ -417,7 +409,7 @@ if rising_edge(clk) then
         when S_RX_IOWR_WT =>
 
             i_usr_wr <= '0';
-            if compl_done_i = '1' then --отправка пакета Cpl завершена
+            if compl_done_i = '1' then --Send pkt Cpl is done
               i_req_compl <= '0';
               i_trn_rdst_rdy_n <= '0';
               i_fsm_cs <= S_RX_IDLE;
@@ -442,7 +434,7 @@ if rising_edge(clk) then
 
               i_fsm_cs <= S_RX_MRD_WT1;
             else
-              if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
                 i_req_exprom <= '0';
                 i_fsm_cs <= S_RX_IDLE;
               end if;
@@ -451,12 +443,12 @@ if rising_edge(clk) then
         when S_RX_MRD_WT1 =>
 
             i_usr_rd <= '0';
-            i_req_compl <= '1';--«апрос передачи пакета CplD
+            i_req_compl <= '1'; --Request send pkt CplD
             i_fsm_cs <= S_RX_MRD_WT;
 
         when S_RX_MRD_WT =>
 
-            if compl_done_i = '1' then --отправка пакета CplD завершена
+            if compl_done_i = '1' then --Send pkt  CplD is done
               i_req_exprom <= '0';
               i_req_compl <= '0';
               i_trn_rdst_rdy_n <= '0';
@@ -482,7 +474,7 @@ if rising_edge(clk) then
 
         --       i_fsm_cs <= S_RX_MRD_WT1;
         --     else
-        --       if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+        --       if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
         --         i_req_exprom <= '0';
         --         i_fsm_cs <= S_RX_IDLE;
         --       end if;
@@ -493,7 +485,7 @@ if rising_edge(clk) then
         --     i_usr_rd <= '0';
 
         --     if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-        --     i_req_compl <= '1';--«апрос передачи пакета CplD
+        --     i_req_compl <= '1';--Request send pkt CplD
         --     i_fsm_cs <= S_RX_MRD_WT;
         --     end if;
         -- --END: MRd - 4DW, no data
@@ -515,7 +507,7 @@ if rising_edge(clk) then
               i_trn_rdst_rdy_n <= '1';
               i_fsm_cs <= S_RX_MWR_WT;
             else
-              if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
                 i_fsm_cs <= S_RX_IDLE;
               end if;
             end if;
@@ -538,7 +530,7 @@ if rising_edge(clk) then
         --       i_trn_rdst_rdy_n <= '1';
         --       i_fsm_cs <= S_RX_MWR_WT;
         --     else
-        --       if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+        --       if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
         --         i_fsm_cs <= S_RX_IDLE;
         --       end if;
         --     end if;
@@ -555,7 +547,7 @@ if rising_edge(clk) then
         --       i_trn_rdst_rdy_n <= '1';
         --       i_fsm_cs <= S_RX_MWR_WT;
         --     else
-        --       if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+        --       if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
         --         i_fsm_cs <= S_RX_IDLE;
         --       end if;
         --     end if;
@@ -570,7 +562,7 @@ if rising_edge(clk) then
             if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
               i_fsm_cs <= S_RX_IDLE;
             else
-              if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
                 i_fsm_cs <= S_RX_IDLE;
               end if;
             end if;
@@ -584,9 +576,9 @@ if rising_edge(clk) then
 
             if trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' and usr_txbuf_full_i = '0' then
 
-                if    i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#, i_trn_dw_sel'length) then
+                if    i_trn_dw_sel = TO_UNSIGNED(16#00#, i_trn_dw_sel'length) then
                   i_usr_di <= trn_rd(31 downto 0);
-                elsif i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_dw_sel'length) then
+                elsif i_trn_dw_sel = TO_UNSIGNED(16#01#, i_trn_dw_sel'length) then
                   i_usr_di <= trn_rd(63 downto 32);
                 end if;
 
@@ -601,11 +593,11 @@ if rising_edge(clk) then
                       i_usr_wr <= '0';
                     end if;
 
-                    if   ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#00#,trn_rrem_n'length)) and
-                        (i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#,i_trn_dw_sel'length)))
+                    if   ((UNSIGNED(trn_rrem_n) = TO_UNSIGNED(16#00#, trn_rrem_n'length)) and
+                                  (i_trn_dw_sel = TO_UNSIGNED(16#00#, i_trn_dw_sel'length)))
                       or
-                         ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#01#,trn_rrem_n'length)) and
-                        (i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#,i_trn_dw_sel'length))) then
+                         ((UNSIGNED(trn_rrem_n) = TO_UNSIGNED(16#01#, trn_rrem_n'length)) and
+                                  (i_trn_dw_sel = TO_UNSIGNED(16#01#, i_trn_dw_sel'length))) then
 
                       i_cpld_tlp_dlast <= '1';
                       i_trn_rdst_rdy_n <= '1';
@@ -634,7 +626,7 @@ if rising_edge(clk) then
 
                 end if;
             else
-              if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+              if trn_rsrc_dsc_n = '0' then --Core PCIE break recieve data
                   i_cpld_tlp_dlast <= '1';
                   i_usr_wr <= '0';
                   i_fsm_cs <= S_RX_CPLD_WT;
@@ -647,11 +639,11 @@ if rising_edge(clk) then
 
         when S_RX_CPLD_WT =>
 
-            i_cpld_tlp_cnt <= (others=>'0');
+            i_cpld_tlp_cnt <= (others => '0');
             i_cpld_tlp_dlast <= '0';
             i_cpld_tlp_work <= '0';
             i_trn_rdst_rdy_n <= '0';
-            i_trn_dw_sel <= (others=>'0');
+            i_trn_dw_sel <= (others => '0');
             i_usr_wr <= '0';
             i_fsm_cs <= S_RX_IDLE;
         --END: CplD - 3DW, +data
@@ -662,5 +654,4 @@ end if;--rst_n,
 end process; --fsm
 
 
---END MAIN
-end behavioral;
+end architecture behavioral;

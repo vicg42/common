@@ -1,32 +1,27 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 29.08.2012 10:12:36
 -- Module Name : pcie_main.vhd
 --
--- Description : Связь между Контроллер Endpoint PCI-Express и ядром PCI-Express V6.
---               PCI-experss core AXI bus contert to TRN bus
---
--- Revision:
--- Revision 0.01 - File Created
+-- Description : core PCI-Express (from core_gen) + manage of core
+--               (PCI-experss core AXI bus contert to TRN bus)
 --
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_misc.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 library work;
 use work.prj_def.all;
 use work.prj_cfg.all;
+use work.vicg_common_pkg.all;
 
 entity pcie_main is
 generic(
-G_PCIE_LINK_WIDTH : integer:=1;
-G_PCIE_RST_SEL    : integer:=1;
-G_DBG : string :="OFF"  --В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
+G_PCIE_LINK_WIDTH : integer := 1;
+G_PCIE_RST_SEL    : integer := 1;
+G_DBG : string := "OFF"
 );
 port(
 --------------------------------------------------------
@@ -35,7 +30,6 @@ port(
 p_out_hclk           : out   std_logic;
 p_out_gctrl          : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
---Управление внешними устройствами
 p_out_dev_ctrl       : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
 p_out_dev_din        : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_in_dev_dout        : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
@@ -46,12 +40,11 @@ p_in_dev_irq         : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 p_in_dev_opt         : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt        : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
+--------------------------------------------------------
+--DBG
+--------------------------------------------------------
 p_out_usr_tst        : out   std_logic_vector(127 downto 0);
 p_in_usr_tst         : in    std_logic_vector(127 downto 0);
-
---------------------------------------------------------
---Технологический
---------------------------------------------------------
 p_in_tst             : in    std_logic_vector(31 downto 0);
 p_out_tst            : out   std_logic_vector(255 downto 0);
 
@@ -71,23 +64,23 @@ p_out_module_rdy     : out   std_logic;
 p_in_gtp_refclkin    : in    std_logic;
 p_out_gtp_refclkout  : out   std_logic
 );
-end pcie_main;
+end entity pcie_main;
 
 architecture behavioral of pcie_main is
 
-constant CI_PCIEXP_TRN_DBUS       : integer:= 128;--
-constant CI_PCIEXP_TRN_REMBUS_NEW : integer:= 2  ;--
-constant CI_PCIEXP_TRN_BUFAV_BUS  : integer:= 6  ;
-constant CI_PCIEXP_BARHIT_BUS     : integer:= 7  ;
-constant CI_PCIEXP_FC_HDR_BUS     : integer:= 8  ;
-constant CI_PCIEXP_FCDAT_BUS      : integer:= 12 ;
-constant CI_PCIEXP_CFG_DBUS       : integer:= 32 ;
-constant CI_PCIEXP_CFG_ABUS       : integer:= 10 ;
-constant CI_PCIEXP_CFG_CPLHDR_BUS : integer:= 48 ;
-constant CI_PCIEXP_CFG_BUSNUM_BUS : integer:= 8  ;
-constant CI_PCIEXP_CFG_DEVNUM_BUS : integer:= 5  ;
-constant CI_PCIEXP_CFG_FUNNUM_BUS : integer:= 3  ;
-constant CI_PCIEXP_CFG_CAP_BUS    : integer:= 16 ;
+constant CI_PCIEXP_TRN_DBUS       : integer :=  128;--
+constant CI_PCIEXP_TRN_REMBUS_NEW : integer :=  2  ;--
+constant CI_PCIEXP_TRN_BUFAV_BUS  : integer :=  6  ;
+constant CI_PCIEXP_BARHIT_BUS     : integer :=  7  ;
+constant CI_PCIEXP_FC_HDR_BUS     : integer :=  8  ;
+constant CI_PCIEXP_FCDAT_BUS      : integer :=  12 ;
+constant CI_PCIEXP_CFG_DBUS       : integer :=  32 ;
+constant CI_PCIEXP_CFG_ABUS       : integer :=  10 ;
+constant CI_PCIEXP_CFG_CPLHDR_BUS : integer :=  48 ;
+constant CI_PCIEXP_CFG_BUSNUM_BUS : integer :=  8  ;
+constant CI_PCIEXP_CFG_DEVNUM_BUS : integer :=  5  ;
+constant CI_PCIEXP_CFG_FUNNUM_BUS : integer :=  3  ;
+constant CI_PCIEXP_CFG_CAP_BUS    : integer :=  16 ;
 
 signal is_sof     : std_logic_vector(4 downto 0);
 signal is_eof     : std_logic_vector(4 downto 0);
@@ -123,7 +116,7 @@ end get_gt_lnk_spd_cfg;
 
 constant CI_PCIE_EXT_CLK        : string  := "TRUE";
 constant CI_PCIE_PL_FAST_TRAIN  : string  := "FALSE";
-constant CI_PCIE_USERCLK_FREQ   : integer := 3;
+constant CI_PCIE_USERCLK_FREQ   : integer := selval(3, 4, G_PCIE_LINK_WIDTH = 4);--G_PCIE_LINK_WIDTH = 4/8 - CI_PCIE_USERCLK_FREQ = 3/4
 constant CI_PCIE_USERCLK2_DIV2  : string  := "TRUE";
 constant CI_PCIE_USERCLK2_FREQ  : integer := get_userClk2(CI_PCIE_USERCLK2_DIV2,CI_PCIE_USERCLK_FREQ);
 constant CI_PCIE_LNK_SPD        : integer := get_gt_lnk_spd_cfg(CI_PCIE_PL_FAST_TRAIN);
@@ -133,7 +126,7 @@ component core_pciexp_ep_blk_plus_axi_pipe_clock
 generic (
 PCIE_ASYNC_EN                : string  :=   "FALSE";     -- PCIe async enable
 PCIE_TXBUF_EN                : string  :=   "FALSE";     -- PCIe TX buffer enable for Gen1/Gen2 only
-PCIE_LANE                    : integer :=   4;           -- PCIe number of lanes
+PCIE_LANE                    : integer :=   G_PCIE_LINK_WIDTH;           -- PCIe number of lanes
 PCIE_LINK_SPEED              : integer :=   3;           -- PCIe link speed
 PCIE_REFCLK_FREQ             : integer :=   2;           -- PCIe reference clock frequency
 PCIE_USERCLK1_FREQ           : integer :=   3;           -- PCIe user clock 1 frequency
@@ -145,15 +138,15 @@ port  (
 ------------ Input -------------------------------------
 CLK_CLK                        : in std_logic;
 CLK_TXOUTCLK                   : in std_logic;
-CLK_RXOUTCLK_IN                : in std_logic_vector(3 downto 0);
+CLK_RXOUTCLK_IN                : in std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 CLK_RST_N                      : in std_logic;
-CLK_PCLK_SEL                   : in std_logic_vector(3 downto 0);
+CLK_PCLK_SEL                   : in std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 CLK_GEN3                       : in std_logic;
 
 ------------ Output ------------------------------------
 CLK_PCLK                       : out std_logic;
 CLK_RXUSRCLK                   : out std_logic;
-CLK_RXOUTCLK_OUT               : out std_logic_vector(3 downto 0);
+CLK_RXOUTCLK_OUT               : out std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 CLK_DCLK                       : out std_logic;
 CLK_USERCLK1                   : out std_logic;
 CLK_USERCLK2                   : out std_logic;
@@ -173,17 +166,17 @@ port (
 -------------------------------------------------------------------------------------------------------------------
 -- 1. PCI Express (pci_exp) Interface                                                                            --
 -------------------------------------------------------------------------------------------------------------------
-pci_exp_txp                                : out std_logic_vector(3 downto 0);
-pci_exp_txn                                : out std_logic_vector(3 downto 0);
-pci_exp_rxp                                : in std_logic_vector(3 downto 0);
-pci_exp_rxn                                : in std_logic_vector(3 downto 0);
+pci_exp_txp                                : out std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+pci_exp_txn                                : out std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+pci_exp_rxp                                : in std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+pci_exp_rxn                                : in std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 
 -------------------------------------------------------------------------------------------------------------------
 -- 2. Clocking Interface                                                                                         --
 -------------------------------------------------------------------------------------------------------------------
 PIPE_PCLK_IN                               : in std_logic;
 PIPE_RXUSRCLK_IN                           : in std_logic;
-PIPE_RXOUTCLK_IN                           : in std_logic_vector(3 downto 0);
+PIPE_RXOUTCLK_IN                           : in std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 PIPE_DCLK_IN                               : in std_logic;
 PIPE_USERCLK1_IN                           : in std_logic;
 PIPE_USERCLK2_IN                           : in std_logic;
@@ -191,8 +184,8 @@ PIPE_OOBCLK_IN                             : in std_logic;
 PIPE_MMCM_LOCK_IN                          : in std_logic;
 
 PIPE_TXOUTCLK_OUT                          : out std_logic;
-PIPE_RXOUTCLK_OUT                          : out std_logic_vector(3 downto 0);
-PIPE_PCLK_SEL_OUT                          : out std_logic_vector(3 downto 0);
+PIPE_RXOUTCLK_OUT                          : out std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+PIPE_PCLK_SEL_OUT                          : out std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 PIPE_GEN3_OUT                              : out std_logic;
 
 -------------------------------------------------------------------------------------------------------------------
@@ -410,7 +403,7 @@ end component;
 
 component pcie_ctrl
 generic(
-G_PCIEXP_TRN_DBUS : integer:=64;
+G_PCIEXP_TRN_DBUS : integer := 64;
 G_DBG : string :="OFF"
 );
 port(
@@ -420,7 +413,6 @@ port(
 p_out_hclk                : out   std_logic;
 p_out_gctrl               : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
---Управление внешними устройствами
 p_out_dev_ctrl            : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
 p_out_dev_din             : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_in_dev_dout             : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
@@ -675,7 +667,7 @@ signal pl_upstream_prefer_deemph      : std_logic;
 -- Wires used for external clocking connectivity
 signal PIPE_PCLK_IN                   : std_logic;
 signal PIPE_RXUSRCLK_IN               : std_logic;
-signal PIPE_RXOUTCLK_IN               : std_logic_vector(3 downto 0);
+signal PIPE_RXOUTCLK_IN               : std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 signal PIPE_DCLK_IN                   : std_logic;
 signal PIPE_USERCLK1_IN               : std_logic;
 signal PIPE_USERCLK2_IN               : std_logic;
@@ -683,8 +675,8 @@ signal PIPE_OOBCLK_IN                 : std_logic;
 signal PIPE_MMCM_LOCK_IN              : std_logic;
 
 signal PIPE_TXOUTCLK_OUT              : std_logic;
-signal PIPE_RXOUTCLK_OUT              : std_logic_vector(3 downto 0);
-signal PIPE_PCLK_SEL_OUT              : std_logic_vector(3 downto 0);
+signal PIPE_RXOUTCLK_OUT              : std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+signal PIPE_PCLK_SEL_OUT              : std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 signal PIPE_GEN3_OUT                  : std_logic;
 signal PIPE_MMCM_RST_N                : std_logic := '1';
 
@@ -720,49 +712,49 @@ signal tst_cfg_interrupt_rdy_n        : std_logic;
 signal tst_cfg_interrupt_assert_n     : std_logic;
 signal tst_trn_rbar_hit_n             : std_logic_vector(1 downto 0);
 
---MAIN
-begin
+
+begin --architecture behavioral
 
 --#############################################
 --DBG
 --#############################################
-p_out_tst(0)<=tst_cfg_interrupt_n;
-p_out_tst(1)<=tst_cfg_interrupt_rdy_n;
-p_out_tst(2)<=tst_cfg_interrupt_assert_n;
-p_out_tst(3)<=cfg_interrupt_msienable;
-p_out_tst(4)<=tst_trn_tsof_n;
-p_out_tst(5)<=tst_trn_teof_n;
-p_out_tst(6)<=tst_trn_tsrc_rdy_n;
-p_out_tst(7)<=tst_trn_tdst_rdy_n;
-p_out_tst(8)<=tst_trn_tsrc_dsc_n;
-p_out_tst(9)<=tst_trn_rsof_n;
-p_out_tst(10)<=tst_trn_reof_n;
-p_out_tst(11)<=tst_trn_rsrc_rdy_n;
-p_out_tst(12)<='0';--tst_trn_rsrc_dsc_n;
-p_out_tst(13)<=tst_trn_rdst_rdy_n;
-p_out_tst(14)<=tst_trn_rbar_hit_n(0);
-p_out_tst(15)<=tst_trn_rbar_hit_n(1);
-p_out_tst(16)<=cfg_command(2);--cfg_bus_mstr_enable
-p_out_tst(18 downto 17)<=EXT(trn_rrem_n_core, 18 - 17 + 1);
-p_out_tst(146 downto 19)<=EXT(tst_trn_rd, 128);
---p_out_tst(146 downto 19)<=trn_rd(127 downto 0);
-p_out_tst(162 downto 147)<=EXT(tst_trn_rrem_n, 162 - 147 + 1);
-p_out_tst(168 downto 163)<=trn_tbuf_av;
-p_out_tst(170 downto 169)<=EXT(tst_trn_trem_n, 170 - 169 + 1);
-p_out_tst(171)<=tst_s_axis_tx_tready;--s_axis_tx_tready;
-p_out_tst(172)<=tst_s_axis_tx_tlast ;--s_axis_tx_tlast ;
-p_out_tst(173)<=tst_s_axis_tx_tvalid;--s_axis_tx_tvalid;
-p_out_tst(181 downto 174)<=tst_s_axis_tx_tkeep(7 downto 0);--s_axis_tx_tkeep(7 downto 0);
-p_out_tst(185 downto 182)<=tst_s_axis_tx_tuser(3 downto 0);--s_axis_tx_tuser(3 downto 0);
-p_out_tst(186)<=tst_m_axis_rx_tready;--m_axis_rx_tready;
-p_out_tst(187)<=tst_m_axis_rx_tvalid;--m_axis_rx_tvalid;
-p_out_tst(188)<=tst_m_axis_rx_tlast; --m_axis_rx_tlast;
-p_out_tst(196 downto 189)<=tst_m_axis_rx_tkeep(7 downto 0);--m_axis_rx_tkeep(7 downto 0);
-p_out_tst(200 downto 197)<=tst_m_axis_rx_tuser(3 downto 0);--m_axis_rx_tuser(3 downto 0);
-p_out_tst(215 downto 201)<=(others=>'0');
-p_out_tst(231 downto 216)<=(others=>'0');
-p_out_tst(249 downto 248)<=(others=>'0');
-p_out_tst(255 downto 250)<=(others=>'0');
+p_out_tst(0) <= tst_cfg_interrupt_n;
+p_out_tst(1) <= tst_cfg_interrupt_rdy_n;
+p_out_tst(2) <= tst_cfg_interrupt_assert_n;
+p_out_tst(3) <= cfg_interrupt_msienable;
+p_out_tst(4) <= tst_trn_tsof_n;
+p_out_tst(5) <= tst_trn_teof_n;
+p_out_tst(6) <= tst_trn_tsrc_rdy_n;
+p_out_tst(7) <= tst_trn_tdst_rdy_n;
+p_out_tst(8) <= tst_trn_tsrc_dsc_n;
+p_out_tst(9) <= tst_trn_rsof_n;
+p_out_tst(10) <= tst_trn_reof_n;
+p_out_tst(11) <= tst_trn_rsrc_rdy_n;
+p_out_tst(12) <= '0';--tst_trn_rsrc_dsc_n;
+p_out_tst(13) <= tst_trn_rdst_rdy_n;
+p_out_tst(14) <= tst_trn_rbar_hit_n(0);
+p_out_tst(15) <= tst_trn_rbar_hit_n(1);
+p_out_tst(16) <= cfg_command(2);--cfg_bus_mstr_enable
+p_out_tst(18 downto 17) <= std_logic_vector(RESIZE(UNSIGNED(trn_rrem_n_core), 18 - 17 + 1));
+p_out_tst(146 downto 19) <= std_logic_vector(RESIZE(UNSIGNED(tst_trn_rd), 128));
+--p_out_tst(146 downto 19) <= trn_rd(127 downto 0);
+p_out_tst(162 downto 147) <= std_logic_vector(RESIZE(UNSIGNED(tst_trn_rrem_n), 162 - 147 + 1));
+p_out_tst(168 downto 163) <= trn_tbuf_av;
+p_out_tst(170 downto 169) <= std_logic_vector(RESIZE(UNSIGNED(tst_trn_trem_n), 170 - 169 + 1));
+p_out_tst(171) <= tst_s_axis_tx_tready;--s_axis_tx_tready;
+p_out_tst(172) <= tst_s_axis_tx_tlast ;--s_axis_tx_tlast ;
+p_out_tst(173) <= tst_s_axis_tx_tvalid;--s_axis_tx_tvalid;
+p_out_tst(181 downto 174) <= tst_s_axis_tx_tkeep(7 downto 0);--s_axis_tx_tkeep(7 downto 0);
+p_out_tst(185 downto 182) <= tst_s_axis_tx_tuser(3 downto 0);--s_axis_tx_tuser(3 downto 0);
+p_out_tst(186) <= tst_m_axis_rx_tready;--m_axis_rx_tready;
+p_out_tst(187) <= tst_m_axis_rx_tvalid;--m_axis_rx_tvalid;
+p_out_tst(188) <= tst_m_axis_rx_tlast; --m_axis_rx_tlast;
+p_out_tst(196 downto 189) <= tst_m_axis_rx_tkeep(7 downto 0);--m_axis_rx_tkeep(7 downto 0);
+p_out_tst(200 downto 197) <= tst_m_axis_rx_tuser(3 downto 0);--m_axis_rx_tuser(3 downto 0);
+p_out_tst(215 downto 201) <= (others => '0');
+p_out_tst(231 downto 216) <= (others => '0');
+p_out_tst(249 downto 248) <= (others => '0');
+p_out_tst(255 downto 250) <= (others => '0');
 
 process(trn_clk)
 begin
@@ -803,16 +795,16 @@ end if;
 end process;
 
 --#############################################
---Модуль ядра PCI-Express
+--Core PCI-Express
 --#############################################
-gen_ext_clk: if (CI_PCIE_EXT_CLK = "TRUE") generate
-m_core_pipe_clock : core_pciexp_ep_blk_plus_axi_pipe_clock
+ext_clk: if (CI_PCIE_EXT_CLK = "TRUE") generate
+pipe_clock_i : core_pciexp_ep_blk_plus_axi_pipe_clock
 generic map(
 PCIE_ASYNC_EN                  => "FALSE",                    -- PCIe async enable
 PCIE_TXBUF_EN                  => "FALSE",                    -- PCIe TX buffer enable for Gen1/Gen2 only
 PCIE_LANE                      => C_PCGF_PCIE_LINK_WIDTH,     -- PCIe number of lanes
 PCIE_LINK_SPEED                => CI_PCIE_LNK_SPD ,           -- PCIe link speed
-PCIE_REFCLK_FREQ               => 2,                          -- PCIe reference clock frequency
+PCIE_REFCLK_FREQ               => 0,                          -- PCIe reference clock frequency
 PCIE_USERCLK1_FREQ             => (CI_PCIE_USERCLK_FREQ + 1), -- PCIe user clock 1 frequency
 PCIE_USERCLK2_FREQ             => (CI_PCIE_USERCLK2_FREQ + 1),-- PCIe user clock 2 frequency
 PCIE_DEBUG_MODE                => 0                           -- PCIe Debug Mode
@@ -837,7 +829,7 @@ CLK_USERCLK2                   => PIPE_USERCLK2_IN,
 CLK_OOBCLK                     => PIPE_OOBCLK_IN,
 CLK_MMCM_LOCK                  => PIPE_MMCM_LOCK_IN
 );
-end generate;--gen_ext_clk
+end generate ext_clk;
 
 gen_int_clk: if (CI_PCIE_EXT_CLK = "FALSE") generate
 PIPE_PCLK_IN        <= '0';
@@ -1089,7 +1081,7 @@ sys_rst_n                                  => p_in_pciexp_rst --: in std_logic
 
 
 --#############################################
---Модуль приложения PCI-Express(упраление ядром PCI-Express+ упр. пользовательским портом)
+--
 --#############################################
 m_ctrl : pcie_ctrl
 generic map(
@@ -1103,7 +1095,7 @@ port map(
 p_out_hclk                => p_out_hclk,
 p_out_gctrl               => p_out_gctrl,
 
---Управление внешними устройствами
+--CTRL user devices
 p_out_dev_ctrl            => p_out_dev_ctrl,
 p_out_dev_din             => p_out_dev_din,
 p_in_dev_dout             => p_in_dev_dout,
@@ -1145,10 +1137,10 @@ trn_rerrfwd_n_i           => trn_rerrfwd_n,
 trn_rnp_ok_n_o            => trn_rnp_ok_n,
 
 trn_rbar_hit_n_i          => trn_rbar_hit_n,
-trn_rfc_nph_av_i          => (others=>'0'),--trn_rfc_nph_av,
-trn_rfc_npd_av_i          => (others=>'0'),--trn_rfc_npd_av,
-trn_rfc_ph_av_i           => (others=>'0'),--trn_rfc_ph_av,
-trn_rfc_pd_av_i           => (others=>'0'),--trn_rfc_pd_av,
+trn_rfc_nph_av_i          => (others => '0'),--trn_rfc_nph_av,
+trn_rfc_npd_av_i          => (others => '0'),--trn_rfc_npd_av,
+trn_rfc_ph_av_i           => (others => '0'),--trn_rfc_ph_av,
+trn_rfc_pd_av_i           => (others => '0'),--trn_rfc_pd_av,
 trn_rcpl_streaming_n_o    => trn_rcpl_streaming_n,
 
 --------------------------------------
@@ -1221,7 +1213,7 @@ begin
 end process;
 
 p_out_gtp_refclkout <= '0';
-user_trn_tbuf_av <= (others => '1') when trn_tbuf_av /= (trn_tbuf_av'range =>'0') else (others=>'0');
+user_trn_tbuf_av <= (others => '1') when trn_tbuf_av /= (trn_tbuf_av'range => '0') else (others => '0');
 
 trn_fc_sel                <= "000";
 trn_tstr_n                <= trn_rcpl_streaming_n;
@@ -1282,13 +1274,13 @@ s_axis_tx_tuser(2)<=not trn_tstr_n;
 s_axis_tx_tuser(1)<=not trn_terrfwd_n;
 s_axis_tx_tuser(0)<='0';
 
-s_axis_tx_tkeep <= CONV_STD_LOGIC_VECTOR(16#0FFF#, s_axis_tx_tkeep'length)
-                    when trn_teof_n = '0' and trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, trn_trem_n'length) else
-                      CONV_STD_LOGIC_VECTOR(16#00FF#, s_axis_tx_tkeep'length)
-                        when trn_teof_n = '0' and trn_trem_n = CONV_STD_LOGIC_VECTOR(16#02#, trn_trem_n'length) else
-                          CONV_STD_LOGIC_VECTOR(16#000F#, s_axis_tx_tkeep'length)
-                            when trn_teof_n = '0' and trn_trem_n = CONV_STD_LOGIC_VECTOR(16#03#, trn_trem_n'length) else
-                              CONV_STD_LOGIC_VECTOR(16#FFFF#, s_axis_tx_tkeep'length);
+s_axis_tx_tkeep <= std_logic_vector(TO_UNSIGNED(16#0FFF#, s_axis_tx_tkeep'length))
+                    when trn_teof_n = '0' and UNSIGNED(trn_trem_n) = TO_UNSIGNED(16#01#, trn_trem_n'length) else
+                      std_logic_vector(TO_UNSIGNED(16#00FF#, s_axis_tx_tkeep'length))
+                        when trn_teof_n = '0' and UNSIGNED(trn_trem_n) = TO_UNSIGNED(16#02#, trn_trem_n'length) else
+                          std_logic_vector(TO_UNSIGNED(16#000F#, s_axis_tx_tkeep'length))
+                            when trn_teof_n = '0' and UNSIGNED(trn_trem_n) = TO_UNSIGNED(16#03#, trn_trem_n'length) else
+                              std_logic_vector(TO_UNSIGNED(16#FFFF#, s_axis_tx_tkeep'length));
 
 --Rx
 m_axis_rx_tready <=not trn_rdst_rdy_n;
@@ -1303,14 +1295,14 @@ trn_rsrc_rdy_n <=not m_axis_rx_tvalid;
 trn_rerrfwd_n  <=not m_axis_rx_tuser(1);
 trn_rsrc_dsc_n <='1';
 
-trn_rrem_n <= CONV_STD_LOGIC_VECTOR(16#01#, trn_rrem_n'length) when m_axis_rx_tvalid = '1' and is_eof = "11011" else
-              CONV_STD_LOGIC_VECTOR(16#02#, trn_rrem_n'length) when m_axis_rx_tvalid = '1' and is_eof = "10111" else
-              CONV_STD_LOGIC_VECTOR(16#03#, trn_rrem_n'length) when m_axis_rx_tvalid = '1' and is_eof = "10011" else
-              CONV_STD_LOGIC_VECTOR(16#00#, trn_rrem_n'length) when m_axis_rx_tvalid = '1' and is_eof = "11111" else
+trn_rrem_n <= std_logic_vector(TO_UNSIGNED(16#01#, trn_rrem_n'length)) when m_axis_rx_tvalid = '1' and is_eof = "11011" else
+              std_logic_vector(TO_UNSIGNED(16#02#, trn_rrem_n'length)) when m_axis_rx_tvalid = '1' and is_eof = "10111" else
+              std_logic_vector(TO_UNSIGNED(16#03#, trn_rrem_n'length)) when m_axis_rx_tvalid = '1' and is_eof = "10011" else
+              std_logic_vector(TO_UNSIGNED(16#00#, trn_rrem_n'length)) when m_axis_rx_tvalid = '1' and is_eof = "11111" else
 
-              CONV_STD_LOGIC_VECTOR(16#00#, trn_rrem_n'length) when m_axis_rx_tvalid = '1' and is_sof = "10000" else
-              CONV_STD_LOGIC_VECTOR(16#02#, trn_rrem_n'length) when m_axis_rx_tvalid = '1' and is_sof = "11000" else
-              CONV_STD_LOGIC_VECTOR(16#00#, trn_rrem_n'length);
+              std_logic_vector(TO_UNSIGNED(16#00#, trn_rrem_n'length)) when m_axis_rx_tvalid = '1' and is_sof = "10000" else
+              std_logic_vector(TO_UNSIGNED(16#02#, trn_rrem_n'length)) when m_axis_rx_tvalid = '1' and is_sof = "11000" else
+              std_logic_vector(TO_UNSIGNED(16#00#, trn_rrem_n'length));
 
 gen_trn_d : for i in 0 to CI_PCIEXP_TRN_DBUS/32 - 1 generate
 trn_rd((trn_rd'length - 32*i) - 1 downto (trn_rd'length - 32*(i+1))) <= m_axis_rx_tdata(32*(i+1) - 1 downto 32*i);
@@ -1321,6 +1313,4 @@ is_sof(4 downto 0)<=m_axis_rx_tuser(14 downto 10);
 is_eof(4 downto 0)<=m_axis_rx_tuser(21 downto 17);
 
 
-
---END MAIN
-end behavioral;
+end architecture behavioral;
