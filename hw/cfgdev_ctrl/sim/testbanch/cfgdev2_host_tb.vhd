@@ -16,7 +16,7 @@ use work.cfgdev_pkg.all;
 entity cfgdev_host_tb is
 generic(
 C_TSTREG_COUNT_MAX : integer := 10;
-
+G_HOST_TXACK : string := "OFF";
 C_TSTWR_FSTADR : integer := 1;--first adr
 C_TSTWR_DCOUNT : integer := 5;
 C_TSTWR_FIFO   : std_logic := '0'; --0/1 - OFF/ON
@@ -25,8 +25,8 @@ C_TSTRD_FSTADR : integer := 2;--first adr
 C_TSTRD_DCOUNT : integer := 4;
 C_TSTRD_FIFO   : std_logic := '0';
 
-C_HOST_DWIDTH : integer := 8;
-C_CFG_DWIDTH  : integer := 8
+C_HOST_DWIDTH : integer := 64;
+C_CFG_DWIDTH  : integer := 16
 );
 port(
 p_out_tst : out std_logic_vector(31 downto 0)
@@ -142,6 +142,7 @@ p_out_tst <= test;
 m_devcfg : cfgdev_host
 generic map(
 G_DBG => "OFF",
+G_HOST_TXACK => G_HOST_TXACK,
 G_HOST_DWIDTH => C_HOST_DWIDTH,
 G_CFG_DWIDTH => C_CFG_DWIDTH
 )

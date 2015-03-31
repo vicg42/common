@@ -1,15 +1,16 @@
 -------------------------------------------------------------------------
--- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 24.12.2014 15:13:26
 -- Module Name : cfgdev_host
 --
+-- Description :
+--
 -- architecture behav1 :
 --  Rules:
 --  Write:  HOST -> CFG
 --   1. HOST (CfgPkt(Header(WR) + data)) -> CFG
---   2. HOST <- CFG (CfgPkt(Header(WR))
+--   2. HOST <- CFG (CfgPkt(Header(WR))  (if G_HOST_TXACK = "ON" else no ACK)
 --
 --  Read :  HOST <- CFG
 --   1. HOST (CfgPkt(Header(RD)) -> CFG
@@ -28,6 +29,7 @@ use work.reduce_pack.all;
 entity cfgdev_host is
 generic(
 G_DBG : string := "OFF";
+G_HOST_TXACK : string := "OFF";
 G_HOST_DWIDTH : integer := 16;
 G_CFG_DWIDTH : integer := 16
 );
@@ -57,14 +59,17 @@ p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DA
 p_out_cfg_radr       : out    std_logic_vector(G_CFG_DWIDTH - 1 downto 0); --adr register
 p_out_cfg_radr_ld    : out    std_logic;
 p_out_cfg_radr_fifo  : out    std_logic;
-p_out_cfg_wr         : out    std_logic;
-p_out_cfg_rd         : out    std_logic;
+
 p_out_cfg_txdata     : out    std_logic_vector(G_CFG_DWIDTH - 1 downto 0);
+p_out_cfg_wr         : out    std_logic;
 p_in_cfg_txbuf_full  : in     std_logic;
 p_in_cfg_txbuf_empty : in     std_logic;
+
 p_in_cfg_rxdata      : in     std_logic_vector(G_CFG_DWIDTH - 1 downto 0);
+p_out_cfg_rd         : out    std_logic;
 p_in_cfg_rxbuf_full  : in     std_logic;
 p_in_cfg_rxbuf_empty : in     std_logic;
+
 p_out_cfg_done       : out    std_logic;
 p_in_cfg_clk         : in     std_logic;
 
@@ -129,6 +134,9 @@ signal i_hbufw_di                       : std_logic_vector(p_in_htxbuf_di'range)
 signal i_hbufw_wr                       : std_logic;
 signal i_hbufw_full                     : std_logic;
 signal i_hbufw_empty                    : std_logic;
+signal i_irq_en                         : std_logic;
+signal i_irq_rxrdy                      : std_logic;
+signal sr_hbufw_empty                   : std_logic;
 
 constant CI_CHUNK_COUNT                 : integer := selval(p_in_htxbuf_di'length / p_out_cfg_txdata'length
                                                               , p_out_cfg_txdata'length / p_in_htxbuf_di'length
@@ -191,8 +199,25 @@ tst_fsm_cs <= TO_UNSIGNED(16#01#, tst_fsm_cs'length) when fsm_state_cs = S2_HBUF
 --------------------------------------------------
 --
 --------------------------------------------------
-p_out_hirq <= '0';
+p_out_hirq <= i_irq_rxrdy;
 
+process(p_in_rst, p_in_cfg_clk)
+begin
+if rising_edge(p_in_cfg_clk) then
+  if p_in_rst = '1' then
+    i_irq_rxrdy <= '0';
+    sr_hbufw_empty <= '1';
+  else
+    if fsm_state_cs = S2_HBUFR_RxH then
+      i_irq_rxrdy <= '0';
+    elsif i_irq_en = '1' and sr_hbufw_empty = '0' then
+      i_irq_rxrdy <= '1';
+    end if;
+
+    sr_hbufw_empty <= i_hbufw_empty;
+  end if;
+end if;
+end process;
 
 --------------------------------------------------
 --
@@ -313,7 +338,7 @@ if rising_edge(p_in_cfg_clk) then
 
   i_hbufr_clr <= '0';
   i_hbufw_di <= (others => '0');
-  i_hbufw_wr <= '0';
+  i_hbufw_wr <= '0'; i_irq_en <= '0';
 
   else
 
@@ -323,11 +348,13 @@ if rising_edge(p_in_cfg_clk) then
 
       i_fdev_radr_ld <= '0';
       i_fdev_rd <= '0';
+      i_fdev_wr <= '0';
       i_fdev_done <= '0';
       i_hbufw_wr <= '0';
+      i_hbufr_clr <= '0';
 
       if i_hbufr_empty = '0' then
-        fsm_state_cs <= S2_HBUFR_RxH;
+        fsm_state_cs <= S2_HBUFR_RxH; i_irq_en <= '0';
       end if;
 
     --read host packet header
@@ -412,8 +439,12 @@ if rising_edge(p_in_cfg_clk) then
           i_pkt_dcnt <= (others => '0');
           i_hbufr_clr <= '1';
           i_fdev_done <= '1';
---          fsm_state_cs <= S2_HBUFR_IDLE;--for case TXACK OFF
+
+          if strcmp(G_HOST_TXACK, "OFF") then
+          fsm_state_cs <= S2_HBUFR_IDLE;
+          else
           fsm_state_cs <= S2_HBUFW_TxH;
+          end if;
         else
           i_chnkcnt <= i_chnkcnt + 1;
           i_pkt_dcnt <= i_pkt_dcnt + 1;
@@ -455,7 +486,7 @@ if rising_edge(p_in_cfg_clk) then
       i_fdev_done <= '0'; i_fdev_wr <= '0';
       i_hbufr_clr <= '0';
 
-      if i_hbufw_full = '0' then
+      if i_hbufw_full = '0' then --HOST <- CFG
         if i_pkt_dcnt(6 downto 0) = TO_UNSIGNED(CI_CFGPKTH_COUNT - 1, 7) then
           if i_pkth(CI_CFGPKTH_CTRL_CHNK)(C_CFGPKT_WR_BIT) = C_CFGPKT_WR then
             i_chnkcnt <= (others => '0');
@@ -477,7 +508,7 @@ if rising_edge(p_in_cfg_clk) then
               i_chnkcnt <= (others => '0');
               end if;
 
-              fsm_state_cs <= S2_HBUFW_TxD;
+              fsm_state_cs <= S2_HBUFW_TxD; i_irq_en <= '1';
             else
               i_hbufw_wr <= '0';
             end if;
@@ -543,7 +574,7 @@ if rising_edge(p_in_cfg_clk) then
         if i_pkt_dcnt = i_pkt_dcount - 1 then
           i_chnkcnt <= (others => '0');
           i_pkt_dcnt <= (others => '0');
-          i_fdev_rd <= '0';
+          i_fdev_rd <= '0'; --i_irq_en <= '1';
           i_hbufw_wr <= '1'; i_fdev_done <= '1';
           fsm_state_cs <= S2_HBUFR_IDLE;
         else

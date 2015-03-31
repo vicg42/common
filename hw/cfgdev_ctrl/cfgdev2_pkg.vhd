@@ -1,9 +1,10 @@
 -------------------------------------------------------------------------
--- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 24.12.2014 15:07:49
 -- Module Name : cfgdev_pkg
+--
+-- Description :
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -16,7 +17,7 @@ package cfgdev_pkg is
 constant C_CFGPKT_WR_BIT        : integer := 0;
 constant C_CFGPKT_FIFO_BIT      : integer := 1; --0/1 - FIFO/Registers(auto increment)
 constant C_CFGPKT_DADR_L_BIT    : integer := 2; --fpga device number
-constant C_CFGPKT_DADR_M_BIT    : integer := 5;
+constant C_CFGPKT_DADR_M_BIT    : integer := 4;
 
 --HEADER(1)/ Register adress
 --HEADER(2)/ Data Length
@@ -31,6 +32,7 @@ constant C_CFGPKT_RD            : std_logic := '1';
 component cfgdev_host
 generic(
 G_DBG : string := "OFF";
+G_HOST_TXACK : string := "OFF";
 G_HOST_DWIDTH : integer := 32;
 G_CFG_DWIDTH : integer := 16
 );

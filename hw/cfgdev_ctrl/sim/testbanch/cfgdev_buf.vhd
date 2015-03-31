@@ -92,6 +92,43 @@ rst         : in  std_logic
 );
 end component;
 
+component cfgdev_fifo64bx64b
+port(
+din         : in  std_logic_vector(G_DWIDTH - 1 downto 0);
+wr_en       : in  std_logic;
+wr_clk      : in  std_logic;
+
+dout        : out std_logic_vector(G_DWIDTH - 1 downto 0);
+rd_en       : in  std_logic;
+rd_clk      : in  std_logic;
+
+empty       : out std_logic;
+full        : out std_logic;
+prog_full   : out std_logic;
+
+--clk         : in  std_logic;
+rst         : in  std_logic
+);
+end component;
+
+component cfgdev_fifo128bx128b
+port(
+din         : in  std_logic_vector(G_DWIDTH - 1 downto 0);
+wr_en       : in  std_logic;
+wr_clk      : in  std_logic;
+
+dout        : out std_logic_vector(G_DWIDTH - 1 downto 0);
+rd_en       : in  std_logic;
+rd_clk      : in  std_logic;
+
+empty       : out std_logic;
+full        : out std_logic;
+prog_full   : out std_logic;
+
+--clk         : in  std_logic;
+rst         : in  std_logic
+);
+end component;
 
 begin --architecture behavioral
 
@@ -155,5 +192,45 @@ prog_full   => prog_full,
 rst         => rst
 );
 end generate gen32b;
+
+gen64b : if G_DWIDTH = 64 generate begin
+m_fifo : cfgdev_fifo64bx64b
+port map(
+din         => din,
+wr_en       => wr_en,
+wr_clk      => wr_clk,
+
+dout        => dout,
+rd_en       => rd_en,
+rd_clk      => rd_clk,
+
+empty       => empty,
+full        => full,
+prog_full   => prog_full,
+
+--clk         => wr_clk,
+rst         => rst
+);
+end generate gen64b;
+
+gen128b : if G_DWIDTH = 128 generate begin
+m_fifo : cfgdev_fifo128bx128b
+port map(
+din         => din,
+wr_en       => wr_en,
+wr_clk      => wr_clk,
+
+dout        => dout,
+rd_en       => rd_en,
+rd_clk      => rd_clk,
+
+empty       => empty,
+full        => full,
+prog_full   => prog_full,
+
+--clk         => wr_clk,
+rst         => rst
+);
+end generate gen128b;
 
 end architecture behavioral;
