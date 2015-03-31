@@ -1,14 +1,10 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 10/26/2007
 -- Module Name :
 --
 -- Description :
---
--- Revision:
--- Revision 0.01 - File Created
 --
 ---------------------------------------------------------------------------
 library ieee;
