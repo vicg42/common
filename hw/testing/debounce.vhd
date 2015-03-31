@@ -1,14 +1,10 @@
 -------------------------------------------------------------------------
--- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 17.07.2014 14:58:40
 -- Module Name : debounce
 --
--- Назначение/Описание :
---
--- Revision:
--- Revision 0.01 - File Created
+-- Description :
 --
 --------------------------------------------------------------------------
 library ieee;
