@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 10/26/2007
 -- Module Name : timer_v01
 --
--- Назначение/Описание :
+-- Description :
+--
 --  Отработка заданого кол-ва отсчетов (порт:p_in_tmr_count)
 --  c дискретом времени задоваемым с порта (p_in_time_discret).
 --  p_in_time_discret= 0 - 1us;

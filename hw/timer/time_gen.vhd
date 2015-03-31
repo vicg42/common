@@ -1,9 +1,10 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 10/26/2007
 -- Module Name : time_gen
+--
+-- Description :
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -28,6 +29,7 @@ p_out_en1min : out   std_logic;
 -------------------------------
 --System
 -------------------------------
+p_in_clken   : in    std_logic;
 p_in_clk     : in    std_logic;
 p_in_rst     : in    std_logic
 );
@@ -54,56 +56,59 @@ begin --architecture behavioral
 
 
 process(p_in_clk)
-  variable a: std_logic;
+variable a: std_logic;
 begin
-  if rising_edge(p_in_clk) then
-    if p_in_rst = '1' then
+if rising_edge(p_in_clk) then
+  if p_in_rst = '1' then
 
-    i_cnt_us <= (others => '0');
-    i_cnt_ms <= (others => '0');
-    i_cnt_sec <= (others => '0');
-    i_cnt_min <= (others => '0');
+  i_cnt_us <= (others => '0');
+  i_cnt_ms <= (others => '0');
+  i_cnt_sec <= (others => '0');
+  i_cnt_min <= (others => '0');
 
-    a := '0';
-    i_en05us <= '0';
-    i_en1us  <= '0';
-    i_en1ms  <= '0';
-    i_en1sec <= '0';
-    i_en1min <= '0';
-
-    elsif i_cnt_us = TO_UNSIGNED(G_T05us - 1, log2(G_T05us)) then
-      i_cnt_us <= (others => '0');
-      i_en05us <= '1';
-      a := not a;
-      i_en1us <= a;
-      if i_en1us = '1' then
-        if i_cnt_ms = TO_UNSIGNED(CI_Tms - 1, log2(CI_Tms)) then
-          i_en1ms <= '1';
-          i_cnt_ms <= (others => '0');
-          if i_cnt_sec = TO_UNSIGNED(CI_Tsec - 1, log2(CI_Tsec)) then
-            i_en1sec <= '1';
-            i_cnt_sec <= (others => '0');
-            if i_cnt_min = TO_UNSIGNED(CI_Tmin - 1, log2(CI_Tmin)) then
-              i_en1min <= '1';
-              i_cnt_min <= (others => '0');
+  a := '0';
+  i_en05us <= '0';
+  i_en1us  <= '0';
+  i_en1ms  <= '0';
+  i_en1sec <= '0';
+  i_en1min <= '0';
+  else
+    if p_in_clken = '1' then
+      if i_cnt_us = TO_UNSIGNED(G_T05us - 1, log2(G_T05us)) then
+        i_cnt_us <= (others => '0');
+        i_en05us <= '1';
+        a := not a;
+        i_en1us <= a;
+        if i_en1us = '1' then
+          if i_cnt_ms = TO_UNSIGNED(CI_Tms - 1, log2(CI_Tms)) then
+            i_en1ms <= '1';
+            i_cnt_ms <= (others => '0');
+            if i_cnt_sec = TO_UNSIGNED(CI_Tsec - 1, log2(CI_Tsec)) then
+              i_en1sec <= '1';
+              i_cnt_sec <= (others => '0');
+              if i_cnt_min = TO_UNSIGNED(CI_Tmin - 1, log2(CI_Tmin)) then
+                i_en1min <= '1';
+                i_cnt_min <= (others => '0');
+              else
+                i_en1min <= '0';
+                i_cnt_min <= i_cnt_min + 1;
+              end if;
             else
-              i_en1min <= '0';
-              i_cnt_min <= i_cnt_min + 1;
+              i_en1sec <= '0';
+              i_cnt_sec <= i_cnt_sec + 1;
             end if;
           else
-            i_en1sec <= '0';
-            i_cnt_sec <= i_cnt_sec + 1;
+            i_en1ms <= '0';
+            i_cnt_ms <= i_cnt_ms + 1;
           end if;
-        else
-          i_en1ms <= '0';
-          i_cnt_ms <= i_cnt_ms + 1;
         end if;
+      else
+        i_en05us <= '0';
+        i_cnt_us <= i_cnt_us + 1;
       end if;
-    else
-      i_en05us <= '0';
-      i_cnt_us <= i_cnt_us + 1;
     end if;
   end if;
+end if;
 end process;
 
 --Выходной буфер
