@@ -1,14 +1,10 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 21.11.2011 12:58:54
 -- Module Name : mem_glob_pkg.vhd
 --
 -- Description :
---
--- Revision:
--- Revision 0.01 - File Created
 --
 -------------------------------------------------------------------------
 library ieee;
