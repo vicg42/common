@@ -142,7 +142,7 @@ if rising_edge(p_in_clk) then
     i_row_half <= '0';
     i_pix_cnt <= (others => '0');
     i_row_cnt <= (others => '0');
-    fsm_cs <= S_PIX;
+    fsm_cs <= S_SYN_H;
 
   else
   if p_in_clk_en = '1' then
@@ -194,7 +194,8 @@ if rising_edge(p_in_clk) then
           if i_pix_cnt = (UNSIGNED(p_in_syn_v) - 1) then
             i_pix_cnt <= (others => '0');
             i_vs <= not G_VSYN_ACTIVE; i_row_half <= '0';
-            fsm_cs <= S_PIX;
+            i_hs <= G_VSYN_ACTIVE;
+            fsm_cs <= S_SYN_H;
           else
             i_pix_cnt <= i_pix_cnt + 1;
           end if;
