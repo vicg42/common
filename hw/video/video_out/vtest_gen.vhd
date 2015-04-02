@@ -33,6 +33,7 @@ entity vtest_gen is
 generic(
 G_DBG : string := "OFF";
 G_VD_WIDTH : integer := 80;
+G_PIX_BITCOUNT : integer := 8;
 G_VSYN_ACTIVE : std_logic := '1'
 );
 port(
@@ -68,7 +69,7 @@ S_SYN_V
 );
 signal fsm_cs : fsm_state;
 signal i_cfg                : std_logic_vector(p_in_cfg'range);
-type TVData is array (0 to (G_VD_WIDTH / 8) -  1) of unsigned(7 downto 0);
+type TVData is array (0 to (G_VD_WIDTH / G_PIX_BITCOUNT) -  1) of unsigned(G_PIX_BITCOUNT - 1 downto 0);
 signal i_vd                 : TVData;
 signal i_pix_cnt            : unsigned(p_in_vpix'range) := (others => '0');
 signal i_row_cnt            : unsigned(p_in_vrow'range) := (others => '0');
@@ -224,7 +225,7 @@ process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
-    for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+    for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
     i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
     end loop;
   else
@@ -233,23 +234,23 @@ if rising_edge(p_in_clk) then
       if i_cfg(5 downto 4) = "01" then
       --(V Counter - gradiet from left to right)
           if i_hs = G_VSYN_ACTIVE or i_vs = G_VSYN_ACTIVE then
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
             end loop;
           else
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
-            i_vd(i) <= i_vd(i) + TO_UNSIGNED((G_VD_WIDTH / 8), i_vd(i)'length);
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
+            i_vd(i) <= i_vd(i) + TO_UNSIGNED((G_VD_WIDTH / G_PIX_BITCOUNT), i_vd(i)'length);
             end loop;
           end if;
 
       elsif i_cfg(5 downto 4) = "10" then
       --(H Counter - gradiet from top to bottom)
           if i_vs = G_VSYN_ACTIVE then
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= (others => '0');
             end loop;
           else
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= i_row_cnt(i_vd(i)'range);
             end loop;
           end if;
@@ -258,21 +259,21 @@ if rising_edge(p_in_clk) then
       --(1/2 vfr - V Count; 1/2 vfr - H Count)
         if i_row_half = '0' then
           if i_hs = G_VSYN_ACTIVE or i_vs = G_VSYN_ACTIVE then
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
             end loop;
           else
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
-            i_vd(i) <= i_vd(i) + TO_UNSIGNED((G_VD_WIDTH / 8), i_vd(i)'length);
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
+            i_vd(i) <= i_vd(i) + TO_UNSIGNED((G_VD_WIDTH / G_PIX_BITCOUNT), i_vd(i)'length);
             end loop;
           end if;
         else
           if i_vs = G_VSYN_ACTIVE then
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
             end loop;
           else
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= i_row_cnt(i_vd(i)'range);
             end loop;
           end if;
@@ -284,7 +285,7 @@ if rising_edge(p_in_clk) then
 end if;--p_in_rst,
 end process;
 
-gen_vd : for i in 0 to (G_VD_WIDTH / 8) - 1 generate
+gen_vd : for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 generate
 i_vd_out((i_vd(i)'length * (i + 1)) - 1 downto (i_vd(i)'length * i)) <= std_logic_vector(i_vd(i));
 end generate gen_vd;
 
@@ -306,7 +307,7 @@ S_SYN
 signal i_fsm_hs_cs          : TFsm_sync;
 signal i_fsm_vs_cs          : TFsm_sync;
 signal i_cfg                : std_logic_vector(p_in_cfg'range);
-type TVData is array (0 to (G_VD_WIDTH / 8) -  1) of unsigned(7 downto 0);
+type TVData is array (0 to (G_VD_WIDTH / G_PIX_BITCOUNT) -  1) of unsigned(G_PIX_BITCOUNT - 1 downto 0);
 signal i_vd                 : TVData;
 signal i_pix_cnt            : unsigned(p_in_vpix'range) := (others => '0');
 signal i_row_cnt            : unsigned(p_in_vrow'range) := (others => '0');
@@ -428,7 +429,7 @@ if rising_edge(p_in_clk) then
     --------------------------------------
     case i_fsm_vs_cs is
       when S_DOUT =>
-          if i_pix_cnt = (UNSIGNED(p_in_vpix) - 1) then
+          if (i_pix_cnt = (UNSIGNED(p_in_vpix) - 1)) and (i_fsm_hs_cs = S_DOUT) then
 
             if i_row_cnt = (UNSIGNED(p_in_vrow) - 1) then
               i_vs <= G_VSYN_ACTIVE;
@@ -441,11 +442,13 @@ if rising_edge(p_in_clk) then
             if i_row_cnt = (i_vrow_half_count - 1) then
               i_row_half <= '1';
             end if;
+
           end if;
 
       when S_SYN =>
 
-          if i_pix_cnt = (UNSIGNED(p_in_vpix) - 1) then
+          if (i_pix_cnt = (UNSIGNED(p_in_vpix) - 1)) and (i_fsm_hs_cs = S_DOUT) then
+
             if i_row_cnt = (UNSIGNED(p_in_syn_v) - 1) then
               i_vs <= not G_VSYN_ACTIVE; i_row_half <= '0';
               i_row_cnt <= (others => '0');
@@ -453,6 +456,7 @@ if rising_edge(p_in_clk) then
             else
               i_row_cnt <= i_row_cnt + 1;
             end if;
+
           end if;
 
     end case;
@@ -467,7 +471,7 @@ process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
-    for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+    for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
     i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
     end loop;
   else
@@ -476,23 +480,23 @@ if rising_edge(p_in_clk) then
       if i_cfg(5 downto 4) = "01" then
       --(V Counter - gradiet from left to right)
           if i_hs = G_VSYN_ACTIVE or i_vs = G_VSYN_ACTIVE then
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
             end loop;
           else
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
-            i_vd(i) <= i_vd(i) + TO_UNSIGNED((G_VD_WIDTH / 8), i_vd(i)'length);
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
+            i_vd(i) <= i_vd(i) + TO_UNSIGNED((G_VD_WIDTH / G_PIX_BITCOUNT), i_vd(i)'length);
             end loop;
           end if;
 
       elsif i_cfg(5 downto 4) = "10" then
       --(H Counter - gradiet from top to bottom)
           if i_vs = G_VSYN_ACTIVE then
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= (others => '0');
             end loop;
           else
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= i_row_cnt(i_vd(i)'range);
             end loop;
           end if;
@@ -501,21 +505,21 @@ if rising_edge(p_in_clk) then
       --(1/2 vfr - V Count; 1/2 vfr - H Count)
         if i_row_half = '0' then
           if i_hs = G_VSYN_ACTIVE or i_vs = G_VSYN_ACTIVE then
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
             end loop;
           else
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
-            i_vd(i) <= i_vd(i) + TO_UNSIGNED((G_VD_WIDTH / 8), i_vd(i)'length);
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
+            i_vd(i) <= i_vd(i) + TO_UNSIGNED((G_VD_WIDTH / G_PIX_BITCOUNT), i_vd(i)'length);
             end loop;
           end if;
         else
           if i_vs = G_VSYN_ACTIVE then
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= TO_UNSIGNED(i, i_vd(i)'length);
             end loop;
           else
-            for i in 0 to (G_VD_WIDTH / 8) - 1 loop
+            for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 loop
             i_vd(i) <= i_row_cnt(i_vd(i)'range);
             end loop;
           end if;
@@ -527,7 +531,7 @@ if rising_edge(p_in_clk) then
 end if;--p_in_rst,
 end process;
 
-gen_vd : for i in 0 to (G_VD_WIDTH / 8) - 1 generate
+gen_vd : for i in 0 to (G_VD_WIDTH / G_PIX_BITCOUNT) - 1 generate
 i_vd_out((i_vd(i)'length * (i + 1)) - 1 downto (i_vd(i)'length * i)) <= std_logic_vector(i_vd(i));
 end generate gen_vd;
 
