@@ -8,7 +8,7 @@ entity vtest_gen_tb is
 generic(
 G_DBG : string := "OFF";
 G_PIX_BITCOUNT : integer := 10;
-G_VD_WIDTH : integer := 10 * 2;
+G_VD_WIDTH : integer := 10 * 4;
 G_VSYN_ACTIVE : std_logic := '1'
 );
 port(
@@ -25,6 +25,28 @@ architecture behavior of vtest_gen_tb is
 
 --  определяем частоты генераторов на плате:
 constant period_sys_clk       : time := 56.388 ns;--17,733990147783251231527093596059 mhz
+
+constant G_MEM_DWIDTH : integer := 64;
+constant CI_VDWIDTH   : integer := 32;
+constant CI_VDWIDTH_SWAP: integer := 8;
+
+component vbufi_tst is
+port (
+din       : in  std_logic_vector(CI_VDWIDTH - 1 downto 0);
+wr_en     : in  std_logic;
+wr_clk    : in  std_logic;
+
+dout      : out std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+rd_en     : in  std_logic;
+rd_clk    : in  std_logic;
+
+full      : out std_logic;
+empty     : out std_logic;
+prog_full : out std_logic;
+
+rst       : in  std_logic
+);
+end component vbufi_tst;
 
 component vtest_gen is
 generic(
@@ -63,7 +85,7 @@ for uut : vtest_gen use entity work.vtest_gen(test_gen_2);
 constant CI_SDI_TXD_BITCOUNT : integer := 10;
 constant CI_SDI_TXD_LEVEL_A  : integer := 2;
 constant CI_SDI_TXD_LEVEL_B  : integer := 4;
-constant CI_SDI_TXD_LEVEL    : integer := CI_SDI_TXD_LEVEL_A;
+constant CI_SDI_TXD_LEVEL    : integer := CI_SDI_TXD_LEVEL_B;
 
 signal i_rst :  std_logic;
 signal i_clk :  std_logic;
@@ -96,6 +118,12 @@ signal i_linecnt_inc     : std_logic;
 signal i_linecnt         : unsigned(10 downto 0);
 
 signal i_tx_buf_d            : unsigned((CI_SDI_TXD_BITCOUNT * CI_SDI_TXD_LEVEL) - 1 downto 0);
+
+signal i_vdin            : std_logic_vector(CI_VDWIDTH - 1 downto 0);
+signal i_vd_en           : std_logic;
+signal i_ibuf_do         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal i_ibuf_dtmp       : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+
 
 begin --architecture behavior
 
@@ -238,9 +266,38 @@ i_sav <= sr_video_hs(3) and not i_video_hs;
 
 p_out_tst(0) <= i_sav or i_eav or i_linecnt_clr or i_linecnt_inc or OR_reduce(i_linecnt)
  or OR_reduce(std_logic_vector(i_tx_dout(0)))
-  or OR_reduce(std_logic_vector(i_tx_dout(1)));
+  or OR_reduce(i_ibuf_do);
 --   or OR_reduce(std_logic_vector(i_tx_dout(2)))
 --    or OR_reduce(std_logic_vector(i_tx_dout(3)));
 
+
+i_vd_en <= not (i_sav or i_eav);
+i_vdin <= (std_logic_vector(i_tx_dout(0)((8 * 1) - 1 downto (8 * 0)))
+            & std_logic_vector(i_tx_dout(1)((8 * 1) - 1 downto (8 * 0)))
+            & std_logic_vector(i_tx_dout(2)((8 * 1) - 1 downto (8 * 0)))
+            & std_logic_vector(i_tx_dout(3)((8 * 1) - 1 downto (8 * 0))));
+
+m_bufi : vbufi_tst
+port map(
+din       => i_vdin,
+wr_en     => i_vd_en,
+wr_clk    => i_clk,
+
+dout      => i_ibuf_dtmp,
+rd_en     => '1',
+rd_clk    => i_clk,
+
+full      => open,
+empty     => open,
+prog_full => open,
+
+rst       => '0'
+);
+
+gen_bufo_swap : for i in 0 to (G_MEM_DWIDTH / CI_VDWIDTH_SWAP) - 1 generate begin
+i_ibuf_do((i_ibuf_do'length - (CI_VDWIDTH_SWAP * i)) - 1 downto
+                              (i_ibuf_do'length - (CI_VDWIDTH_SWAP * (i + 1)) ))
+                                      <= i_ibuf_dtmp(CI_VDWIDTH_SWAP * (i + 1) - 1 downto (CI_VDWIDTH_SWAP * i));
+end generate gen_bufo_swap;
 
 end architecture behavior;
