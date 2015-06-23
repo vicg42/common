@@ -1,14 +1,10 @@
 -------------------------------------------------------------------------
--- Company     : Yansar
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 17.07.2014 14:58:40
 -- Module Name : debounce
 --
--- Назначение/Описание :
---
--- Revision:
--- Revision 0.01 - File Created
+-- Description :
 --
 --------------------------------------------------------------------------
 library ieee;
@@ -38,7 +34,7 @@ signal i_debcnt           : unsigned(log2(G_DEBVAL) downto 0) := (others => '0')
 signal i_btn              : std_logic := not G_PUSH_LEVEL;
 signal i_btn_push         : std_logic := '0';
 
-begin
+begin --architecture behavioral
 
 p_out_btn <= i_btn_push;
 
@@ -68,4 +64,3 @@ end process;
 
 
 end architecture behavioral;
-

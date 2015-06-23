@@ -1,22 +1,16 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 28.10.2011 9:48:57
 -- Module Name : pcie_irq_dev
 --
 -- Description : Endpoint Intrrupt Controller
---               Подробно работа с перываниями CORE PCIEXPRESS описана в
---               pcie_blk_plus_ug341.pdf/п. Generating Interrupt Requests
---
--- Revision:
--- Revision 0.01 - File Created
+--               pcie_blk_plus_ug341.pdf/topic Generating Interrupt Requests
 --
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity pcie_irq_dev is
 generic(
@@ -26,12 +20,12 @@ port(
 -----------------------------
 --Usr Ctrl
 -----------------------------
-p_in_irq_set           : in   std_logic;--Установка прерывания
-p_in_irq_clr           : in   std_logic;--Сброс прерывания
-p_out_irq_status       : out  std_logic;--1/0 - перрывание активно/не активно
+p_in_irq_set           : in   std_logic;
+p_in_irq_clr           : in   std_logic;
+p_out_irq_status       : out  std_logic;--1/0 - IRQ work/no
 
 -----------------------------
---Связь с ядром PCI-EXPRESS
+--PCIE Port
 -----------------------------
 p_in_cfg_msi           : in   std_logic;--1/0 - Interrupt mode MSI/Legacy
 p_in_cfg_irq_rdy_n     : in   std_logic;
@@ -40,7 +34,7 @@ p_out_cfg_irq_assert_n : out  std_logic;
 p_out_cfg_irq_di       : out  std_logic_vector(7 downto 0);
 
 -----------------------------
---Технологические сигналы
+--DBG
 -----------------------------
 p_in_tst               : in  std_logic_vector(31 downto 0);
 p_out_tst              : out std_logic_vector(31 downto 0);
@@ -51,7 +45,7 @@ p_out_tst              : out std_logic_vector(31 downto 0);
 p_in_clk               : in   std_logic;
 p_in_rst_n             : in   std_logic
 );
-end pcie_irq_dev;
+end entity pcie_irq_dev;
 
 architecture behavioral of pcie_irq_dev is
 
@@ -63,26 +57,23 @@ S_IRQ_DEASSERT_DONE
 );
 signal fsm_cs: fsm_state;
 
-signal i_irq_status    : std_logic:='0';
-signal i_irq_assert_n  : std_logic:='1';
-signal i_irq_n         : std_logic:='1';
+signal i_irq_status    : std_logic := '0';
+signal i_irq_assert_n  : std_logic := '1';
+signal i_irq_n         : std_logic := '1';
 
 
---MAIN
-begin
+begin --architecture behavioral
 
 
-p_out_tst<=(others=>'0');
+p_out_tst <= (others => '0');
 
---Связь с ядром PCI-EXPRESS
-p_out_cfg_irq_di       <= CONV_STD_LOGIC_VECTOR(16#00#, p_out_cfg_irq_di'length);
+
+p_out_cfg_irq_di       <= std_logic_vector(TO_UNSIGNED(16#00#, p_out_cfg_irq_di'length));
 p_out_cfg_irq_assert_n <= i_irq_assert_n;
 p_out_cfg_irq_n        <= i_irq_n;
 
---Статус активности перывания
 p_out_irq_status <= i_irq_status;
 
---Логика управления ядром PCI-EXPRESS
 process(p_in_clk)
 begin
 if rising_edge(p_in_clk) then
@@ -117,8 +108,8 @@ if rising_edge(p_in_clk) then
       ----------------------------------
       when S_IRQ_ASSERT_DONE =>
 
-        --Ждем подтверждения от CORE
-        if p_in_cfg_irq_rdy_n='0' then
+        --Wait acknowledge from CORE
+        if p_in_cfg_irq_rdy_n = '0' then
           i_irq_status   <= '1';
           i_irq_n        <= '1';
 --          i_irq_assert_n <= '1';
@@ -150,7 +141,7 @@ if rising_edge(p_in_clk) then
       ----------------------------------
       when S_IRQ_DEASSERT_DONE =>
 
-        if p_in_cfg_irq_rdy_n='0' then
+        if p_in_cfg_irq_rdy_n = '0' then
           i_irq_status   <= '0';
           i_irq_assert_n <= '1';
           i_irq_n        <= '1';
@@ -163,5 +154,4 @@ end if;--p_in_rst_n,
 end process;
 
 
---END MAIN
-end behavioral;
+end architecture behavioral;

@@ -254,8 +254,7 @@ attribute keep of g_usrclk : signal is "true";
 attribute keep of g_usr_highclk : signal is "true";
 
 
---MAIN
-begin
+begin --architecture struct
 
 
 --***********************************************************
@@ -825,7 +824,4 @@ begin
 end process;
 
 
-
-
---END MAIN
 end architecture struct;

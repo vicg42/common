@@ -24,7 +24,7 @@ use work.mem_wr_pkg.all;
 
 entity mem_wr is
 generic(
-G_MEM_BANK_M_BIT : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
+G_MEM_BANK_M_BIT : integer:=29;--биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
 G_MEM_BANK_L_BIT : integer:=28;
 G_MEM_AWIDTH     : integer:=32;
 G_MEM_DWIDTH     : integer:=32
@@ -33,12 +33,12 @@ port(
 -------------------------------
 --Конфигурирование
 -------------------------------
-p_in_cfg_mem_adr     : in    std_logic_vector(31 downto 0);--//Адрес ОЗУ (в BYTE)
-p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);--//Размер одиночной MEM_TRN (в DWORD)
-p_in_cfg_mem_dlen_rq : in    std_logic_vector(15 downto 0);--//Размер запрашиваемых данных записи/чтения (в DWORD)
-p_in_cfg_mem_wr      : in    std_logic;                    --//Тип операции
-p_in_cfg_mem_start   : in    std_logic;                    --//Строб: Пуск операции
-p_out_cfg_mem_done   : out   std_logic;                    --//Строб: Операции завершена
+p_in_cfg_mem_adr     : in    std_logic_vector(31 downto 0);--Адрес ОЗУ (в BYTE)
+p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);--Размер одиночной MEM_TRN (в DWORD)
+p_in_cfg_mem_dlen_rq : in    std_logic_vector(15 downto 0);--Размер запрашиваемых данных записи/чтения (в DWORD)
+p_in_cfg_mem_wr      : in    std_logic;                    --Тип операции
+p_in_cfg_mem_start   : in    std_logic;                    --Строб: Пуск операции
+p_out_cfg_mem_done   : out   std_logic;                    --Строб: Операции завершена
 
 -------------------------------
 --Связь с пользовательскими буферами
@@ -71,25 +71,24 @@ p_out_tst            : out   std_logic_vector(31 downto 0);
 p_in_clk             : in    std_logic;
 p_in_rst             : in    std_logic
 );
-end mem_wr;
+end entity mem_wr;
 
 architecture behavioral of mem_wr is
 
 signal i_mem_req           : std_logic;
 
 
---MAIN
-begin
+begin --architecture behavioral
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 p_out_tst<=(others=>'0');
 
 
---//----------------------------------------------
---//Связь с контроллером памяти
---//----------------------------------------------
+------------------------------------------------
+--Связь с контроллером памяти
+------------------------------------------------
 
 p_out_mem.clk <= p_in_clk;
 p_out_mem.cmd_req <= i_mem_req;
@@ -125,5 +124,5 @@ begin
   end if;
 end process;
 
---END MAIN
-end behavioral;
+
+end architecture behavioral;

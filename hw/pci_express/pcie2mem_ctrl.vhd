@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 04.11.2011 10:16:11
@@ -7,32 +6,28 @@
 --
 -- Description :
 --
--- Revision:
--- Revision 0.01 - File Created
---
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_misc.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 library work;
+use work.reduce_pack.all;
 use work.vicg_common_pkg.all;
 use work.mem_wr_pkg.all;
 use work.pcie_pkg.all;
 
 entity pcie2mem_ctrl is
 generic(
-G_MEM_AWIDTH     : integer:=32;
-G_MEM_DWIDTH     : integer:=32;
-G_MEM_BANK_M_BIT : integer:=29;
-G_MEM_BANK_L_BIT : integer:=28;
-G_DBG            : string :="OFF"  --В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
+G_MEM_AWIDTH     : integer := 32;
+G_MEM_DWIDTH     : integer := 32;
+G_MEM_BANK_M_BIT : integer := 29;
+G_MEM_BANK_L_BIT : integer := 28;
+G_DBG            : string := "OFF"
 );
 port(
 -------------------------------
---Управление
+--CTRL
 -------------------------------
 p_in_ctrl         : in    TPce2Mem_Ctrl;
 p_out_status      : out   TPce2Mem_Status;
@@ -52,13 +47,13 @@ p_out_hrxbuf_empty: out  std_logic;
 p_in_hclk         : in    std_logic;
 
 -------------------------------
---Связь с mem_ctrl
+--MEM_CTRL Port
 -------------------------------
 p_out_mem         : out   TMemIN;
 p_in_mem          : in    TMemOUT;
 
 -------------------------------
---Технологический
+--DBG
 -------------------------------
 p_in_tst          : in    std_logic_vector(31 downto 0);
 p_out_tst         : out   std_logic_vector(31 downto 0);
@@ -69,7 +64,7 @@ p_out_tst         : out   std_logic_vector(31 downto 0);
 p_in_clk          : in    std_logic;
 p_in_rst          : in    std_logic
 );
-end pcie2mem_ctrl;
+end entity pcie2mem_ctrl;
 
 architecture behavioral of pcie2mem_ctrl is
 
@@ -93,37 +88,35 @@ rst         : in std_logic
 end component;
 
 
-signal i_txbuf_dout                    : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-signal i_txbuf_dout_rd                 : std_logic;
-signal i_txbuf_full                    : std_logic;
-signal i_txbuf_empty                   : std_logic;
-signal i_rxbuf_din                     : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-signal i_rxbuf_din_wr                  : std_logic;
-signal i_rxbuf_full                    : std_logic;
-signal i_rxbuf_empty                   : std_logic;
+signal i_txbuf_dout         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal i_txbuf_dout_rd      : std_logic;
+signal i_txbuf_full         : std_logic;
+signal i_txbuf_empty        : std_logic;
+signal i_rxbuf_din          : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal i_rxbuf_din_wr       : std_logic;
+signal i_rxbuf_full         : std_logic;
+signal i_rxbuf_empty        : std_logic;
 
-signal i_mem_adr                       : std_logic_vector(31 downto 0):=(others=>'0');--(BYTE)
-signal i_mem_lenreq                    : std_logic_vector(15 downto 0):=(others=>'0');--Размер запрашиваемых данных
-signal i_mem_lentrn                    : std_logic_vector(15 downto 0):=(others=>'0');--Размер одиночной транзакции
-signal i_mem_dir                       : std_logic:='0';
-signal i_mem_start                     : std_logic:='0';
-signal i_mem_done                      : std_logic;
+signal i_req_len_byte       : unsigned(17 downto 0) := (others => '0');
+signal i_mem_adr            : std_logic_vector(31 downto 0) := (others => '0');--(BYTE)
+signal i_mem_lenreq         : unsigned(15 downto 0) := (others => '0');
+signal i_mem_lentrn         : unsigned(15 downto 0) := (others => '0');--Размер одиночной транзакции
+signal i_mem_dir            : std_logic := '0';
+signal i_mem_start          : std_logic := '0';
+signal i_mem_done           : std_logic;
 
-signal h_mem_start_wcnt                : std_logic_vector(2 downto 0):=(others=>'0');
-signal h_mem_start_w                   : std_logic:='0';
-signal sr_mem_start                    : std_logic_vector(0 to 2):=(others=>'0');
-signal i_mem_done_out                  : std_logic:='0';
+signal h_mem_start_wcnt     : unsigned(2 downto 0) := (others => '0');
+signal h_mem_start_w        : std_logic := '0';
+signal sr_mem_start         : std_logic_vector(0 to 2) := (others => '0');
+signal i_mem_done_out       : std_logic := '0';
 
-signal tst_mem_ctrl_out                : std_logic_vector(31 downto 0);
-
-
---MAIN
-begin
+signal tst_mem_ctrl_out     : std_logic_vector(31 downto 0);
 
 
-----------------------------------------------------
---Согласующие буфера
-----------------------------------------------------
+begin --architecture behavioral
+
+
+
 --RAM<-PCIE
 m_txbuf : pcie2mem_fifo
 port map(
@@ -172,7 +165,7 @@ p_out_htxbuf_full <= i_txbuf_full;
 
 
 ----------------------------------------------------
---Контроллер записи/чтения ОЗУ
+--
 ----------------------------------------------------
 m_mem_wr : mem_wr
 generic map(
@@ -183,17 +176,17 @@ G_MEM_DWIDTH     => G_MEM_DWIDTH
 )
 port map(
 -------------------------------
--- Конфигурирование
+--CFG
 -------------------------------
 p_in_cfg_mem_adr     => i_mem_adr,
-p_in_cfg_mem_trn_len => i_mem_lentrn,
-p_in_cfg_mem_dlen_rq => i_mem_lenreq,
+p_in_cfg_mem_trn_len => std_logic_vector(i_mem_lentrn),
+p_in_cfg_mem_dlen_rq => std_logic_vector(i_mem_lenreq),
 p_in_cfg_mem_wr      => i_mem_dir,
 p_in_cfg_mem_start   => i_mem_start,
 p_out_cfg_mem_done   => i_mem_done,
 
 -------------------------------
--- Связь с пользовательскими буферами
+--USR Port
 -------------------------------
 p_in_usr_txbuf_dout  => i_txbuf_dout,
 p_out_usr_txbuf_rd   => i_txbuf_dout_rd,
@@ -204,15 +197,15 @@ p_out_usr_rxbuf_wd   => i_rxbuf_din_wr,
 p_in_usr_rxbuf_full  => i_rxbuf_full,
 
 ---------------------------------
--- Связь с mem_ctrl.vhd
+--MEM_CTRL Port
 ---------------------------------
 p_out_mem            => p_out_mem,
 p_in_mem             => p_in_mem,
 
 -------------------------------
---Технологический
+--DBG
 -------------------------------
-p_in_tst             => (others=>'0'),
+p_in_tst             => (others => '0'),
 p_out_tst            => tst_mem_ctrl_out,
 
 -------------------------------
@@ -223,16 +216,14 @@ p_in_rst             => p_in_rst
 );
 
 
-------------------------------------------------
---Инициализация
-------------------------------------------------
---Растягиваем импульс
+
+--Expand start srob
 process(p_in_hclk)
 begin
 if rising_edge(p_in_hclk) then
-  if p_in_rst='1' then
-    h_mem_start_wcnt<=(others=>'0');
-    h_mem_start_w<='0';
+  if p_in_rst = '1' then
+    h_mem_start_wcnt <= (others => '0');
+    h_mem_start_w <= '0';
 
   else
 
@@ -243,28 +234,32 @@ if rising_edge(p_in_hclk) then
     end if;
 
     if h_mem_start_w = '0' then
-      h_mem_start_wcnt <= (others=>'0');
+      h_mem_start_wcnt <= (others => '0');
     else
-      h_mem_start_wcnt <= h_mem_start_wcnt+1;
+      h_mem_start_wcnt <= h_mem_start_wcnt + 1;
     end if;
 
   end if;
 end if;
 end process;
 
---Пересинхронизация на частоту mem_ctrl
+--Resynch to mem_ctrl clk domen
+i_req_len_byte <= UNSIGNED(p_in_ctrl.req_len);
+
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
     i_mem_dir <= p_in_ctrl.dir;
     i_mem_adr <= p_in_ctrl.adr;
-    i_mem_lenreq <= EXT(p_in_ctrl.req_len(p_in_ctrl.req_len'high downto log2(G_MEM_DWIDTH/8)), i_mem_lenreq'length)
-                    + OR_reduce(p_in_ctrl.req_len(log2(G_MEM_DWIDTH/8) - 1 downto 0));
+    i_mem_lenreq <= RESIZE(i_req_len_byte(i_req_len_byte'high downto log2(G_MEM_DWIDTH / 8))
+                                                                        , i_mem_lenreq'length)
+                    + (TO_UNSIGNED(0, i_mem_lenreq'length - 2)
+                        & OR_reduce(i_req_len_byte(log2(G_MEM_DWIDTH / 8) - 1 downto 0)));
 
     if i_mem_dir = C_MEMWR_WRITE then
-    i_mem_lentrn <= EXT(p_in_ctrl.trnwr_len, i_mem_lentrn'length);
+    i_mem_lentrn <= RESIZE(UNSIGNED(p_in_ctrl.trnwr_len), i_mem_lentrn'length);
     else
-    i_mem_lentrn <= EXT(p_in_ctrl.trnrd_len, i_mem_lentrn'length);
+    i_mem_lentrn <= RESIZE(UNSIGNED(p_in_ctrl.trnrd_len), i_mem_lentrn'length);
     end if;
 
     sr_mem_start <= h_mem_start_w & sr_mem_start(0 to 1);
@@ -278,11 +273,11 @@ begin
   end if;
 end process;
 
-p_out_status.done <= i_mem_done_out;--Пересихр не нужна, т.к. она делается в host модуле
+p_out_status.done <= i_mem_done_out;--Resynch to mem_ctrl clk domen NOT need, it doing into host module
 
 
 ------------------------------------
---Технологические сигналы
+--DBG
 ------------------------------------
 p_out_tst(0) <= i_mem_start;
 p_out_tst(1) <= i_mem_done;
@@ -291,12 +286,9 @@ p_out_tst(6) <= i_rxbuf_empty;
 p_out_tst(7) <= i_rxbuf_full;
 p_out_tst(8) <= i_txbuf_empty;
 p_out_tst(9) <= i_txbuf_full;
-p_out_tst(25 downto 10)<= i_mem_lenreq;
-p_out_tst(31 downto 26)<= tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
+p_out_tst(25 downto 10) <= std_logic_vector(i_mem_lenreq);
+p_out_tst(31 downto 26) <= tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
 
 
 
---END MAIN
-end behavioral;
-
-
+end architecture behavioral;

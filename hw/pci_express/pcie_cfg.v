@@ -1,5 +1,4 @@
 //-------------------------------------------------------------------------
-//-- Company     : Linkos
 //-- Engineer    : Golovachenko Victor
 //--
 //-- Create Date : 11/11/2009
@@ -7,12 +6,6 @@
 //--
 //-- Description : Configuration Controller.
 //--
-//-- Revision:
-//-- Revision 0.01 - File Created
-//-- Revision 0.02 - ѕеренес из xapp1052 логику работы этого моду€ +
-//                   add 2010.11.25_01 - как в xapp1052 +
-//                   add 2010.11.25_02 - запретил чтение регистров конфигурационного пространства.
-//                                       (посмотрим как будет работать в этом случае)
 //-------------------------------------------------------------------------
 `timescale 1ns/1ns
 
@@ -23,12 +16,11 @@
 `define   BMD_CFG_STATE_END    5'b10000
 
 //PCI Configuration Space Header: Adress map.
-// ак вычисл€ютс€ адреса дл€ обращени€ к соотв. регистрам канфиг. пространства
-//см. pcie_blk_plus_ug341.pdf/page 81/Accessing Additional Registers through the Configuration Port
-`define   BMD_CFG_MSI_CAP0_ADDR  10'h012 //јдрес регистров MSI
+//pcie_blk_plus_ug341.pdf/page 81/Accessing Additional Registers through the Configuration Port
+`define   BMD_CFG_MSI_CAP0_ADDR  10'h012
 `ifdef PCIEBLK
-`define   BMD_CFG_DEV_CAP_ADDR   10'h019 //јдрес регистра PCI Express Device Capabilities (byte 0x64->0x19=0x64/4)
-`define   BMD_CFG_LNK_CAP_ADDR   10'h01B //јдрес регистра PCI Express Link Capabilities (byte 0x6C->0x1B=0x6C/4)
+`define   BMD_CFG_DEV_CAP_ADDR   10'h019 //PCI Express Device Capabilities (byte 0x64 -> 0x19 = (0x64 / 4) )
+`define   BMD_CFG_LNK_CAP_ADDR   10'h01B //PCI Express Link Capabilities (byte 0x6C -> 0x1B = (0x6C / 4) )
 `else // PCIEBLK
 `define   BMD_CFG_DEV_CAP_ADDR   10'h017
 `define   BMD_CFG_LNK_CAP_ADDR   10'h019
@@ -47,11 +39,9 @@ module pcie_cfg (
                     cfg_do,
                     cfg_rd_wr_done_n,
 
-                    //add 2009.11.11
                     cfg_di,
                     cfg_byte_en_n,
                     cfg_wr_en_n,
-                    //-------
 
                     cfg_cap_max_lnk_width,
                     cfg_cap_max_payload_size,
@@ -75,7 +65,7 @@ output [3:0]        cfg_byte_en_n;
 output              cfg_wr_en_n;
 //------------------------------
 
-//«апрашиваемый уст-вом max_lnk_width у системы  (значен. которые назначаютс€ в CoreGen)
+//Device request from System - max_lnk_width (value which set over CoreGen)
 //000001b = x1
 //000010b = x2
 //000100b = x4
@@ -85,7 +75,7 @@ output              cfg_wr_en_n;
 //100000b = x32
 output [5:0]        cfg_cap_max_lnk_width;
 
-//«апрашиваемый уст-вом max_payload_size у системы(значен. которые назначаютс€ в CoreGen)
+//Device request from System - max_payload_size (value which set over CoreGen)
 //000b = 128 bytes max payload size
 //001b = 256 bytes max payload size
 //010b = 512 bytes max payload size
@@ -101,8 +91,6 @@ output [2:0]        cfg_cap_max_payload_size;
 output              cfg_msi_enable;
 
 
-
-//add 2010.11.25_01
 assign cfg_di = 0;
 assign cfg_byte_en_n = 4'hf;
 assign cfg_wr_en_n = 1;
@@ -134,7 +122,7 @@ reg [15:0]          cfg_msi_control;
 reg [5:0]           cfg_cap_max_lnk_width;
 reg [2:0]           cfg_cap_max_payload_size;
 
-//„тение регистров конфигурационного пространства:
+
 assign cfg_msi_enable = cfg_msi_control[0];
 
 always @(posedge clk) begin

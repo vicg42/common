@@ -1,21 +1,15 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 11.11.2011 14:41:31
 -- Module Name : pcie_ctrl.vhd
 --
--- Description : Управление ядром PCI-Express.
---
--- Revision:
--- Revision 0.01 - File Created
+-- Description : CTRL core PCI-Express
 --
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_misc.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 library work;
 use work.pcie_unit_pkg.all;
@@ -34,7 +28,7 @@ port(
 p_out_hclk                 : out   std_logic;
 p_out_gctrl                : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
---Управление внешними устройствами
+--CTRL user devices
 p_out_dev_ctrl             : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
 p_out_dev_din              : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_in_dev_dout              : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
@@ -45,7 +39,7 @@ p_in_dev_irq               : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0)
 p_in_dev_opt               : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt              : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
---Технологический порт
+--DBG
 p_out_tst                  : out   std_logic_vector(127 downto 0);
 p_in_tst                   : in    std_logic_vector(127 downto 0);
 
@@ -137,9 +131,9 @@ trn_lnk_up_n_i            : in    std_logic;
 trn_clk_i                 : in    std_logic;
 trn_reset_n_i             : in    std_logic
 );
-end pcie_ctrl;
+end entity pcie_ctrl;
 
-architecture behavioral of pcie_ctrl is
+architecture struct of pcie_ctrl is
 
 component pcie_rx
 port(
@@ -266,7 +260,7 @@ master_en_i          : in  std_logic;
 max_payload_size_i   : in  std_logic_vector(2 downto 0);
 max_rd_req_size_i    : in  std_logic_vector(2 downto 0);
 
---Технологический
+--DBG
 tst_o                : out std_logic_vector(31 downto 0);
 tst_i                : in  std_logic_vector(31 downto 0);
 
@@ -371,18 +365,11 @@ signal i_cfg_intrrupt_disable     : std_logic;
 --signal tmp_cfg_msi_enable         : std_logic;
 
 
---MAIN
-begin
+begin --architecture struct
 
 
 ----------------------------------------
---Технологические
-----------------------------------------
-
-
-
-----------------------------------------
---Выходные сигналы
+--Input signal
 ----------------------------------------
 trn_rnp_ok_n_o <= '0';
 trn_rcpl_streaming_n_o <= '1';
@@ -401,7 +388,7 @@ cfg_err_posted_n_o     <='1';
 cfg_err_cpl_abort_n_o  <='1';--Configuration Error Completion Aborted: The
                              --user can assert this signal to report that a completion
                              --was aborted.
-cfg_err_tlp_cpl_header_o <=(others=>'0'); --Configuration Error TLP Completion Header:
+cfg_err_tlp_cpl_header_o <=(others => '0'); --Configuration Error TLP Completion Header:
                                           --Accepts the header information from the user when
                                           --an error is signaled. This information is required so
                                           --that the core can issue a correct completion, if
@@ -416,7 +403,7 @@ cfg_err_tlp_cpl_header_o <=(others=>'0'); --Configuration Error TLP Completion H
                                           --[23:8]      Requester ID
                                           --[7:0]       Tag
 
-cfg_dsn_o <=CONV_STD_LOGIC_VECTOR(16#123#, cfg_dsn_o'length);
+cfg_dsn_o <= std_logic_vector(TO_UNSIGNED(16#123#, cfg_dsn_o'length));
 
 
 ----------------------------------------
@@ -458,7 +445,7 @@ port map(
 p_out_hclk      => p_out_hclk,
 p_out_gctrl     => p_out_gctrl,
 
---Управление внешними устройствами
+--CTRL user devices
 p_out_dev_ctrl  => p_out_dev_ctrl,
 p_out_dev_din   => p_out_dev_din,
 p_in_dev_dout   => p_in_dev_dout,
@@ -469,12 +456,12 @@ p_in_dev_irq    => p_in_dev_irq,
 p_in_dev_opt    => p_in_dev_opt,
 p_out_dev_opt   => p_out_dev_opt,
 
---Технологический порт
+--DBG
 p_out_tst       => p_out_tst,
 p_in_tst        => p_in_tst,
 
 ------------------------------
---Связь с m_pcie_rx/tx
+--PCIE_Rx/Tx  Port
 ------------------------------
 p_in_txbuf_din                => i_usr_txbuf_din,
 p_in_txbuf_wr                 => i_usr_txbuf_wr,
@@ -547,27 +534,24 @@ p_in_rst_n                    => i_rst_n
 
 
 --###########################################
---Управление ядром PCI-Express
+--CTRL core PCI-Express
 --###########################################
-------------------------------------
---Rx/Tx Ctrl
-------------------------------------
 m_rx : pcie_rx
 port map(
---режим Target
+--Target mode
 usr_reg_adr_o       => i_usr_reg_adr,
 usr_reg_din_o       => i_usr_reg_din,
 usr_reg_wr_o        => i_usr_reg_wr,
 usr_reg_rd_o        => i_usr_reg_rd,
 
---режим Master
+--Master mode
 usr_txbuf_din_o     => i_usr_txbuf_din,
 usr_txbuf_wr_o      => i_usr_txbuf_wr,
 usr_txbuf_wr_last_o => i_usr_txbuf_wr_last,
 usr_txbuf_full_i    => i_usr_txbuf_full,
 --usr_txbuf_dbe_o   => open,
 
---Связь с LocalLink Rx ядра PCI-EXPRESS
+--LocalLink Rx (core PCI-Express)
 trn_rd              => trn_rd_i,
 trn_rrem_n          => trn_rrem_n_i,
 trn_rsof_n          => trn_rsof_n_i,
@@ -600,9 +584,9 @@ cpld_malformed_o    => i_mrd_rcv_err,
 --Initiator reset
 dma_init_i          => i_dmatrn_init,
 
---Технологический
+--DBG
 tst_o               => open,--i_rx_engine_tst_out,
-tst_i               => (others=>'0'),
+tst_i               => (others => '0'),
 
 clk                 => trn_clk_i,
 rst_n               => i_rst_n
@@ -614,16 +598,16 @@ generic map(
 G_USR_DBUS => C_HDEV_DWIDTH
 )
 port map(
---Режим Target
+--Target mode
 usr_reg_dout_i       => i_usr_reg_dout,
 
---Режим Master
+--Master mode
 usr_rxbuf_dout_i     => i_usr_rxbuf_dout,
 usr_rxbuf_rd_o       => i_usr_rxbuf_rd,
 usr_rxbuf_rd_last_o  => i_usr_rxbuf_rd_last,
 usr_rxbuf_empty_i    => i_usr_rxbuf_empty,
 
---Связь с LocalLink Tx ядра PCI-EXPRESS
+--LocalLink Tx (core PCI-Express)
 trn_td               => trn_td_o,              -- O [63/31:0]
 trn_trem_n           => trn_trem_n_o,          -- O [7:0]
 trn_tsof_n           => trn_tsof_n_o,          -- O
@@ -690,9 +674,9 @@ master_en_i          => i_cfg_bus_master_en,   -- I
 max_payload_size_i   => i_cfg_prg_max_payload_size, -- I [2:0]  i_usr_max_payload_size,--
 max_rd_req_size_i    => i_cfg_prg_max_rd_req_size,  -- I [2:0]  i_usr_max_rd_req_size, --
 
---Технологический
+--DBG
 tst_o                => open,--tst_pcie_tx_out,
-tst_i                => (others=>'0'),
+tst_i                => (others => '0'),
 
 clk                  => trn_clk_i,
 rst_n                => i_rst_n
@@ -741,7 +725,7 @@ p_out_cfg_irq_assert_n => cfg_interrupt_assert_n_o,
 p_out_cfg_irq_n        => cfg_interrupt_n_o,
 p_out_cfg_irq_di       => cfg_interrupt_di_o,
 
-p_in_tst               => (others=>'0'),
+p_in_tst               => (others => '0'),
 p_out_tst              => open,
 
 p_in_clk               => trn_clk_i,
@@ -789,7 +773,6 @@ clk   => trn_clk_i
 );
 
 
---END MAIN
-end behavioral;
+end architecture struct;
 
 

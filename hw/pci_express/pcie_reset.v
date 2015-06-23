@@ -1,14 +1,10 @@
 //-------------------------------------------------------------------------
-//-- Company     : Linkos
 //-- Engineer    : Korg Alex
 //--
 //-- Create Date : 09/18/2009
 //-- Module Name : pcie_reset.v
 //--
 //-- Description : Котроллер сброса ядра PCI-Express.
-//--
-//-- Revision:
-//-- Revision 0.01 - File Created
 //--
 //-------------------------------------------------------------------------
 `timescale 1ns / 1ps

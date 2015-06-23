@@ -5,6 +5,7 @@ vlib work
 
 vlog "c:/Xilinx/14.6/ISE_DS/ISE/verilog/src/glbl.v"
 
+vcom -work work ../../../../lib/vicg/reduce_pack.vhd
 vcom -work work ../../../../lib/vicg/vicg_common_pkg.vhd
 vcom -work work ../../vtest_gen.vhd
 vcom -work work ../testbanch/vtest_gen_tb.vhd

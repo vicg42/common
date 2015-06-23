@@ -23,13 +23,15 @@ port(
 --SYNC
 p_out_vsync   : out  std_logic; --Vertical Sync
 p_out_hsync   : out  std_logic; --Horizontal Sync
-p_out_den     : out  std_logic; --Pixels
+p_out_pixen   : out  std_logic; --Pixels
+p_out_pixcnt  : out  std_logic_vector(15 downto 0);
+p_out_linecnt : out  std_logic_vector(15 downto 0);
 
 --System
 p_in_clk      : in   std_logic;
 p_in_rst      : in   std_logic
 );
-end entity;
+end entity vga_gen;
 
 architecture behavioral of vga_gen is
 
@@ -69,9 +71,11 @@ signal i_pix_va             : std_logic := '0';
 signal i_hsync              : std_logic := '0';
 signal i_vsync              : std_logic := '0';
 
+signal i_pixcnt             : unsigned(15 downto 0) := (others => '0');
+signal i_linecnt            : unsigned(15 downto 0) := (others => '0');
 
---MAIN
-begin
+
+begin --architecture behavioral
 
 
 ------------------------------------
@@ -135,8 +139,35 @@ end process;
 
 p_out_vsync <= i_vsync;
 p_out_hsync <= i_hsync;
-p_out_den   <= i_pix_ha and i_pix_va;
+p_out_pixen <= i_pix_ha and i_pix_va;
+
+p_out_pixcnt <= std_logic_vector(i_pixcnt);
+p_out_linecnt <= std_logic_vector(i_linecnt);
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    if p_in_rst = '1' then
+      i_pixcnt <= (others => '0');
+      i_linecnt <= (others => '0');
+
+    else
+
+      if i_hsync = '0' then
+        i_pixcnt <= (others => '0');
+      elsif i_pix_ha = '1' and i_pix_va = '1' then
+        i_pixcnt <= i_pixcnt + 1;
+      end if;
+
+      if i_vsync = '0' then
+        i_linecnt <= (others => '0');
+      elsif i_pix_va = '1' and i_vga_xcnt = (i_vga_ha_e + 1) then
+        i_linecnt <= i_linecnt + 1;
+      end if;
+
+    end if;
+  end if;
+end process;
 
 
---END MAIN
-end architecture;
+end architecture behavioral;

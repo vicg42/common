@@ -75,8 +75,8 @@ signal i_mosi_out   : std_logic := '0';
 signal tst_mosi     : std_logic;
 signal tst_sck_out  : std_logic;
 
---MAIN
-begin
+
+begin --architecture behavior
 
 p_out_busy <= i_busy;
 p_out_data <= i_rxd;
@@ -256,5 +256,5 @@ tst_fsmstate <= std_logic_vector(TO_UNSIGNED(16#06#,tst_fsmstate'length)) when i
                 std_logic_vector(TO_UNSIGNED(16#00#,tst_fsmstate'length)); --i_fsm_core_cs = S_IDLE      else
 end generate gen_dbg_on;
 
---END MAIN
+
 end architecture behavior;

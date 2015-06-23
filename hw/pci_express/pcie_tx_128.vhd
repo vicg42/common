@@ -1,29 +1,24 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 25.08.2012 17:22:12
--- Module Name : pcie_tx.v
+-- Module Name : pcie_tx
 --
--- Description : PCI txd
---
--- Revision:
--- Revision 0.01 - File Created
+-- Description : PCIE tx controller
 --
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_misc.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 library work;
+use work.reduce_pack.all;
 use work.vicg_common_pkg.all;
 use work.pcie_pkg.all;
 
 entity pcie_tx is
 generic(
-G_USR_DBUS : integer:=32
+G_USR_DBUS : integer := 32
 );
 port(
 --usr app
@@ -100,7 +95,7 @@ master_en_i            : in   std_logic;
 max_payload_size_i     : in   std_logic_vector(2 downto 0);
 max_rd_req_size_i      : in   std_logic_vector(2 downto 0);
 
---Технологический
+--DBG
 tst_o                  : out  std_logic_vector(31 downto 0);
 tst_i                  : in   std_logic_vector(31 downto 0);
 
@@ -108,7 +103,7 @@ tst_i                  : in   std_logic_vector(31 downto 0);
 clk                    : in   std_logic;
 rst_n                  : in   std_logic
 );
-end pcie_tx;
+end entity pcie_tx;
 
 architecture behavioral of pcie_tx is
 
@@ -125,7 +120,7 @@ S_TX_MRD_QW00
 );
 signal i_fsm_cs             : TFsm_state;
 
-signal i_trn_trem_n         : std_logic_vector(trn_td'length/64-1 downto 0);
+signal i_trn_trem_n         : unsigned((trn_td'length / 64) - 1 downto 0);
 signal i_trn_td             : std_logic_vector(trn_td'range);
 signal i_trn_tsof_n         : std_logic := '1';
 signal i_trn_teof_n         : std_logic := '1';
@@ -139,56 +134,55 @@ signal i_compl_done         : std_logic;
 
 signal i_dma_init           : std_logic;
 
-signal i_mem_adr_byte       : std_logic_vector(31 downto 0);
-signal i_mem_tx_byte        : std_logic_vector(31 downto 0);
-signal i_mem_remain_byte    : std_logic_vector(31 downto 0);
-signal i_mem_tpl_cnt        : std_logic_vector(12 downto 0);
-signal i_mem_tpl_byte       : std_logic_vector(12 downto 0);
-signal i_mem_tpl_dw         : std_logic_vector(12 downto 0)
-                                      := CONV_STD_LOGIC_VECTOR(128, 13);
-signal i_mem_tpl_len        : std_logic_vector(12 downto 0);
-signal i_mem_tpl_tag        : std_logic_vector(15 downto 0);
+signal i_mem_adr_byte       : unsigned(31 downto 0);
+signal i_mem_tx_byte        : unsigned(31 downto 0);
+signal i_mem_remain_byte    : unsigned(31 downto 0);
+signal i_mem_tpl_cnt        : unsigned(12 downto 0);
+signal i_mem_tpl_byte       : unsigned(12 downto 0);
+signal i_mem_tpl_dw         : unsigned(12 downto 0) := TO_UNSIGNED(128, 13);
+signal i_mem_tpl_len        : unsigned(12 downto 0);
+signal i_mem_tpl_tag        : unsigned(15 downto 0);
 signal i_mem_tpl_last       : std_logic;
-signal i_mem_tpl_dw_rem     : std_logic_vector(12 downto 0);
+signal i_mem_tpl_dw_rem     : unsigned(12 downto 0);
 
 signal i_mwr_done           : std_logic;
-signal i_mwr_tpl_max_byte   : std_logic_vector(12 downto 0);
+signal i_mwr_tpl_max_byte   : unsigned(12 downto 0);
 signal i_mwr_work           : std_logic;
 
 signal i_mrd_done           : std_logic;
-signal i_mrd_tpl_max_byte   : std_logic_vector(12 downto 0);
+signal i_mrd_tpl_max_byte   : unsigned(12 downto 0);
 
 signal i_usr_rxbuf_rd       : std_logic;
-signal i_usr_rxbuf_do_swap_tmp  : std_logic_vector(usr_rxbuf_dout_i'range);
-signal i_usr_rxbuf_do_swap  : std_logic_vector(127 downto 0);
+signal i_usr_rxbuf_do_swap_tmp  : unsigned(usr_rxbuf_dout_i'range);
+signal i_usr_rxbuf_do_swap  : unsigned(127 downto 0);
+signal sr_usr_rxbuf_do_swap : unsigned(32*3 - 1 downto 32*0);
 signal i_usr_reg_do_swap    : std_logic_vector(usr_reg_dout_i'range);
-signal sr_usr_rxbuf_do_swap : std_logic_vector(32*3 - 1 downto 32*0);
 
 
---MAIN
-begin
+
+begin --architecture behavioral
 
 ----------------------------------------
---Технологические
+--DBG
 ----------------------------------------
-tst_o <= (others=>'0');
+tst_o <= (others => '0');
 
 
 ----------------------------------------
 --
 ----------------------------------------
-mrd_pkt_count_o <= i_mem_tpl_tag + 1;
-mrd_pkt_len_o <= CONV_STD_LOGIC_VECTOR(4096/4, mrd_pkt_len_o'length)
+mrd_pkt_count_o <= std_logic_vector(i_mem_tpl_tag + 1);
+mrd_pkt_len_o <= std_logic_vector(TO_UNSIGNED(4096 / 4, mrd_pkt_len_o'length))
                   when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_4096_BYTE else
-                 CONV_STD_LOGIC_VECTOR(2048/4, mrd_pkt_len_o'length)
+                 std_logic_vector(TO_UNSIGNED(2048 / 4, mrd_pkt_len_o'length))
                   when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_2048_BYTE else
-                 CONV_STD_LOGIC_VECTOR(1024/4, mrd_pkt_len_o'length)
+                 std_logic_vector(TO_UNSIGNED(1024 / 4, mrd_pkt_len_o'length))
                   when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_1024_BYTE else
-                 CONV_STD_LOGIC_VECTOR(512/4, mrd_pkt_len_o'length)
+                 std_logic_vector(TO_UNSIGNED(512 / 4, mrd_pkt_len_o'length))
                   when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_512_BYTE else
-                 CONV_STD_LOGIC_VECTOR(256/4, mrd_pkt_len_o'length)
+                 std_logic_vector(TO_UNSIGNED(256 / 4, mrd_pkt_len_o'length))
                   when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_256_BYTE else
-                 CONV_STD_LOGIC_VECTOR(128/4, mrd_pkt_len_o'length);
+                 std_logic_vector(TO_UNSIGNED(128 / 4, mrd_pkt_len_o'length));
 
 i_usr_rxbuf_rd <= (not trn_tdst_rdy_n and not usr_rxbuf_empty_i);
 usr_rxbuf_rd_o <= i_usr_rxbuf_rd and i_mwr_work;
@@ -200,19 +194,21 @@ trn_tsrc_dsc_n <= '1';
 trn_tsrc_rdy_n_o <= i_trn_tsrc_rdy_n;
 trn_tsof_n <= i_trn_tsof_n;
 trn_teof_n <= i_trn_teof_n;
-trn_trem_n <= EXT(i_trn_trem_n, trn_trem_n'length);
+trn_trem_n <= std_logic_vector(RESIZE(i_trn_trem_n, trn_trem_n'length));
 trn_td <= i_trn_td;
 
 mwr_done_o <= i_mwr_done;
 compl_done_o <= i_compl_done;
 
-gen_swap_rxbuf : for i in 0 to usr_rxbuf_dout_i'length/8 - 1 generate
+gen_swap_rxbuf : for i in 0 to (usr_rxbuf_dout_i'length / 8) - 1 generate
+begin
 i_usr_rxbuf_do_swap_tmp((i_usr_rxbuf_do_swap_tmp'length - 8*i) - 1 downto
-                        (i_usr_rxbuf_do_swap_tmp'length - 8*(i+1))) <= usr_rxbuf_dout_i(8*(i+1) - 1 downto 8*i);
+                        (i_usr_rxbuf_do_swap_tmp'length - 8*(i+1))) <= UNSIGNED(usr_rxbuf_dout_i(8*(i+1) - 1 downto 8*i));
 end generate gen_swap_rxbuf;
-i_usr_rxbuf_do_swap <= EXT(i_usr_rxbuf_do_swap_tmp, i_usr_rxbuf_do_swap'length);
+i_usr_rxbuf_do_swap <= RESIZE(i_usr_rxbuf_do_swap_tmp, i_usr_rxbuf_do_swap'length);
 
-gen_swap_reg : for i in 0 to usr_reg_dout_i'length/8 - 1 generate
+gen_swap_reg : for i in 0 to (usr_reg_dout_i'length / 8) - 1 generate
+begin
 i_usr_reg_do_swap((i_usr_reg_do_swap'length - 8*i) - 1 downto
                   (i_usr_reg_do_swap'length - 8*(i+1))) <= usr_reg_dout_i(8*(i+1) - 1 downto 8*i);
 end generate gen_swap_reg;
@@ -267,7 +263,7 @@ begin
   end case;
 end process;
 
---Инициализация перед началом DMA транзакции
+--DMA initialization
 init : process(clk)
 begin
 if rising_edge(clk) then
@@ -287,7 +283,7 @@ if rising_edge(clk) then
         end if;
     end if;
   end if;
-end if;--rst_n,
+end if;
 end process;--init
 
 
@@ -302,29 +298,29 @@ if rising_edge(clk) then
     i_trn_tsof_n <= '1';
     i_trn_teof_n <= '1';
     i_trn_tsrc_rdy_n <= '1';
-    i_trn_td <= (others=>'0');
-    i_trn_trem_n <= (others=>'0');
+    i_trn_td <= (others => '0');
+    i_trn_trem_n <= (others => '0');
 
-    i_mem_adr_byte <= (others=>'0');
-    i_mem_remain_byte <= (others=>'0');
-    i_mem_tx_byte <= (others=>'0');
-    i_mem_tpl_byte <= (others=>'0');
-    i_mem_tpl_dw <= CONV_STD_LOGIC_VECTOR(128, i_mem_tpl_dw'length);
-    i_mem_tpl_len <= (others=>'0');
-    i_mem_tpl_tag <= (others=>'0');
-    i_mem_tpl_cnt <= (others=>'0');
+    i_mem_adr_byte <= (others => '0');
+    i_mem_remain_byte <= (others => '0');
+    i_mem_tx_byte <= (others => '0');
+    i_mem_tpl_byte <= (others => '0');
+    i_mem_tpl_dw <= TO_UNSIGNED(128, i_mem_tpl_dw'length);
+    i_mem_tpl_len <= (others => '0');
+    i_mem_tpl_tag <= (others => '0');
+    i_mem_tpl_cnt <= (others => '0');
     i_mem_tpl_last <= '0';
-    i_mem_tpl_dw_rem <= (others=>'0');
+    i_mem_tpl_dw_rem <= (others => '0');
 
     i_mrd_done <= '0';
     i_mwr_done <= '0';
     i_mwr_work <= '0';
-    i_mwr_tpl_max_byte <= (others=>'0');
-    i_mrd_tpl_max_byte <= (others=>'0');
+    i_mwr_tpl_max_byte <= (others => '0');
+    i_mrd_tpl_max_byte <= (others => '0');
 
     i_compl_done <= '0';
 
-    sr_usr_rxbuf_do_swap <= (others=>'0');
+    sr_usr_rxbuf_do_swap <= (others => '0');
 
   else
 
@@ -350,9 +346,9 @@ if rising_edge(clk) then
                 if (req_pkt_type_i = C_PCIE_PKT_TYPE_IORD_3DW_ND)
                   or (req_pkt_type_i = C_PCIE_PKT_TYPE_MRD_3DW_ND) then
 
-                i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#00#, i_trn_trem_n'length);
+                i_trn_trem_n <= TO_UNSIGNED(16#00#, i_trn_trem_n'length);
                 else
-                i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length);
+                i_trn_trem_n <= TO_UNSIGNED(16#01#, i_trn_trem_n'length);
                 end if;
 
                 i_trn_td(127) <= '0';
@@ -383,7 +379,7 @@ if rising_edge(clk) then
                            i_lower_addr);
 
                 if req_exprom_i = '1' then
-                  i_trn_td(31 downto 0) <= (others=>'0');
+                  i_trn_td(31 downto 0) <= (others => '0');
                 else
                   i_trn_td(31 downto 0) <= i_usr_reg_do_swap;
                 end if;
@@ -402,26 +398,26 @@ if rising_edge(clk) then
                 if i_dma_init = '1' then
 
                   case max_payload_size_i is
-                  when C_PCIE_MAX_PAYLOAD_4096_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(4096, i_mwr_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_2048_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(2048, i_mwr_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(1024, i_mwr_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(512, i_mwr_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(256, i_mwr_tpl_max_byte'length);
-                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(128, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_4096_BYTE => i_mwr_tpl_max_byte <= TO_UNSIGNED(4096, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_2048_BYTE => i_mwr_tpl_max_byte <= TO_UNSIGNED(2048, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mwr_tpl_max_byte <= TO_UNSIGNED(1024, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(512, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(256, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mwr_tpl_max_byte <= TO_UNSIGNED(128, i_mwr_tpl_max_byte'length);
                   when others => null;
                   end case;
 
-                  i_mem_adr_byte <= mwr_addr_i;
-                  i_mem_remain_byte <= mwr_len_i;
+                  i_mem_adr_byte <= UNSIGNED(mwr_addr_i);
+                  i_mem_remain_byte <= UNSIGNED(mwr_len_i);
 
                 else
-                  i_mem_remain_byte <= mwr_len_i - i_mem_tx_byte;
+                  i_mem_remain_byte <= UNSIGNED(mwr_len_i) - i_mem_tx_byte;
                 end if;
 
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '1';
-                i_trn_trem_n <= (others=>'0');
+                i_trn_trem_n <= (others => '0');
 
                 i_fsm_cs <= S_TX_MWR_QW00;
 
@@ -436,26 +432,26 @@ if rising_edge(clk) then
                 if i_dma_init = '1' then
 
                   case max_rd_req_size_i is
-                  when C_PCIE_MAX_RD_REQ_4096_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(4096, i_mrd_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_2048_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(2048, i_mrd_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(1024, i_mrd_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(512, i_mrd_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(256, i_mrd_tpl_max_byte'length);
-                  when C_PCIE_MAX_RD_REQ_128_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(128, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_4096_BYTE => i_mrd_tpl_max_byte <= TO_UNSIGNED(4096, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_2048_BYTE => i_mrd_tpl_max_byte <= TO_UNSIGNED(2048, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mrd_tpl_max_byte <= TO_UNSIGNED(1024, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mrd_tpl_max_byte <= TO_UNSIGNED(512, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mrd_tpl_max_byte <= TO_UNSIGNED(256, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_128_BYTE  => i_mrd_tpl_max_byte <= TO_UNSIGNED(128, i_mrd_tpl_max_byte'length);
                   when others => null;
                   end case;
 
-                  i_mem_adr_byte <= mwr_addr_i;
-                  i_mem_remain_byte <= mwr_len_i;
+                  i_mem_adr_byte <= UNSIGNED(mwr_addr_i);
+                  i_mem_remain_byte <= UNSIGNED(mwr_len_i);
 
                 else
-                  i_mem_remain_byte <= mwr_len_i - i_mem_tx_byte;
+                  i_mem_remain_byte <= UNSIGNED(mwr_len_i) - i_mem_tx_byte;
                 end if;
 
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '1';
-                i_trn_trem_n <= (others=>'0');
+                i_trn_trem_n <= (others => '0');
 
                 i_fsm_cs <= S_TX_MRD_QW00;
 
@@ -464,7 +460,7 @@ if rising_edge(clk) then
                   i_trn_tsof_n <= '1';
                   i_trn_teof_n <= '1';
                   i_trn_tsrc_rdy_n <= '1';
-                  i_trn_trem_n <= (others=>'0');
+                  i_trn_trem_n <= (others => '0');
                 end if;
 
                 if i_dma_init = '1' then
@@ -496,20 +492,22 @@ if rising_edge(clk) then
         --#######################################################################
         when S_TX_MWR_QW00 =>
 
-          if i_mem_remain_byte > EXT(i_mwr_tpl_max_byte, i_mem_remain_byte'length) then
+          if i_mem_remain_byte > RESIZE(i_mwr_tpl_max_byte, i_mem_remain_byte'length) then
               i_mem_tpl_last <= '0';
               i_mem_tpl_byte <= i_mwr_tpl_max_byte;
-              i_mem_tpl_dw <= EXT(i_mwr_tpl_max_byte(i_mem_tpl_dw'high downto log2(32/8)), i_mem_tpl_dw'length);
+              i_mem_tpl_dw <= RESIZE(i_mwr_tpl_max_byte(i_mem_tpl_dw'high downto log2(32 / 8)), i_mem_tpl_dw'length);
 
-              i_mem_tpl_len <= EXT(i_mwr_tpl_max_byte(i_mem_tpl_len'high downto log2(G_USR_DBUS/8)), i_mem_tpl_len'length);
+              i_mem_tpl_len <= RESIZE(i_mwr_tpl_max_byte(i_mem_tpl_len'high downto log2(G_USR_DBUS / 8)), i_mem_tpl_len'length);
           else
               i_mem_tpl_last <= '1';
               i_mem_tpl_byte <= i_mem_remain_byte(i_mem_tpl_byte'range);
-              i_mem_tpl_dw <= EXT(i_mem_remain_byte(i_mem_tpl_dw'high downto log2(32/8)), i_mem_tpl_dw'length)
-                              + OR_reduce(i_mem_remain_byte(log2(32/8) - 1 downto 0));
+              i_mem_tpl_dw <= RESIZE(i_mem_remain_byte(i_mem_tpl_dw'high downto log2(32 / 8)), i_mem_tpl_dw'length)
+                              + (TO_UNSIGNED(0, i_mem_tpl_dw'length - 2)
+                                  & OR_reduce(i_mem_remain_byte(log2(32 / 8) - 1 downto 0)));
 
-              i_mem_tpl_len <= EXT(i_mem_remain_byte(i_mem_tpl_len'high downto log2(G_USR_DBUS/8)), i_mem_tpl_len'length)
-                              + OR_reduce(i_mem_remain_byte(log2(G_USR_DBUS/8) - 1 downto 0));
+              i_mem_tpl_len <= RESIZE(i_mem_remain_byte(i_mem_tpl_len'high downto log2(G_USR_DBUS / 8)), i_mem_tpl_len'length)
+                              + (TO_UNSIGNED(0, i_mem_tpl_len'length - 2)
+                                  & OR_reduce(i_mem_remain_byte(log2(G_USR_DBUS / 8) - 1 downto 0)));
           end if;
 
           i_fsm_cs <= S_TX_MWR_QW01;
@@ -518,8 +516,8 @@ if rising_edge(clk) then
         when S_TX_MWR_QW01 =>
 
           if G_USR_DBUS > 32 then
-          i_mem_tpl_dw_rem <= (i_mem_tpl_len(i_mem_tpl_len'high - (log2(G_USR_DBUS/8) - 2) downto 0)
-                               & CONV_STD_LOGIC_VECTOR(0, (log2(G_USR_DBUS/8) - 2))) - i_mem_tpl_dw;
+          i_mem_tpl_dw_rem <= (i_mem_tpl_len(i_mem_tpl_len'high - (log2(G_USR_DBUS / 8) - 2) downto 0)
+                               & TO_UNSIGNED(0, (log2(G_USR_DBUS / 8) - 2))) - i_mem_tpl_dw;
           end if;
 
           i_mwr_work <= '1';
@@ -533,7 +531,7 @@ if rising_edge(clk) then
 
                 i_trn_tsof_n <= '0';
                 i_trn_tsrc_rdy_n <= '0';
-                i_trn_trem_n <= (others=>'0');
+                i_trn_trem_n <= (others => '0');
 
                 i_trn_td(127) <= '0';
                 i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MWR_3DW_WD;
@@ -545,17 +543,17 @@ if rising_edge(clk) then
                            '0' &
                            mwr_relaxed_order_i & mwr_nosnoop_i &
                            "00" &
-                           i_mem_tpl_dw(9 downto 0) &
+                           std_logic_vector(i_mem_tpl_dw(9 downto 0)) &
                            completer_id_i(15 downto 3) & mwr_phant_func_en1_i & "00");
 
                 if tag_ext_en_i = '1' then
-                i_trn_td(79 downto 72) <= i_mem_tpl_tag(7 downto 0);
+                i_trn_td(79 downto 72) <= std_logic_vector(i_mem_tpl_tag(7 downto 0));
                 else
-                i_trn_td(79 downto 72) <= EXT(i_mem_tpl_tag(4 downto 0), 8);
+                i_trn_td(79 downto 72) <= std_logic_vector(RESIZE(i_mem_tpl_tag(4 downto 0), 8));
                 end if;
 
                 --Last DW Byte Enable
-                if i_mem_tpl_dw = CONV_STD_LOGIC_VECTOR(16#01#, i_mem_tpl_dw'length)
+                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length)
                   and OR_reduce(i_mem_adr_byte(1 downto 0)) = '0' then
                     i_trn_td(71 downto 68) <= "0000";
                 else
@@ -577,29 +575,29 @@ if rising_edge(clk) then
                 when others => null;
                 end case;
 
-                i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
+                i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
 
-                i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
+                i_trn_td(63 downto 32) <= std_logic_vector(i_mem_adr_byte(31 downto 2) & "00");
                 if G_USR_DBUS = 128 then
-                i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap(32*4 - 1 downto 32*3);
+                i_trn_td(31 downto 0)  <= std_logic_vector(i_usr_rxbuf_do_swap(32*4 - 1 downto 32*3));
                 else --if G_USR_DBUS = 32 then
-                i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
+                i_trn_td(31 downto 0)  <= std_logic_vector(i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0));
                 end if;
 
                 sr_usr_rxbuf_do_swap(32*3 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*3 - 1 downto 32*0);
 
-                --Счетчик отправленых данных (текущей транзакции)
+                --Counter send data (current transaction)
                 if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
 
                     if G_USR_DBUS = 128 then
                         i_mwr_work <= '0';
 
-                        if i_mem_tpl_dw = CONV_STD_LOGIC_VECTOR(16#01#, i_mem_tpl_dw'length) then
-                          i_mem_tpl_cnt <= (others=>'0');
+                        if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length) then
+                          i_mem_tpl_cnt <= (others => '0');
 
                           if i_mem_tpl_last = '1' then
-                            i_mem_tx_byte <= (others=>'0');
-                            i_mem_tpl_tag <= (others=>'0');
+                            i_mem_tx_byte <= (others => '0');
+                            i_mem_tpl_tag <= (others => '0');
                             i_mwr_done <= '1';
                           end if;
 
@@ -616,12 +614,12 @@ if rising_edge(clk) then
                         end if;
 
                     else --if G_USR_DBUS = 32 then
-                        i_mem_tpl_cnt <= (others=>'0');
+                        i_mem_tpl_cnt <= (others => '0');
                         i_mwr_work <= '0';
 
                         if i_mem_tpl_last = '1' then
-                          i_mem_tx_byte <= (others=>'0');
-                          i_mem_tpl_tag <= (others=>'0');
+                          i_mem_tx_byte <= (others => '0');
+                          i_mem_tpl_tag <= (others => '0');
                           i_mwr_done <= '1';
                         end if;
 
@@ -653,19 +651,19 @@ if rising_edge(clk) then
 
                 if G_USR_DBUS = 128 then
 
-                    i_trn_td(32*4 - 1 downto 32*1) <= sr_usr_rxbuf_do_swap(32*3 - 1 downto 32*0);
-                    i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*4 - 1 downto 32*3);
-                    i_trn_trem_n <= (others=>'0');
+                    i_trn_td(32*4 - 1 downto 32*1) <= std_logic_vector(sr_usr_rxbuf_do_swap(32*3 - 1 downto 32*0));
+                    i_trn_td(32*1 - 1 downto 32*0) <=  std_logic_vector(i_usr_rxbuf_do_swap(32*4 - 1 downto 32*3));
+                    i_trn_trem_n <= (others => '0');
 
                     sr_usr_rxbuf_do_swap(32*3 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*3 - 1 downto 32*0);
 
                 else --if G_USR_DBUS = 32 then
 
                     case i_trn_trem_n is
-                    when "00" => i_trn_td(32*4 - 1 downto 32*3) <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
-                    when "01" => i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
-                    when "10" => i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
-                    when "11" => i_trn_td(32*3 - 1 downto 32*2) <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
+                    when "00" => i_trn_td(32*4 - 1 downto 32*3) <= std_logic_vector(i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0));
+                    when "01" => i_trn_td(32*1 - 1 downto 32*0) <= std_logic_vector(i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0));
+                    when "10" => i_trn_td(32*2 - 1 downto 32*1) <= std_logic_vector(i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0));
+                    when "11" => i_trn_td(32*3 - 1 downto 32*2) <= std_logic_vector(i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0));
                     when others => null;
                     end case;
 
@@ -673,7 +671,7 @@ if rising_edge(clk) then
 
                 end if;
 
-                --Счетчик отправленых данных (текущей транзакции)
+                --Counter send data (current transaction)
                 if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
 
                     i_mwr_work <= '0';
@@ -682,7 +680,7 @@ if rising_edge(clk) then
 
                     if G_USR_DBUS = 128 then
 
-                        if i_mem_tpl_dw_rem(3 downto 0) /= CONV_STD_LOGIC_VECTOR(3, 4) then
+                        if i_mem_tpl_dw_rem(3 downto 0) /= TO_UNSIGNED(3, 4) then
 
                           i_mem_tpl_dw_rem <= i_mem_tpl_dw_rem + 1;
 
@@ -692,12 +690,12 @@ if rising_edge(clk) then
                         else
 
                             if i_mem_tpl_last = '1' then
-                              i_mem_tx_byte <= (others=>'0');
-                              i_mem_tpl_tag <= (others=>'0');
+                              i_mem_tx_byte <= (others => '0');
+                              i_mem_tpl_tag <= (others => '0');
                               i_mwr_done <= '1';
                             end if;
 
-                            i_mem_tpl_cnt <= (others=>'0');
+                            i_mem_tpl_cnt <= (others => '0');
 
                             i_trn_teof_n <= '0';
                             i_fsm_cs <= S_TX_IDLE;
@@ -706,14 +704,14 @@ if rising_edge(clk) then
 
                     else --if G_USR_DBUS = 32 then
 
-                        i_mem_tpl_cnt <= (others=>'0');
+                        i_mem_tpl_cnt <= (others => '0');
 
                         if i_mem_tpl_last = '1' then
-                          i_mem_tx_byte <= (others=>'0');
-                          i_mem_tpl_tag <= (others=>'0');
+                          i_mem_tx_byte <= (others => '0');
+                          i_mem_tpl_tag <= (others => '0');
                           i_mwr_done <= '1';
                         else
-                          i_mem_tx_byte <= i_mem_tx_byte + EXT(i_mem_tpl_byte, i_mem_tx_byte'length);
+                          i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
                         end if;
 
                         i_trn_teof_n <= '0';
@@ -729,7 +727,7 @@ if rising_edge(clk) then
                     if G_USR_DBUS = 128 then
                       i_trn_tsrc_rdy_n <= '0';
                     else --if G_USR_DBUS = 32 then
-                        if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
+                        if i_trn_trem_n = TO_UNSIGNED(16#01#, i_trn_trem_n'length) then
                           i_trn_tsrc_rdy_n <= '0';
                         else
                           i_trn_tsrc_rdy_n <= '1';
@@ -759,18 +757,18 @@ if rising_edge(clk) then
 
               if G_USR_DBUS = 128 then
 
-                  i_mem_tpl_cnt <= (others=>'0');
+                  i_mem_tpl_cnt <= (others => '0');
 
                   if i_mem_tpl_last = '1' then
-                    i_mem_tx_byte <= (others=>'0');
-                    i_mem_tpl_tag <= (others=>'0');
+                    i_mem_tx_byte <= (others => '0');
+                    i_mem_tpl_tag <= (others => '0');
                     i_mwr_done <= '1';
                   else
-                    i_mem_tx_byte <= i_mem_tx_byte + EXT(i_mem_tpl_byte, i_mem_tx_byte'length);
+                    i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
                   end if;
 
-                  i_trn_td(32*4 - 1 downto 32*1) <= sr_usr_rxbuf_do_swap(32*3 - 1 downto 32*0);
-                  i_trn_td(32*1 - 1 downto 32*0) <= (others=>'0');
+                  i_trn_td(32*4 - 1 downto 32*1) <= std_logic_vector(sr_usr_rxbuf_do_swap(32*3 - 1 downto 32*0));
+                  i_trn_td(32*1 - 1 downto 32*0) <= (others => '0');
 
                   i_trn_trem_n <= i_mem_tpl_dw_rem(i_trn_trem_n'range);
 
@@ -784,7 +782,7 @@ if rising_edge(clk) then
                   i_trn_tsof_n <= '1';
                   i_trn_teof_n <= '1';
                   i_trn_tsrc_rdy_n <= '1';
-                  i_trn_trem_n <= (others=>'0');
+                  i_trn_trem_n <= (others => '0');
 
                   i_mem_tpl_last <= '0';
 
@@ -797,19 +795,20 @@ if rising_edge(clk) then
 
 
         --#######################################################################
-        --MRd - 3DW, no data  (PC<-FPGA) (запрос записи в память PC)
+        --MRd - 3DW, no data  (PC<-FPGA)
         --#######################################################################
         when S_TX_MRD_QW00 =>
 
-          if i_mem_remain_byte > EXT(i_mrd_tpl_max_byte, i_mem_remain_byte'length) then
+          if i_mem_remain_byte > RESIZE(i_mrd_tpl_max_byte, i_mem_remain_byte'length) then
               i_mem_tpl_last <= '0';
               i_mem_tpl_byte <= i_mrd_tpl_max_byte;
-              i_mem_tpl_dw <= EXT(i_mrd_tpl_max_byte(i_mem_tpl_dw'high downto log2(32/8)), i_mem_tpl_dw'length);
+              i_mem_tpl_dw <= RESIZE(i_mrd_tpl_max_byte(i_mem_tpl_dw'high downto log2(32 / 8)), i_mem_tpl_dw'length);
           else
               i_mem_tpl_last <= '1';
               i_mem_tpl_byte <= i_mem_remain_byte(i_mem_tpl_byte'range);
-              i_mem_tpl_dw <= EXT(i_mem_remain_byte(i_mem_tpl_dw'high downto log2(32/8)), i_mem_tpl_dw'length)
-                              + OR_reduce(i_mem_remain_byte(log2(32/8) - 1 downto 0));
+              i_mem_tpl_dw <= RESIZE(i_mem_remain_byte(i_mem_tpl_dw'high downto log2(32 / 8)), i_mem_tpl_dw'length)
+                              + (TO_UNSIGNED(0, i_mem_tpl_dw'length - 2)
+                                  & OR_reduce(i_mem_remain_byte(log2(32 / 8) - 1 downto 0)));
           end if;
 
           i_fsm_cs <= S_TX_MRD_QW0;
@@ -822,7 +821,7 @@ if rising_edge(clk) then
                 i_trn_tsof_n <= '0';
                 i_trn_teof_n <= '0';
                 i_trn_tsrc_rdy_n <= '0';
-                i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length);
+                i_trn_trem_n <= TO_UNSIGNED(16#01#, i_trn_trem_n'length);
 
                 i_trn_td(127) <= '0';
                 i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MRD_3DW_ND;
@@ -834,17 +833,17 @@ if rising_edge(clk) then
                            '0' &
                            mrd_relaxed_order_i & mrd_nosnoop_i &
                            "00" &
-                           i_mem_tpl_dw(9 downto 0) &
+                           std_logic_vector(i_mem_tpl_dw(9 downto 0)) &
                            completer_id_i(15 downto 3) & mrd_phant_func_en1_i & "00");
 
                 if tag_ext_en_i = '1' then
-                i_trn_td(79 downto 72) <= i_mem_tpl_tag(7 downto 0);
+                i_trn_td(79 downto 72) <= std_logic_vector(i_mem_tpl_tag(7 downto 0));
                 else
-                i_trn_td(79 downto 72) <= EXT(i_mem_tpl_tag(4 downto 0), 8);
+                i_trn_td(79 downto 72) <= std_logic_vector(RESIZE(i_mem_tpl_tag(4 downto 0), 8));
                 end if;
 
                 --Last DW Byte Enable
-                if i_mem_tpl_dw = CONV_STD_LOGIC_VECTOR(16#01#, i_mem_tpl_dw'length)
+                if i_mem_tpl_dw = TO_UNSIGNED(16#01#, i_mem_tpl_dw'length)
                   and OR_reduce(i_mem_adr_byte(1 downto 0)) = '0' then
                     i_trn_td(71 downto 68) <= "0000";
                 else
@@ -866,17 +865,17 @@ if rising_edge(clk) then
                 when others => null;
                 end case;
 
-                i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
-                i_trn_td(31 downto 0)  <= (others=>'0');
+                i_trn_td(63 downto 32) <= std_logic_vector((i_mem_adr_byte(31 downto 2) & "00"));
+                i_trn_td(31 downto 0)  <= (others => '0');
 
-                i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
+                i_mem_adr_byte <= i_mem_adr_byte + RESIZE(i_mem_tpl_byte, i_mem_adr_byte'length);
 
                 if i_mem_tpl_last = '1' then
-                  i_mem_tx_byte <= (others=>'0');
-                  i_mem_tpl_tag <= (others=>'0');
+                  i_mem_tx_byte <= (others => '0');
+                  i_mem_tpl_tag <= (others => '0');
                   i_mrd_done <= '1';
                 else
-                  i_mem_tx_byte <= i_mem_tx_byte + EXT(i_mem_tpl_byte, i_mem_tx_byte'length);
+                  i_mem_tx_byte <= i_mem_tx_byte + RESIZE(i_mem_tpl_byte, i_mem_tx_byte'length);
                   i_mem_tpl_tag <= i_mem_tpl_tag + 1;
                 end if;
 
@@ -892,6 +891,5 @@ end if;--rst_n,
 end process;--fsm
 
 
---END MAIN
-end behavioral;
+end architecture behavioral;
 

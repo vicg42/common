@@ -13,11 +13,6 @@
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
-
-library work;
-use work.vicg_common_pkg.all;
 
 package i2c_core_pkg is
 
@@ -30,12 +25,8 @@ constant C_I2C_CORE_CMD_WR       : integer:=16#05#;
 constant C_I2C_CORE_CMD_RD       : integer:=16#06#;
 
 
-end i2c_core_pkg;
+end package i2c_core_pkg;
 
-
-package body i2c_core_pkg is
-
-end i2c_core_pkg;
 
 
 

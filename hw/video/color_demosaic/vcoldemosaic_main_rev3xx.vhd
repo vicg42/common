@@ -63,48 +63,49 @@ use work.vicg_common_pkg.all;
 
 entity vcoldemosaic_main is
 generic(
-G_DOUT_WIDTH : integer:=32;  --//Возможные значения 32, 8
+G_BRAM_AWIDTH : integer := 10;
+G_DOUT_WIDTH : integer:=32;  --Возможные значения 32, 8
 
-                             --//Если 32, то
-                             --//Плюсы : за 1clk на выходные порты выдаются сразу 4-е обсчитаных семпла, где
-                             --//p_out_dwnp_grad(31...0)  = Pix(4*N+0) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
-                             --//p_out_dwnp_grad(63...32) = Pix(4*N+1) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
-                             --//p_out_dwnp_grad(95...64) = Pix(4*N+2) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
-                             --//p_out_dwnp_grad(127...96)= Pix(4*N+3) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
-                             --//Минусы: для реализации требуется больше ресурсов FPGA
+                             --Если 32, то
+                             --Плюсы : за 1clk на выходные порты выдаются сразу 4-е обсчитаных семпла, где
+                             --p_out_dwnp_grad(31...0)  = Pix(4*N+0) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
+                             --p_out_dwnp_grad(63...32) = Pix(4*N+1) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
+                             --p_out_dwnp_grad(95...64) = Pix(4*N+2) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
+                             --p_out_dwnp_grad(127...96)= Pix(4*N+3) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
+                             --Минусы: для реализации требуется больше ресурсов FPGA
 
-                             --//Если 8, то
-                             --//Плюсы : Более компактная реализация по сравнению с G_DOUT_WIDTH=32
-                             --//Минусы:за 1clk на выходные порты выдатся 1 обсчитаных семпл, где
-                             --//p_out_dwnp_grad(31...0)  = Pix(N) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
-                             --//p_out_dwnp_grad(63...32) = 0;
-                             --//p_out_dwnp_grad(95...64) = 0;
-                             --//p_out_dwnp_grad(127...96)= 0;
+                             --Если 8, то
+                             --Плюсы : Более компактная реализация по сравнению с G_DOUT_WIDTH=32
+                             --Минусы:за 1clk на выходные порты выдатся 1 обсчитаных семпл, где
+                             --p_out_dwnp_grad(31...0)  = Pix(N) - (B(7..0)/G(15..8)/R(23..16)/0xFF;
+                             --p_out_dwnp_grad(63...32) = 0;
+                             --p_out_dwnp_grad(95...64) = 0;
+                             --p_out_dwnp_grad(127...96)= 0;
 G_SIM : string:="OFF"
 );
 port(
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_bypass    : in    std_logic;                    --//0/1 - Upstream Port -> Downstream Port Обрабатывать/Не обрабатывать
-p_in_cfg_colorfst  : in    std_logic_vector(1 downto 0); --//Первый пиксель 0/1/2 - R/G/B
-p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);--//Кол-во пиксел/4 т.к p_in_upp_data=32bit
-p_in_cfg_row_count : in    std_logic_vector(15 downto 0);--//Кол-во строк
-p_in_cfg_init      : in    std_logic;                    --//Инициализация. Сброс счетчика адреса BRAM
+p_in_cfg_bypass    : in    std_logic;                    --0/1 - Upstream Port -> Downstream Port Обрабатывать/Не обрабатывать
+p_in_cfg_colorfst  : in    std_logic_vector(1 downto 0); --Первый пиксель 0/1/2 - R/G/B
+p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);--Кол-во пиксел/4 т.к p_in_upp_data=32bit
+p_in_cfg_row_count : in    std_logic_vector(15 downto 0);--Кол-во строк
+p_in_cfg_init      : in    std_logic;                    --Инициализация. Сброс счетчика адреса BRAM
 
---//--------------------------
---//Upstream Port (входные данные)
---//--------------------------
-p_in_upp_data      : in    std_logic_vector(31 downto 0);--//данные Фильтра Байера
-p_in_upp_wd        : in    std_logic;                    --//Запись данных в модуль vcoldemosaic_main.vhd
-p_out_upp_rdy_n    : out   std_logic;                    --//0 - Модуль vcoldemosaic_main.vhd готов к приему данных
+----------------------------
+--Upstream Port (входные данные)
+----------------------------
+p_in_upp_data      : in    std_logic_vector(31 downto 0);--данные Фильтра Байера
+p_in_upp_wd        : in    std_logic;                    --Запись данных в модуль vcoldemosaic_main.vhd
+p_out_upp_rdy_n    : out   std_logic;                    --0 - Модуль vcoldemosaic_main.vhd готов к приему данных
 
---//--------------------------
---//Downstream Port (результат)
---//--------------------------
-p_out_dwnp_data    : out   std_logic_vector(127 downto 0);--//RGB + байт прозрачности
-p_out_dwnp_wd      : out   std_logic;                     --//Запись данных в приемник
-p_in_dwnp_rdy_n    : in    std_logic;                     --//0 - порт приемника готов к приему даннвх
+----------------------------
+--Downstream Port (результат)
+----------------------------
+p_out_dwnp_data    : out   std_logic_vector(127 downto 0);--RGB + байт прозрачности
+p_out_dwnp_wd      : out   std_logic;                     --Запись данных в приемник
+p_in_dwnp_rdy_n    : in    std_logic;                     --0 - порт приемника готов к приему даннвх
 
 -------------------------------
 --Технологический
@@ -126,8 +127,8 @@ constant dly : time := 1 ps;
 
 component vcoldemosaic_bram
 port(
---//read first
-addra: in  std_logic_vector(9 downto 0);
+--read first
+addra: in  std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
 dina : in  std_logic_vector(31 downto 0);
 douta: out std_logic_vector(31 downto 0);
 ena  : in  std_logic;
@@ -135,8 +136,8 @@ wea  : in  std_logic_vector(0 downto 0);
 clka : in  std_logic;
 rsta : in  std_logic;
 
---//write first
-addrb: in  std_logic_vector(9 downto 0);
+--write first
+addrb: in  std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
 dinb : in  std_logic_vector(31 downto 0);
 doutb: out std_logic_vector(31 downto 0);
 enb  : in  std_logic;
@@ -146,13 +147,15 @@ rstb : in  std_logic
 );
 end component;
 
+signal i_gnd_adrb                        : std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
+signal i_gnd_dinb                        : std_logic_vector(p_in_upp_data'range);
 
 signal i_upp_data                        : std_logic_vector(p_in_upp_data'range);
 signal i_upp_wd                          : std_logic;
 signal i_upp_rdy_n_out                   : std_logic;
-signal sr_upp_wd                         : std_logic_vector(0 to 1);--//add 30.01.2011 9:44:22
+signal sr_upp_wd                         : std_logic_vector(0 to 1);--add 30.01.2011 9:44:22
 
-signal i_lbufs_adra                      : std_logic_vector(9 downto 0);
+signal i_lbufs_adra                      : std_logic_vector(G_BRAM_AWIDTH - 1 downto 0);
 signal tmp_lbufs_awrite                  : std_logic_vector(i_lbufs_adra'range);
 type TArryLBufByte is array (0 to 2) of std_logic_vector(31 downto 0);
 signal i_lbufs_dout                      : TArryLBufByte;
@@ -185,10 +188,10 @@ type TSrByteDly is array (0 to 3) of std_logic_vector(7 downto 0);
 type TSrLineDly is array (0 to 2) of TSrByteDly;
 signal sr_byteline_dly                   : TSrLineDly;
 
---//add 30.01.2011 9:44:22
+--add 30.01.2011 9:44:22
 type TSrByteDly2 is array (0 to 2) of std_logic_vector(7 downto 0);
 signal sr_byteline_dly2                  : TSrByteDly2;
---//-------
+---------
 
 type TArrayPixs is array (0 to 2) of std_logic_vector(7 downto 0);
 type TMatrix is array (0 to 2) of TArrayPixs;
@@ -223,7 +226,7 @@ type TSrPixOut is array (0 to 3) of std_logic_vector(7 downto 0);
 type TSrPixOuts is array (0 to G_DOUT_WIDTH/8-1) of TSrPixOut;
 signal sr_pix                            : TSrPixOuts;
 
---//add 30.01.2011 9:44:22
+--add 30.01.2011 9:44:22
 signal i_result_pix_clr                  : std_logic;
 signal sr_result_pix_clr                 : std_logic_vector(0 to 1);
 signal sr_result_pix                     : std_logic_vector(0 to 1);
@@ -231,15 +234,15 @@ signal sr_result_row                     : std_logic_vector(0 to 1);
 signal g_result_en                       : std_logic;
 signal i_add_row_en1                     : std_logic;
 signal i_add_row_en2                     : std_logic;
---//----------
+------------
 
 
 --MAIN
 begin
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -256,23 +259,26 @@ end process;
 
 
 
---//------------------------------------------------------
---//RAM Строк видео информации
---//------------------------------------------------------
---//Запись данных в буфера(BRAM) строк
+--------------------------------------------------------
+--RAM Строк видео информации
+--------------------------------------------------------
+i_gnd_adrb <= (others => '0');
+i_gnd_dinb <= (others => '0');
+
+--Запись данных в буфера(BRAM) строк
 i_lbufs_adra<=tmp_lbufs_awrite;
 
 i_lbuf_ena(0) <=i_upp_wd and not p_in_dwnp_rdy_n;
 
---//Буфера строк:
---//lineN : Текущая строка
+--Буфера строк:
+--lineN : Текущая строка
 i_lbufs_dout(0)<=i_upp_data;
 
---//lineN-1 : Предыдущая строка
+--lineN-1 : Предыдущая строка
 m_buf0 : vcoldemosaic_bram
 port map(
---//READ FIRST
-addra=> i_lbufs_adra(9 downto 0),
+--READ FIRST
+addra=> i_lbufs_adra,
 dina => i_upp_data,
 douta=> i_lbufs_dout(1),
 ena  => i_lbuf_ena(0),
@@ -280,9 +286,9 @@ wea  => i_lbuf_ena,
 clka => p_in_clk,
 rsta => p_in_rst,
 
---//WRITE FIRST
-addrb=> "0000000000",
-dinb => "00000000000000000000000000000000",
+--WRITE FIRST
+addrb=> i_gnd_adrb,
+dinb => i_gnd_dinb,
 doutb=> open,
 enb  => '0',
 web  => "0",
@@ -290,11 +296,11 @@ clkb => p_in_clk,
 rstb => p_in_rst
 );
 
---//lineN-2 : Предыдущая строка
+--lineN-2 : Предыдущая строка
 m_buf1 : vcoldemosaic_bram
 port map(
---//READ FIRST
-addra=> i_lbufs_adra(9 downto 0),
+--READ FIRST
+addra=> i_lbufs_adra,
 dina => i_lbufs_dout(1),
 douta=> i_lbufs_dout(2),
 ena  => i_lbuf_ena(0),
@@ -302,9 +308,9 @@ wea  => i_lbuf_ena,
 clka => p_in_clk,
 rsta => p_in_rst,
 
---//WRITE FIRST
-addrb=> "0000000000",
-dinb => "00000000000000000000000000000000",
+--WRITE FIRST
+addrb=> i_gnd_adrb,
+dinb => i_gnd_dinb,
 doutb=> open,
 enb  => '0',
 web  => "0",
@@ -313,35 +319,35 @@ rstb => p_in_rst
 );
 
 
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Управление буферами + формирование мотрицы вычислений
---//для режима 1clk=4-е выходных sample
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--Управление буферами + формирование мотрицы вычислений
+--для режима 1clk=4-е выходных sample
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 gen_w32 : if G_DOUT_WIDTH=32 generate
 
---//------------------------------------------------------
---//
---//------------------------------------------------------
---//add 26.01.2011 16:40:07
+--------------------------------------------------------
+--
+--------------------------------------------------------
+--add 26.01.2011 16:40:07
 i_upp_data<=p_in_upp_data;
 i_upp_wd<=p_in_upp_wd;
 
 
---//-----------------------------
---//Инициализация
---//-----------------------------
+-------------------------------
+--Инициализация
+-------------------------------
 --i_byte_cnt_init<="11";
 
 
---//----------------------------------------------
---//Связь с Upstream Port
---//----------------------------------------------
+------------------------------------------------
+--Связь с Upstream Port
+------------------------------------------------
 p_out_upp_rdy_n <= p_in_dwnp_rdy_n or i_add_row_en1;
 
 
---//-----------------------------
---//Вывод результата
---//-----------------------------
+-------------------------------
+--Вывод результата
+-------------------------------
 p_out_dwnp_wd <= i_result_en_out when p_in_cfg_bypass='0' else p_in_upp_wd;
 
 p_out_dwnp_data(32*(0 + 1) - 1 downto 32*0) <= i_result_out(0) when p_in_cfg_bypass='0' else p_in_upp_data(32*(0 + 1) - 1 downto 32*0);
@@ -350,9 +356,9 @@ p_out_dwnp_data(32*(i + 1) - 1 downto 32*i) <= i_result_out(i);
 end generate gen_4byte;
 
 
---//----------------------------------------------
---//Управление приемом данных с Upstream Port
---//----------------------------------------------
+------------------------------------------------
+--Управление приемом данных с Upstream Port
+------------------------------------------------
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -370,15 +376,15 @@ begin
       tmp_lbufs_awrite<=(others=>'0');
 
     else
-        --//Обработка кадра ВКЛ.
+        --Обработка кадра ВКЛ.
         if p_in_dwnp_rdy_n='0' then
 
             if i_add_row_en1='0' and i_add_row_en2='0' then
-            --//-----------------------------
-            --//Обработка входных данных:
-            --//-----------------------------
+            -------------------------------
+            --Обработка входных данных:
+            -------------------------------
                 if i_upp_wd='1' then
-                  --//Прием нового входного DWORD
+                  --Прием нового входного DWORD
 
                       if tmp_lbufs_awrite=p_in_cfg_pix_count(tmp_lbufs_awrite'range)-2 then
                         tmp_lbufs_awrite<=(others=>'0');
@@ -388,7 +394,7 @@ begin
 
                       if i_pix_cnt=p_in_cfg_pix_count-1 then
                         i_pix_cnt<=(others=>'0');
-                        i_row_evod<=not i_row_evod;--//Чет/НеЧет строка
+                        i_row_evod<=not i_row_evod;--Чет/НеЧет строка
 
                         if i_row_cnt=p_in_cfg_row_count-1 then
                           i_add_row_en1<='1';
@@ -397,11 +403,11 @@ begin
                         end if;
 
                       else
-                        i_pix_cnt<=i_pix_cnt+1;--//Ведем подсчет пикселей
+                        i_pix_cnt<=i_pix_cnt+1;--Ведем подсчет пикселей
                       end if;
-                end if;--//if i_upp_wd='1' then
+                end if;--if i_upp_wd='1' then
 
-            --//add 30.01.2011 9:44:22
+            --add 30.01.2011 9:44:22
             elsif i_add_row_en1='1' and i_add_row_en2='0' then
                 i_add_row_en2<='1';
 
@@ -415,17 +421,17 @@ begin
                 else
                   i_pix_cnt<=i_pix_cnt + 1;
                 end if;
-            --//----------------
-            end if;--//if i_add_row_en1='0' and i_add_row_en2='0' then
+            ------------------
+            end if;--if i_add_row_en1='0' and i_add_row_en2='0' then
 
-        end if;--//if p_in_dwnp_rdy_n='0' then
-    end if;--//if p_in_cfg_bypass='1' or p_in_cfg_init='1' then
+        end if;--if p_in_dwnp_rdy_n='0' then
+    end if;--if p_in_cfg_bypass='1' or p_in_cfg_init='1' then
   end if;
 end process;
 
---//------------------------------------------------------
---//Линии задержек
---//------------------------------------------------------
+--------------------------------------------------------
+--Линии задержек
+--------------------------------------------------------
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -436,28 +442,28 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_dwnp_rdy_n='0' then
 
-        --//add 30.01.2011 9:44:22
-        --//Управление выдачей выходных данных
+        --add 30.01.2011 9:44:22
+        --Управление выдачей выходных данных
         if i_row_cnt/=(i_row_cnt'range =>'0') then
           sr_upp_wd(0)<=i_upp_wd or i_add_row_en2;
         else
           sr_upp_wd(0)<='0';
         end if;
         sr_upp_wd(1)<=sr_upp_wd(0);
-        --//------------
+        --------------
 
-        --//Кол-во тактов задержки = кол-ву операций вычислений:
-        --//В общем случае может меняться в зависимости от кол-ва операций вычислений
-        sr_result_en<=sr_upp_wd(1) & sr_result_en(0 to 3);--//add 30.01.2011 9:44:22
+        --Кол-во тактов задержки = кол-ву операций вычислений:
+        --В общем случае может меняться в зависимости от кол-ва операций вычислений
+        sr_result_en<=sr_upp_wd(1) & sr_result_en(0 to 3);--add 30.01.2011 9:44:22
 
-    end if;--//if p_in_dwnp_rdy_n='0' then
+    end if;--if p_in_dwnp_rdy_n='0' then
   end if;
 end process;
 
 
---//------------------------------------------------------
---//Формирование матрицы вычислений
---//------------------------------------------------------
+--------------------------------------------------------
+--Формирование матрицы вычислений
+--------------------------------------------------------
 sr_byteline_ld(0)<=i_upp_wd or i_add_row_en2;
 
 process(p_in_rst,p_in_clk)
@@ -489,7 +495,7 @@ begin
           end loop;
       end if;
 
-      --//add 30.01.2011 9:44:22
+      --add 30.01.2011 9:44:22
       if sr_byteline_ld(1)='1'then
         for y in 0 to 2 loop
             for i in 0 to 3 loop
@@ -499,46 +505,46 @@ begin
             sr_byteline_dly2(y)<=sr_byteline_dly(y)(3);
         end loop;
       end if;
-      --//-----------
+      -------------
 
-  end if;--//if p_in_dwnp_rdy_n='0'
+  end if;--if p_in_dwnp_rdy_n='0'
   end if;
 end process;
 
---//add 30.01.2011 9:44:22
---//Матрица вычислений
---//где - i_matrix(Индекс выходного семпла)(Индекс строки)(Индекс Пикселя)
+--add 30.01.2011 9:44:22
+--Матрица вычислений
+--где - i_matrix(Индекс выходного семпла)(Индекс строки)(Индекс Пикселя)
 gen_matrix0 : for i in 0 to 2 generate
---//где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
+--где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
 i_matrix(0)(2-i)(2)<=sr_byteline_dly(i)(1);
 i_matrix(0)(2-i)(1)<=sr_byteline_dly(i)(0);
 i_matrix(0)(2-i)(0)<=sr_byteline_dly2(i);
 end generate gen_matrix0;
 
 gen_matrix1 : for i in 0 to 2 generate
---//где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
+--где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
 i_matrix(1)(2-i)(2)<=sr_byteline_dly(i)(2);
 i_matrix(1)(2-i)(1)<=sr_byteline_dly(i)(1);
 i_matrix(1)(2-i)(0)<=sr_byteline_dly(i)(0);
 end generate gen_matrix1;
 
 gen_matrix2 : for i in 0 to 2 generate
---//где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
+--где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
 i_matrix(2)(2-i)(2)<=sr_byteline_dly(i)(3);
 i_matrix(2)(2-i)(1)<=sr_byteline_dly(i)(2);
 i_matrix(2)(2-i)(0)<=sr_byteline_dly(i)(1);
 end generate gen_matrix2;
 
 gen_matrix3 : for i in 0 to 2 generate
---//где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
+--где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
 i_matrix(3)(2-i)(2)<=sr_byteline(i)(0);
 i_matrix(3)(2-i)(1)<=sr_byteline_dly(i)(3);
 i_matrix(3)(2-i)(0)<=sr_byteline_dly(i)(2);
 end generate gen_matrix3;
---//-------------
+---------------
 
 
---//Готовимся к выбору результата расчетов:
+--Готовимся к выбору результата расчетов:
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -552,7 +558,7 @@ begin
       sr_pix_evod<=i_pix_cnt(0) & sr_pix_evod(0 to 2);
       sr_row_evod<=i_row_evod & sr_row_evod(0 to 2);
 
-  end if;--//if p_in_dwnp_rdy_n='0' then
+  end if;--if p_in_dwnp_rdy_n='0' then
   end if;
 end process;
 
@@ -573,42 +579,42 @@ end generate gen_w32;
 
 
 
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Управление буферами + формирование мотрицы вычислений
---//для режима 1clk=1выходной sample
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--Управление буферами + формирование мотрицы вычислений
+--для режима 1clk=1выходной sample
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 gen_w8 : if G_DOUT_WIDTH=8 generate
 
---//------------------------------------------------------
---//
---//------------------------------------------------------
---//add 26.01.2011 16:40:07
+--------------------------------------------------------
+--
+--------------------------------------------------------
+--add 26.01.2011 16:40:07
 i_upp_data<=p_in_upp_data;
 i_upp_wd<=p_in_upp_wd;
 
 
---//-----------------------------
---//Инициализация
---//-----------------------------
+-------------------------------
+--Инициализация
+-------------------------------
 i_byte_cnt_init<="11";
 
 
---//----------------------------------------------
---//Связь с Upstream Port
---//----------------------------------------------
+------------------------------------------------
+--Связь с Upstream Port
+------------------------------------------------
 p_out_upp_rdy_n <=p_in_dwnp_rdy_n or i_upp_rdy_n_out;
 
 
---//-----------------------------
---//Вывод результата
---//-----------------------------
+-------------------------------
+--Вывод результата
+-------------------------------
 p_out_dwnp_data <=EXT(i_result_out(0), p_out_dwnp_data'length) when p_in_cfg_bypass='0' else EXT(p_in_upp_data, p_out_dwnp_data'length);
 p_out_dwnp_wd   <=i_result_en_out when p_in_cfg_bypass='0' else p_in_upp_wd;
 
 
---//----------------------------------------------
---//Управление приемом данных с Upstream Port
---//----------------------------------------------
+------------------------------------------------
+--Управление приемом данных с Upstream Port
+------------------------------------------------
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -627,23 +633,23 @@ begin
       tmp_lbufs_awrite<=(others=>'0');
 
     else
-        --//Обработка кадра ВКЛ.
+        --Обработка кадра ВКЛ.
         if p_in_dwnp_rdy_n='0' then
 
             if i_add_row_en1='0' and i_add_row_en2='0' then
-            --//-----------------------------
-            --//Обработка входных данных:
-            --//-----------------------------
+            -------------------------------
+            --Обработка входных данных:
+            -------------------------------
                 if i_upp_wd='1' then
-                  --//Прием нового входного DWORD
-                  i_upp_rdy_n_out<='1';--//Запрещаем запись входных данных в буфер строки на
-                                       --//время обработки всех байт входного DWORD
+                  --Прием нового входного DWORD
+                  i_upp_rdy_n_out<='1';--Запрещаем запись входных данных в буфер строки на
+                                       --время обработки всех байт входного DWORD
 
-                  i_byte_cnt<=i_byte_cnt+1;--//Ведем подсчет байт входного DWORD
+                  i_byte_cnt<=i_byte_cnt+1;--Ведем подсчет байт входного DWORD
 
                 else
                     if i_upp_rdy_n_out='1' then
-                    --//Обработка байт входного DWORD
+                    --Обработка байт входного DWORD
                       if i_byte_cnt=i_byte_cnt_init then
                         i_byte_cnt<=(others=>'0');
 
@@ -655,7 +661,7 @@ begin
 
                         if i_pix_cnt=p_in_cfg_pix_count-1 then
                           i_pix_cnt<=(others=>'0');
-                          i_row_evod<=not i_row_evod;--//Чет/НеЧет строка
+                          i_row_evod<=not i_row_evod;--Чет/НеЧет строка
 
                           if i_row_cnt=p_in_cfg_row_count-1 then
                             i_add_row_en1<='1';
@@ -666,20 +672,20 @@ begin
 
                         else
                           i_upp_rdy_n_out<='0';
-                          i_pix_cnt<=i_pix_cnt+1;--//Ведем подсчет пикселей
+                          i_pix_cnt<=i_pix_cnt+1;--Ведем подсчет пикселей
                         end if;
                       else
-                        i_byte_cnt<=i_byte_cnt+1;--//Ведем подсчет байт входного DWORD
+                        i_byte_cnt<=i_byte_cnt+1;--Ведем подсчет байт входного DWORD
                       end if;
-                    end if;--//if i_upp_rdy_n_out='1'
-                end if;--//if i_upp_wd='1' then
+                    end if;--if i_upp_rdy_n_out='1'
+                end if;--if i_upp_wd='1' then
 
 
-            --//add 30.01.2011 9:44:22
+            --add 30.01.2011 9:44:22
             elsif i_add_row_en1='1' and i_add_row_en2='1' then
-            --//-----------------------------
-            --//Вывод дополнительных строк:
-            --//-----------------------------
+            -------------------------------
+            --Вывод дополнительных строк:
+            -------------------------------
                 if i_byte_cnt=i_byte_cnt_init then
                   i_byte_cnt<=(others=>'0');
 
@@ -700,19 +706,19 @@ begin
                   end if;
 
                 else
-                  i_byte_cnt<=i_byte_cnt+1;--//Ведем подсчет байт входного DWORD
+                  i_byte_cnt<=i_byte_cnt+1;--Ведем подсчет байт входного DWORD
                 end if;
-            --//--------------
-            end if;--//if i_add_row_en1='0' and i_add_row_en2='0' then
-        end if;--//if p_in_dwnp_rdy_n='0' then
-    end if;--//if p_in_cfg_bypass='1' or p_in_cfg_init='1' then
+            ----------------
+            end if;--if i_add_row_en1='0' and i_add_row_en2='0' then
+        end if;--if p_in_dwnp_rdy_n='0' then
+    end if;--if p_in_cfg_bypass='1' or p_in_cfg_init='1' then
   end if;
 end process;
 
---//------------------------------------------------------
---//Линии задержек
---//------------------------------------------------------
---//add 30.01.2011 9:44:22
+--------------------------------------------------------
+--Линии задержек
+--------------------------------------------------------
+--add 30.01.2011 9:44:22
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -752,12 +758,12 @@ begin
           i_add_row_en2<='1';
         end if;
 
-    end if;--//if p_in_dwnp_rdy_n='0' then
+    end if;--if p_in_dwnp_rdy_n='0' then
   end if;
 end process;
 
 g_result_en<=(sr_result_pix(1) or i_add_row_en2) and sr_result_row(1);
---//--------------------
+----------------------
 
 process(p_in_rst,p_in_clk)
 begin
@@ -768,20 +774,20 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_dwnp_rdy_n='0' then
 
-        --//Кол-во тактов задержки = кол-ву операций вычислений:
-        --//В общем случае может меняться в зависимости от кол-ва операций вычислений
-        sr_result_en<=g_result_en & sr_result_en(0 to 3);--//add 30.01.2011 9:44:22
+        --Кол-во тактов задержки = кол-ву операций вычислений:
+        --В общем случае может меняться в зависимости от кол-ва операций вычислений
+        sr_result_en<=g_result_en & sr_result_en(0 to 3);--add 30.01.2011 9:44:22
 
-    end if;--//if p_in_dwnp_rdy_n='0' then
+    end if;--if p_in_dwnp_rdy_n='0' then
   end if;
 end process;
 
 
---//------------------------------------------------------
---//Формирование матрицы вычислений
---//------------------------------------------------------
+--------------------------------------------------------
+--Формирование матрицы вычислений
+--------------------------------------------------------
 sr_byteline_en(0)<=OR_reduce(i_byte_cnt);
-sr_byteline_ld(0)<=(i_upp_wd and not i_add_row_en1) or (i_add_row_en1 and i_add_row_en2 and not OR_reduce(i_byte_cnt));--//add 30.01.2011 9:44:22
+sr_byteline_ld(0)<=(i_upp_wd and not i_add_row_en1) or (i_add_row_en1 and i_add_row_en2 and not OR_reduce(i_byte_cnt));--add 30.01.2011 9:44:22
 
 process(p_in_rst,p_in_clk)
 begin
@@ -799,7 +805,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
   if p_in_dwnp_rdy_n='0' then
       if sr_byteline_ld(0)='1'then
-      --//Загрузка нового 2DW для матрицы вычислений
+      --Загрузка нового 2DW для матрицы вычислений
         for y in 0 to 2 loop
           for i in 0 to 3 loop
             sr_byteline(y)(i)<=i_lbufs_dout(y)(8*(i+1)-1 downto 8*i);
@@ -807,34 +813,34 @@ begin
         end loop;
       else
         if sr_byteline_en(0)='1'then
-          --//закачка байт в матрицу вычислений (Сдвиг байт 2DW для 3-ех строк)
+          --закачка байт в матрицу вычислений (Сдвиг байт 2DW для 3-ех строк)
           for y in 0 to 2 loop
             sr_byteline(y)<="00000000"&sr_byteline(y)(3 downto 1);
           end loop;
         end if;
       end if;
 
-      --//Сдвиговый регистр на 2-и точки для 3-ех строк
-      --//Необходим для формирования матрицы вычислений
+      --Сдвиговый регистр на 2-и точки для 3-ех строк
+      --Необходим для формирования матрицы вычислений
       for y in 0 to 2 loop
         if (sr_byteline_ld(0)='1' or sr_byteline_en(0)='1') then
           sr_byteline_dly(y)(0)<=sr_byteline(y)(0);
           sr_byteline_dly(y)(1)<=sr_byteline_dly(y)(0);
         end if;
       end loop;
-  end if;--//if p_in_dwnp_rdy_n='0'
+  end if;--if p_in_dwnp_rdy_n='0'
   end if;
 end process;
 
---//Матрица вычислений
+--Матрица вычислений
 gen_matrix : for i in 0 to 2 generate
---//где - i_matrix(Индекс строки)(Индекс Пикселя)
+--где - i_matrix(Индекс строки)(Индекс Пикселя)
 i_matrix(0)(2-i)(2)<=sr_byteline(i)(0);
 i_matrix(0)(2-i)(1)<=sr_byteline_dly(i)(0);
 i_matrix(0)(2-i)(0)<=sr_byteline_dly(i)(1);
 end generate gen_matrix;
 
---//Готовимся к выбору результата расчетов:
+--Готовимся к выбору результата расчетов:
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -848,11 +854,11 @@ begin
       sr_pix_evod<=i_byte_cnt(0) & sr_pix_evod(0 to 2);
       sr_row_evod<=i_row_evod & sr_row_evod(0 to 2);
 
-  end if;--//if p_in_dwnp_rdy_n='0' then
+  end if;--if p_in_dwnp_rdy_n='0' then
   end if;
 end process;
 
---//Формирование сигнала i_sum_result_sel
+--Формирование сигнала i_sum_result_sel
 sel_row_evod(0)<= sr_row_evod(3);
 sel_pix_evod(0)<= sr_pix_evod(3);
 
@@ -863,14 +869,14 @@ end generate gen_w8;
 
 
 
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Вычисления
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--Вычисления
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 gen_mcalc : for i in 0 to G_DOUT_WIDTH/8-1 generate
 
---//------------------------------------------------------
---//Вычисления
---//------------------------------------------------------
+--------------------------------------------------------
+--Вычисления
+--------------------------------------------------------
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -892,9 +898,9 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
   if p_in_dwnp_rdy_n='0' then
-    --//------------------------------------------
-    --//Сумммы
-    --//------------------------------------------
+    --------------------------------------------
+    --Сумммы
+    --------------------------------------------
     i_sum_pix02_line0(i)<=EXT(i_matrix(i)(0)(0), i_sum_pix02_line0(i)'length) + EXT(i_matrix(i)(0)(2), i_sum_pix02_line0(i)'length);
     i_sum_pix02_line2(i)<=EXT(i_matrix(i)(2)(0), i_sum_pix02_line2(i)'length) + EXT(i_matrix(i)(2)(2), i_sum_pix02_line2(i)'length);
 
@@ -904,46 +910,46 @@ begin
     i_sum_pix1_line1_dly(i)<=i_matrix(i)(1)(1);
 
 --    sr_pix(i)(0)<=i_matrix(i)(2)(2);
-    sr_pix(i)(0)<=i_matrix(i)(1)(1);--//add 25.01.2011 9:49:55
-                                    --//Теперь на выходной порт выдается вместе с общитаным пикселем и
-                                    --//его реальная яркость
+    sr_pix(i)(0)<=i_matrix(i)(1)(1);--add 25.01.2011 9:49:55
+                                    --Теперь на выходной порт выдается вместе с общитаным пикселем и
+                                    --его реальная яркость
 
-    --//Где 0/X - занчищие/не занчищие значения матрицы в вычислений
-    --//0 X 0
-    --//X X X
-    --//0 X 0
+    --Где 0/X - занчищие/не занчищие значения матрицы в вычислений
+    --0 X 0
+    --X X X
+    --0 X 0
     i_sum4_result0(i)<=EXT(i_sum_pix02_line0(i), i_sum4_result0(i)'length) + EXT(i_sum_pix02_line2(i), i_sum4_result0(i)'length);
 
-    --//X 0 X
-    --//0 X 0
-    --//X 0 X
+    --X 0 X
+    --0 X 0
+    --X 0 X
     i_sum4_result1(i)<=EXT(i_sum_pix02_line1(i), i_sum4_result1(i)'length) + EXT(i_sum_pix1_line02(i), i_sum4_result1(i)'length);
 
-    --//X X X
-    --//0 X 0
-    --//X X X
+    --X X X
+    --0 X 0
+    --X X X
     i_sum2_result0(i)<=EXT(i_sum_pix02_line1(i), i_sum2_result0(i)'length);
 
-    --//X 0 X
-    --//X X X
-    --//X 0 X
+    --X 0 X
+    --X X X
+    --X 0 X
     i_sum2_result1(i)<=EXT(i_sum_pix1_line02(i), i_sum2_result1(i)'length);
 
-    --//X X X
-    --//X 0 X
-    --//X X X
+    --X X X
+    --X 0 X
+    --X X X
     i_sum1_result(i)<=EXT(i_sum_pix1_line1_dly(i), i_sum1_result(i)'length);
 
     sr_pix(i)(1)<=sr_pix(i)(0);
 
-  end if;--//if p_in_dwnp_rdy_n='0' then
+  end if;--if p_in_dwnp_rdy_n='0' then
   end if;
 end process;
 
---//------------------------------------------
---//Результат:
---//------------------------------------------
---//Выбор результата в зависимости от перевого компонента фильтра Байера
+--------------------------------------------
+--Результат:
+--------------------------------------------
+--Выбор результата в зависимости от перевого компонента фильтра Байера
 i_sum_result_sel(i)<=(not sel_row_evod(i))&(not sel_pix_evod(i)) when p_in_cfg_colorfst="10" else
                           sel_row_evod(i) &(not sel_pix_evod(i)) when p_in_cfg_colorfst="01" else
                           sel_row_evod(i) &     sel_pix_evod(i); --when p_in_cfg_colorfst="00" else
@@ -958,105 +964,105 @@ begin
   if p_in_dwnp_rdy_n='0' then
 
     if    i_sum_result_sel(i)="00" then
-      --//0 X 0
-      --//X X X
-      --//0 X 0
-      i_pix_result(i)(7 downto 0)<=i_sum4_result0(i)(9 downto 2);--//R
+      --0 X 0
+      --X X X
+      --0 X 0
+      i_pix_result(i)(7 downto 0)<=i_sum4_result0(i)(9 downto 2);--R
 
-      --//X 0 X
-      --//0 X 0
-      --//X 0 X
-      i_pix_result(i)(15 downto 8)<=i_sum4_result1(i)(9 downto 2);--//G
+      --X 0 X
+      --0 X 0
+      --X 0 X
+      i_pix_result(i)(15 downto 8)<=i_sum4_result1(i)(9 downto 2);--G
 
-      --//X X X
-      --//X 0 X
-      --//X X X
-      i_pix_result(i)(23 downto 16)<=i_sum1_result(i)(7 downto 0);--//B
+      --X X X
+      --X 0 X
+      --X X X
+      i_pix_result(i)(23 downto 16)<=i_sum1_result(i)(7 downto 0);--B
 
     elsif i_sum_result_sel(i)="01" then
-      --//X 0 X
-      --//X X X
-      --//X 0 X
-      i_pix_result(i)(7 downto 0)<=i_sum2_result1(i)(8 downto 1);--//R
+      --X 0 X
+      --X X X
+      --X 0 X
+      i_pix_result(i)(7 downto 0)<=i_sum2_result1(i)(8 downto 1);--R
 
-      --//X X X
-      --//X 0 X
-      --//X X X
-      i_pix_result(i)(15 downto 8)<=i_sum1_result(i)(7 downto 0);--//G
+      --X X X
+      --X 0 X
+      --X X X
+      i_pix_result(i)(15 downto 8)<=i_sum1_result(i)(7 downto 0);--G
 
-      --//X X X
-      --//0 X 0
-      --//X X X
-      i_pix_result(i)(23 downto 16)<=i_sum2_result0(i)(8 downto 1);--//B
+      --X X X
+      --0 X 0
+      --X X X
+      i_pix_result(i)(23 downto 16)<=i_sum2_result0(i)(8 downto 1);--B
 
     elsif i_sum_result_sel(i)="10" then
-      --//X X X
-      --//0 X 0
-      --//X X X
-      i_pix_result(i)(7 downto 0)<=i_sum2_result0(i)(8 downto 1);--//R
+      --X X X
+      --0 X 0
+      --X X X
+      i_pix_result(i)(7 downto 0)<=i_sum2_result0(i)(8 downto 1);--R
 
-      --//X X X
-      --//X 0 X
-      --//X X X
-      i_pix_result(i)(15 downto 8)<=i_sum1_result(i)(7 downto 0);--//G
+      --X X X
+      --X 0 X
+      --X X X
+      i_pix_result(i)(15 downto 8)<=i_sum1_result(i)(7 downto 0);--G
 
-      --//X 0 X
-      --//X X X
-      --//X 0 X
-      i_pix_result(i)(23 downto 16)<=i_sum2_result1(i)(8 downto 1);--//B
+      --X 0 X
+      --X X X
+      --X 0 X
+      i_pix_result(i)(23 downto 16)<=i_sum2_result1(i)(8 downto 1);--B
 
     else
-      --//X X X
-      --//X 0 X
-      --//X X X
-      i_pix_result(i)(7 downto 0)<=i_sum1_result(i)(7 downto 0);--//R
+      --X X X
+      --X 0 X
+      --X X X
+      i_pix_result(i)(7 downto 0)<=i_sum1_result(i)(7 downto 0);--R
 
-      --//X 0 X
-      --//0 X 0
-      --//X 0 X
-      i_pix_result(i)(15 downto 8)<=i_sum4_result1(i)(9 downto 2);--//G
+      --X 0 X
+      --0 X 0
+      --X 0 X
+      i_pix_result(i)(15 downto 8)<=i_sum4_result1(i)(9 downto 2);--G
 
-      --//0 X 0
-      --//X X X
-      --//0 X 0
-      i_pix_result(i)(23 downto 16)<=i_sum4_result0(i)(9 downto 2);--//B
+      --0 X 0
+      --X X X
+      --0 X 0
+      i_pix_result(i)(23 downto 16)<=i_sum4_result0(i)(9 downto 2);--B
     end if;
 
     sr_pix(i)(2)<=sr_pix(i)(1);
 
-  end if;--//if p_in_dwnp_rdy_n='0' then
+  end if;--if p_in_dwnp_rdy_n='0' then
   end if;
 end process;
 
 
 
---//------------------------------------------------------
---//Выдача результат в Downstream Port
---//------------------------------------------------------
+--------------------------------------------------------
+--Выдача результат в Downstream Port
+--------------------------------------------------------
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_result_out(i)(23 downto 0)<=(others=>'0');
-    i_result_out(i)(31 downto 24)<=(others=>'1');--//Байт прозрачности
+    i_result_out(i)(31 downto 24)<=(others=>'1');--Байт прозрачности
 
     sr_pix(i)(3)<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_dwnp_rdy_n='0' then
 
-        i_result_out(i)(7 downto 0)<=i_pix_result(i)(23 downto 16);--//B
-        i_result_out(i)(15 downto 8)<=i_pix_result(i)(15 downto 8);--//G
-        i_result_out(i)(23 downto 16)<=i_pix_result(i)(7 downto 0);--//R
+        i_result_out(i)(7 downto 0)<=i_pix_result(i)(23 downto 16);--B
+        i_result_out(i)(15 downto 8)<=i_pix_result(i)(15 downto 8);--G
+        i_result_out(i)(23 downto 16)<=i_pix_result(i)(7 downto 0);--R
 
         sr_pix(i)(3)<=sr_pix(i)(2);
 
-    end if;--//if p_in_dwnp_rdy_n='0' then
+    end if;--if p_in_dwnp_rdy_n='0' then
   end if;
 end process;
 
 end generate gen_mcalc;
 
-i_result_en_out<=sr_result_en(3) and not p_in_dwnp_rdy_n;--//add 30.01.2011 9:44:22
+i_result_en_out<=sr_result_en(3) and not p_in_dwnp_rdy_n;--add 30.01.2011 9:44:22
 
 
 --END MAIN

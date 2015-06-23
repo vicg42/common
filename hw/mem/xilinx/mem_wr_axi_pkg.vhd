@@ -1,14 +1,10 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 21.11.2011 18:51:57
 -- Module Name : mem_wr_pkg (axi)
 --
 -- Description :
---
--- Revision:
--- Revision 0.01 - File Created
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -96,7 +92,6 @@ end record;
 --Type TMemINCh is array (0 to C_MEMCH_COUNT_MAX - 1) of TMemIN;
 --Type TMemOUTCh is array (0 to C_MEMCH_COUNT_MAX - 1) of TMemOUT;
 
---//Режимы работы - запись/чтение
 constant C_MEMWR_WRITE   : std_logic:='1';
 constant C_MEMWR_READ    : std_logic:='0';
 
@@ -112,7 +107,7 @@ G_MEM_DWIDTH     : integer:=32
 );
 port(
 -------------------------------
--- Конфигурирование
+--CFG
 -------------------------------
 p_in_cfg_mem_adr     : in    std_logic_vector(31 downto 0);
 p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);
@@ -122,26 +117,26 @@ p_in_cfg_mem_start   : in    std_logic;
 p_out_cfg_mem_done   : out   std_logic;
 
 -------------------------------
--- Связь с пользовательскими буферами
+--USR Port
 -------------------------------
---//usr_buf->mem
+--usr_buf->mem
 p_in_usr_txbuf_dout  : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 p_out_usr_txbuf_rd   : out   std_logic;
 p_in_usr_txbuf_empty : in    std_logic;
 
---//usr_buf<-mem
+--usr_buf<-mem
 p_out_usr_rxbuf_din  : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 p_out_usr_rxbuf_wd   : out   std_logic;
 p_in_usr_rxbuf_full  : in    std_logic;
 
 ---------------------------------
--- Связь с mem_ctrl.vhd
+--MEM_CTRL Port
 ---------------------------------
 p_out_mem            : out   TMemIN;
 p_in_mem             : in    TMemOUT;
 
 -------------------------------
---Технологические сигналы
+--DBG
 -------------------------------
 p_in_tst             : in    std_logic_vector(31 downto 0);
 p_out_tst            : out   std_logic_vector(31 downto 0);
@@ -152,6 +147,6 @@ p_out_tst            : out   std_logic_vector(31 downto 0);
 p_in_clk             : in    std_logic;
 p_in_rst             : in    std_logic
 );
-end component;
+end component mem_wr;
 
-end;
+end package mem_wr_pkg;

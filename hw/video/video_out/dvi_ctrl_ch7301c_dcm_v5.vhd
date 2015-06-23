@@ -25,7 +25,7 @@ p_out_gclk    : out   std_logic_vector(0 downto 0);
 p_in_clk      : in    std_logic;
 p_in_rst      : in    std_logic
 );
-end entity;
+end entity dvi_ctrl_dcm;
 
 architecture v5_only of dvi_ctrl_dcm is
 
@@ -34,8 +34,8 @@ signal i_clk_fb,g_clk_fb     : std_logic;
 signal i_clk_out             : std_logic_vector(2 downto 0);
 signal i_gnd                 : std_logic_vector(15 downto 0);
 
---MAIN
-begin
+
+begin --architecture v5_only
 
 
 
@@ -116,7 +116,6 @@ RST      => p_in_rst
 
 i_gnd <= (others=>'0');
 
---END MAIN
-end architecture;
+end architecture v5_only;
 
 

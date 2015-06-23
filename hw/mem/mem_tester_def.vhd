@@ -38,5 +38,5 @@ constant C_PCFG_HDEV_DWIDTH      : integer := 32;--(bit) Ўина данных
 constant C_PCFG_TEST_TYPE_CNT    : integer := 32;--Counter /8bit/16bit/32bit
 constant C_PCFG_TEST_TYPE_RANDOM : std_logic := '1';
 
-end prj_cfg;
+end package prj_cfg;
 

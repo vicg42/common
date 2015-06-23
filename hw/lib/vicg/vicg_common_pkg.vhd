@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 10/26/2007
@@ -7,17 +6,10 @@
 --
 -- Description :
 --
--- Revision:
--- Revision 0.01 - File Created
---
 ---------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
----- need conversion function to convert reals/integers to std logic vectors
---use ieee.std_logic_arith.conv_std_logic_vector;
---use ieee.std_logic_arith.all;
---use ieee.std_logic_unsigned.all;
 
 library std;
 use std.textio.all;
@@ -68,6 +60,7 @@ function selval_real (valtrue, valfalse : real; sel :boolean) return real;
 function selval2 (val3, val2, val1, val0 : integer; sel1,sel0 :boolean) return integer;
 
 function max2 (num1, num2 : integer) return integer;
+function min2 (num1, num2 : integer) return integer;
 function Addr_Bits(x,y : std_logic_vector) return integer;
 function pad_power2 ( in_num : integer )  return integer;
 function pad_4 ( in_num : integer )  return integer;
@@ -134,7 +127,7 @@ constant StrHEX2Int : TChar2Int :=
 --'F'
 --);
 
-end vicg_common_pkg;
+end package vicg_common_pkg;
 
 package body vicg_common_pkg is
 -------------------------------------------------------------------------------
@@ -433,7 +426,7 @@ end if;
 end function selval2;
 
 -------------------------------------------------------------------------------
--- Function max2
+-- Function max2/min2
 --
 -- This function returns the greater of two numbers.
 -------------------------------------------------------------------------------
@@ -445,6 +438,15 @@ begin
         return num2;
     end if;
 end function max2;
+
+function min2 (num1, num2 : integer) return integer is
+begin
+    if num1 <= num2 then
+        return num1;
+    else
+        return num2;
+    end if;
+end function min2;
 
 -------------------------------------------------------------------------------
 -- Function Addr_bits

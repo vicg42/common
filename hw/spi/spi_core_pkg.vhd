@@ -29,4 +29,4 @@ type TSPI_pinin is record
 miso : std_logic;--Master IN, Slave OUT
 end record;
 
-end spi_pkg;
+end package spi_pkg;

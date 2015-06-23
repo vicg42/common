@@ -109,7 +109,7 @@ p_out_tst            : out    std_logic_vector(31 downto 0);
 -------------------------------
 p_in_rst             : in     std_logic
 );
-end cfgdev_host;
+end entity cfgdev_host;
 
 architecture behavioral of cfgdev_host is
 
@@ -139,7 +139,7 @@ prog_full   : out std_logic;
 
 rst         : in  std_logic
 );
-end component;
+end component cfgdev_buf;
 
 
 type fsm_state is (
@@ -197,8 +197,7 @@ signal tst_host_rd                      : std_logic:='0';
 signal tst_txbuf_empty                  : std_logic;
 
 
---MAIN
-begin
+begin --architecture behavioral
 
 ------------------------------------
 --Технологические сигналы
@@ -681,6 +680,4 @@ end if;
 end process;
 
 
-
---END MAIN
-end behavioral;
+end architecture behavioral;
