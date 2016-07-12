@@ -38,7 +38,7 @@ type TVGA_param is array (0 to 3) of integer;
 
 --Data from Standard_VESA_timing.pdf
 --                                          ------------------------------------------
---                       Resolution select |    0     |    1    |    2     |    3     |
+--                       Resolution select |    0     |    1    |    2    |     3     |
 --                                         |-------------------------------------------
 --                             Resolution  | 640x480 | 800x600 | 1024x768 | 1280x1024 |
 --                             Frame Ferq  | @72Hz   | @72Hz   | @70Hz    | @75Hz     |
