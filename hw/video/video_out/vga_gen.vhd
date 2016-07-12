@@ -11,9 +11,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library work;
-use work.vicg_common_pkg.all;
-
 entity vga_gen is
 generic(
 G_SEL : integer := 0 --Resolution select
@@ -34,25 +31,28 @@ end entity vga_gen;
 
 architecture behavioral of vga_gen is
 
-type TVGA_param is array (0 to 3) of integer;
+type TVGA_param is array (0 to 4) of integer;
+type TVGA_psync is array (0 to 4) of std_logic;
 
---Data from Standard_VESA_timing.pdf
---                                          ------------------------------------------
---                       Resolution select |    0     |    1    |    2    |     3     |
---                                         |-------------------------------------------
---                             Resolution  | 640x480 | 800x600 | 1024x768 | 1280x1024 |
---                             Frame Ferq  | @72Hz   | @72Hz   | @70Hz    | @75Hz     |
---                                 Pixclk  | 31.5MHz | 50MHz   | 75MHz    | 135MHz    |
+--Data from: VESA - Display Monitor Timing - DMT ver1 rev11.pdf
+--                                          ------------------------------------------------------
+--                       Resolution select |    0     |    1    |    2    |     3     |     4     |
+--                                         |------------------------------------------------------
+--                             Resolution  | 640x480 | 800x600 | 1024x768 | 1280x1024 | 1024x768  |
+--                             Frame Ferq  | @72Hz   | @72Hz   | @70Hz    | @75Hz     | @60Hz     |
+--                                 Pixclk  | 31.5MHz | 50MHz   | 75MHz    | 135MHz    | 65MHz     |
 --HS: (horisontal sync) values in pixel
-constant CI_HS_SYN_W        : TVGA_param := (40      , 120     , 136      , 144       );
-constant CI_HS_BACKPORCH_W  : TVGA_param := (120     , 64      , 144      , 248       );
-constant CI_HS_ACTIV_W      : TVGA_param := (640     , 800     , 1024     , 1280      );
-constant CI_HS_FRONTPORCH_W : TVGA_param := (16      , 56      , 24       , 16        );
+constant CI_HS_SYN_W        : TVGA_param := (40      , 120     , 136      , 144       , 136       );
+constant CI_HS_BACKPORCH_W  : TVGA_param := (120     , 64      , 144      , 248       , 160       );
+constant CI_HS_ACTIV_W      : TVGA_param := (640     , 800     , 1024     , 1280      , 1024      );
+constant CI_HS_FRONTPORCH_W : TVGA_param := (16      , 56      , 24       , 16        , 24        );
+constant CI_HS_POLARITY     : TVGA_psync := ('0'     , '0'     , '0'      , '0'       , '0'       );
 --VS: (vertical synch) values in line
-constant CI_VS_SYN_W        : TVGA_param := (3       , 6       , 6        , 3         );
-constant CI_VS_BACKPORCH_W  : TVGA_param := (20      , 23      , 29       , 38        );
-constant CI_VS_ACTIV_W      : TVGA_param := (480     , 600     , 768      , 1024      );
-constant CI_VS_FRONTPORCH_W : TVGA_param := (1       , 37      , 3        , 1         );
+constant CI_VS_SYN_W        : TVGA_param := (3       , 6       , 6        , 3         , 6         );
+constant CI_VS_BACKPORCH_W  : TVGA_param := (20      , 23      , 29       , 38        , 29        );
+constant CI_VS_ACTIV_W      : TVGA_param := (480     , 600     , 768      , 1024      , 768       );
+constant CI_VS_FRONTPORCH_W : TVGA_param := (1       , 37      , 3        , 1         , 3         );
+constant CI_VS_POLARITY     : TVGA_psync := ('0'     , '0'     , '0'      , '0'       , '0'       );
 
 signal i_vga_xcnt           : unsigned(12 downto 0) := (others =>'0');
 signal i_vga_ycnt           : unsigned(12 downto 0) := (others =>'0');
@@ -98,8 +98,8 @@ begin
     if p_in_rst = '1' then
       i_vga_xcnt <= (others=>'0');
       i_vga_ycnt <= (others=>'0');
-      i_hsync <= '0';
-      i_vsync <= '0';
+      i_hsync <=  CI_HS_POLARITY(G_SEL);
+      i_vsync <=  CI_VS_POLARITY(G_SEL);
       i_pix_ha <= '0';
       i_pix_va <= '0';
 
@@ -116,12 +116,12 @@ begin
         i_vga_xcnt <= i_vga_xcnt + 1;
       end if;
 
-      if i_vga_xcnt > i_vga_hs_e then i_hsync <= '1';
-      else                            i_hsync <= '0';
+      if i_vga_xcnt > i_vga_hs_e then i_hsync <= not CI_HS_POLARITY(G_SEL);
+      else                            i_hsync <= CI_HS_POLARITY(G_SEL);
       end if;
 
-      if i_vga_ycnt > i_vga_vs_e then i_vsync <= '1';
-      else                            i_vsync <= '0';
+      if i_vga_ycnt > i_vga_vs_e then i_vsync <= not CI_VS_POLARITY(G_SEL);
+      else                            i_vsync <= CI_VS_POLARITY(G_SEL);
       end if;
 
       if (i_vga_xcnt > i_vga_ha_b) and (i_vga_xcnt <= i_vga_ha_e) then i_pix_ha <= '1';

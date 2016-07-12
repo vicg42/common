@@ -5,6 +5,8 @@ add wave -noupdate /vga_gen_tb/i_clk
 add wave -noupdate /vga_gen_tb/uut/i_vsync
 add wave -noupdate /vga_gen_tb/uut/i_hsync
 add wave -noupdate /vga_gen_tb/i_video_den
+add wave -noupdate -radix unsigned /vga_gen_tb/uut/i_pixcnt
+add wave -noupdate -radix unsigned /vga_gen_tb/uut/i_linecnt
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 2} {0 ps} 1}
 quietly wave cursor active 1
@@ -22,4 +24,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {38594097938 ps} {43070364434 ps}
+WaveRestoreZoom {0 ps} {4476266496 ps}
