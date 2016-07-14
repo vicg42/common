@@ -11,6 +11,7 @@ file delete -force -- work
 vlib work
 
 vlog -64  "../../uart8_rx.v";
+vlog -64  "../../uart8_tx.v";
 
 vcom -64 -93 "../testbanch/uartrx_tb.vhd";
 
