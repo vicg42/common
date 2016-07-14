@@ -20,7 +20,12 @@ reg busy_d = 0;
 always @(posedge clk) begin
 
   //Direct Digital Synthesizers (DDS) baud rate generator
+  if (busy)
   {baud_tick, baud_cntr} <= baud_cntr + baud_rate16;
+  else begin
+    baud_tick <= 0;
+    baud_cntr <= 0;
+  end
 
   // transmit machine
   txd <= 1;
