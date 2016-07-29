@@ -4,12 +4,14 @@
 vlib work
 
 vcom -93 "../../../lib/vicg/vicg_common_pkg.vhd"
+vcom -93 "../../../lib/vicg/reduce_pack.vhd"
 
 vcom -93 "../../i2c_core_pkg.vhd"
 vcom -93 "../../i2c_core_master.vhd"
 vcom -93 "../../i2c_slave_v02.vhd"
-vcom -93 "../../../video/monitor/vga_timing_main.vhd"
-vcom -93 "../../../../../../ml505/ise/src/test/ctrl_dvi7301.vhd"
+#vcom -93 "../../../video/video_out"
+#vcom -93 "../../../video/monitor/vga_timing_main.vhd"
+#vcom -93 "../../../../../../ml505/ise/src/test/ctrl_dvi7301.vhd"
 #vlog     "../testbanch/i2c_slave_model.v"
 
 vcom -93 "../testbanch/i2c_master_core_tb.vhd"
@@ -20,4 +22,5 @@ view wave
 view structure
 view signals
 run 1000ns
+
 

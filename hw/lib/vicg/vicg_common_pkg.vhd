@@ -547,12 +547,12 @@ begin
         val := val*2;
       end if;
     end loop;
-    if val >= x then
-      assert true
-        report "Function log2 received argument larger" &
-               " than its capability of 2^30. "
-        severity failure;
-    end if;
+--    if val >= x then
+--      assert true
+--        report "Function log2 received argument larger" &
+--               " than its capability of 2^30. "
+--        severity failure;
+--    end if;
     return i;
   end if;
 end function log2;
