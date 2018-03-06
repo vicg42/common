@@ -97,9 +97,9 @@ reg [WIDTH-1:0]    sr_do [PIPELINE-1:0];
 // p7 p8 p9
 
 //Gaus:
-// 1 2 1
-// 2 4 2
-// 1 2 1
+//        |1 2 1|   | 0.0625  0.125  0.0625 |
+// 1/16 * |2 4 2| = | 0.125   0.25   0.0125 |
+//        |1 2 1|   | 0.0625  0.125  0.0625 |
 always @(posedge clk) begin
     //pipeline 0
     if (dv) begin
