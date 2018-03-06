@@ -69,10 +69,9 @@ filter_core #(
 
 localparam PIPELINE = 3;
 
-reg [15:0] sum_p56 = 0;
+reg [15:0] mp5 = 0;
+reg [8:0]  sum_p46 = 0;
 reg [8:0]  sum_p28 = 0;
-
-reg [7:0]  sr_p4 = 0;
 
 reg [15:0] sum_p456 = 0;
 reg [8:0]  sr_sum_p28 = 0;
@@ -93,17 +92,12 @@ reg [WIDTH-1:0]    sr_do [PIPELINE-1:0];
 //  0   -1   0
 //  -1   5  -1
 //  0   -1   0
-
-wire [15:0] mp5;
-assign mp5[15:0] = p5[7:0] * 8'd5;
-
 always @(posedge clk) begin
     //pipeline 0
     if (dv) begin
-        sum_p56[15:0] <= mp5[15:0] - {8'b0, p6[7:0]};
+        mp5[15:0] <= p5[7:0] * 8'd5;
+        sum_p46[8:0] <= {1'b0, p4[7:0]} + {1'b0, p6[7:0]};
         sum_p28[8:0] <= {1'b0, p2[7:0]} + {1'b0, p8[7:0]};
-
-        sr_p4 <= p4;
 
         sr_do[0] <= dou;
     end
@@ -113,7 +107,7 @@ always @(posedge clk) begin
     sr_vs[0] <= vs;
 
     //pipeline 1
-    sum_p456[15:0] <= sum_p56[15:0] - {8'b0, sr_p4[7:0]};
+    sum_p456[15:0] <= mp5[15:0] - {7'b0, sum_p46[8:0]};
     sr_sum_p28 <= sum_p28[8:0];
 
     sr_dv[1] <= sr_dv[0];
@@ -143,7 +137,11 @@ always @(posedge clk) begin
 
 end
 
-//localparam PIPELINE = 3;
+
+endmodule
+
+//
+//localparam PIPELINE = 4;
 //
 //reg [9:0] sum_p46 = 0;
 //reg [9:0] sum_p28 = 0;
@@ -185,7 +183,7 @@ end
 //always @(posedge clk) begin
 //    //pipeline 0
 //    if (dv) begin
-//        mp5[15:0] = p5[7:0] * 8'd5;
+//        mp5[15:0] <= p5[7:0] * 8'd5;
 //
 //        sum_p46[9:0] <= {1'b0, p4[7:0], 1'b0} + {1'b0, p6[7:0], 1'b0};
 //        sum_p28[9:0] <= {1'b0, p2[7:0], 1'b0} + {1'b0, p8[7:0], 1'b0};
@@ -236,93 +234,6 @@ end
 //        dout <= sum_p173952846[7:0];
 //    end
 //
-//    dv_out <= sr_dv[3];
-//    hs_out <= sr_hs[3];
-//    vs_out <= sr_vs[3];
-//
-//end
-
-
-endmodule
-
-
-
-
-
-//localparam PIPELINE = 4;
-//
-//reg [8:0]  sum_p46 = 0;
-//reg [8:0]  sum_p28 = 0;
-//reg [15:0] mp5 = 0;
-//
-//reg [9:0]  sum_p2846 = 0;
-//reg [15:0] sr_mp5 = 0;
-//
-//reg signed [15:0] sum_p28465 = 0;
-//reg [7:0]  clamp = 0;
-//
-//reg [PIPELINE-1:0] sr_dv = 0;
-//reg [PIPELINE-1:0] sr_hs = 0;
-//reg [PIPELINE-1:0] sr_vs = 0;
-//reg [WIDTH-1:0]    sr_do [PIPELINE-1:0];
-//
-//
-//// p1 p2 p3
-//// p4 p5 p6
-//// p7 p8 p9
-//
-////sharpening operator
-////  0   -1   0
-////  -1   5  -1
-////  0   -1   0
-//
-//always @(posedge clk) begin
-//    //pipeline 0
-//    if (dv) begin
-//        mp5[15:0] = p5[7:0] * 8'd5;
-//        sum_p46[8:0] <= {8'b0, p4[7:0]} + {8'b0, p6[7:0]};
-//        sum_p28[8:0] <= {1'b0, p2[7:0]} + {1'b0, p8[7:0]};
-//
-//        sr_do[0] <= dou;
-//    end
-//
-//    sr_dv[0] <= dv;
-//    sr_hs[0] <= hs;
-//    sr_vs[0] <= vs;
-//
-//    //pipeline 1
-//    sum_p2846[9:0] <= {1'b0, sum_p28} + {1'b0, sum_p46};
-//    sr_mp5 <= mp5;
-//
-//    sr_dv[1] <= sr_dv[0];
-//    sr_hs[1] <= sr_hs[0];
-//    sr_vs[1] <= sr_vs[0];
-//    sr_do[1] <= sr_do[0];
-//
-//    //pipeline 2
-//    sum_p28465 <= $signed(sr_mp5) - $signed({6'b0, sum_p2846});
-//
-//    sr_dv[2] <= sr_dv[1];
-//    sr_hs[2] <= sr_hs[1];
-//    sr_vs[2] <= sr_vs[1];
-//    sr_do[2] <= sr_do[1];
-//
-//    //pipeline 3
-//    if (sum_p28465[15]) begin //result < 0
-//        clamp <= {8{1'b0}};
-//    end else if (sum_p28465[8]) begin //overflow
-//        clamp = {8{1'b1}};
-//    end else begin
-//        clamp <= sum_p28465[7:0];
-//    end
-//
-//    sr_dv[3] <= sr_dv[2];
-//    sr_hs[3] <= sr_hs[2];
-//    sr_vs[3] <= sr_vs[2];
-//    sr_do[3] <= sr_do[2];
-//
-//    //stage out
-//    dout <= clamp;
 //    dv_out <= sr_dv[3];
 //    hs_out <= sr_hs[3];
 //    vs_out <= sr_vs[3];

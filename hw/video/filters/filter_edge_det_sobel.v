@@ -206,7 +206,7 @@ always @(posedge clk) begin
     sr_vs[3] <= sr_vs[2];
     sr_do[3] <= sr_do[2];
 
-    //stagme out
+    //stage out
     dout <= (gm > 255) ? 255 : gm[7:0];
     dv_out <= sr_dv[3];
     hs_out <= sr_hs[3];
