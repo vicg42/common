@@ -59,7 +59,7 @@ end process;
 
 uut : vga_gen
 generic map(
-G_SEL => 0
+G_SEL => 5
 )
 port map(
 --SYNC

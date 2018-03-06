@@ -5,8 +5,8 @@
 -- Create Date : 25.11.2008 18:38
 -- Module Name : vscaler_main_tb
 --
--- Назначение/Описание :
---    Проверка работы
+-- РќР°Р·РЅР°С‡РµРЅРёРµ/РћРїРёСЃР°РЅРёРµ :
+--    РџСЂРѕРІРµСЂРєР° СЂР°Р±РѕС‚С‹
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -703,7 +703,7 @@ p_out_dwnp_wr   <= i_ofifo_rd;--i_byer_do_wr;
 p_out_dwnp_eof  <= i_byer_do_eof;
 
 
---Генератор тестовых данных
+--Р“РµРЅРµСЂР°С‚РѕСЂ С‚РµСЃС‚РѕРІС‹С… РґР°РЅРЅС‹С…
 i_do_rdy_n <= '0';
 
 process(i_clk)
