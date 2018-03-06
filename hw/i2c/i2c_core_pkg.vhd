@@ -1,14 +1,10 @@
 -------------------------------------------------------------------------
--- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 23.11.2011 17:11:04
 -- Module Name : veresk_pkg
 --
 -- Description :
---
--- Revision:
--- Revision 0.01 - File Created
 --
 -------------------------------------------------------------------------
 library ieee;

@@ -1,0 +1,1 @@
+cd d:/Work/lib/common/hw/uart/sim/mscript

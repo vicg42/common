@@ -80,32 +80,37 @@ rst : in std_logic
 );
 end component;
 
---component i2c_core_master
---generic(
---G_CLK_FREQ : natural := 25000000;
---G_BAUD     : natural := 100000
---);
---port(
---p_in_start  : in    std_logic;
---p_in_stop   : in    std_logic;
---p_in_cmd_wr : in    std_logic;
---p_in_cmd_rd : in    std_logic;
---p_in_txack  : in    std_logic;
---p_out_rxack : out   std_logic;
---p_out_done  : out   std_logic;
---
---p_in_di     : in    std_logic_vector (7 downto 0);
---p_out_do    : out   std_logic_vector (7 downto 0);
---
-----I2C
---p_inout_sda : inout std_logic;
---p_out_scl   : out   std_logic;
---
-----System
---p_in_clk    : in    std_logic;
---p_in_rst    : in    std_logic
---);
---end component;
+component i2c_core_master
+generic(
+G_CLK_FREQ : natural := 25000000; --Определяет частоту для прота p_in_clk
+G_BAUD     : natural := 100000;
+G_DBG      : string := "OFF";
+G_SIM      : string := "OFF"
+);
+port(
+p_in_cmd    : in    std_logic_vector(2 downto 0);--Тип операции
+p_in_start  : in    std_logic;--Старт опрерации
+p_out_done  : out   std_logic;--Операция закончена
+p_in_txack  : in    std_logic;--Задаем уровень для ответа(acknowlege) slave устройству
+p_out_rxack : out   std_logic;--Принятый ответ(acknowlege) от slave устройства
+
+p_in_txd    : in    std_logic_vector(7 downto 0);
+p_out_rxd   : out   std_logic_vector(7 downto 0);
+
+--I2C
+p_inout_sda : inout std_logic;
+p_inout_scl : inout std_logic;
+
+--DBG
+p_in_tst    : in    std_logic_vector(31 downto 0);
+p_out_tst   : out   std_logic_vector(31 downto 0);
+
+--System
+p_in_clk    : in    std_logic;
+p_in_rst    : in    std_logic
+);
+end component;
+
 component ctrl_dvi7301
 generic(
 G_CLK_FREQ : natural := 25000000;
@@ -169,61 +174,66 @@ end process;
 i_sys_rst<='1','0' after 1 us;
 
 
---m_i2c_core : i2c_core_master
---generic map(
---G_CLK_FREQ => 25000000;
---G_BAUD     => 100000
---)
---port map(
---p_in_start  => i_start,
---p_in_stop   => i_stop,
---p_in_cmd_wr => i_cmd_wr,
---p_in_cmd_rd => i_cmd_rd,
---p_in_txack  => i_txack,
---p_out_rxack => i_rxack,
---p_out_done  => i_done,
---
---p_in_di     => i_txd,
---p_out_do    => i_rxd,
---
-----I2C
---p_inout_sda => p_inout_sda,
---p_inout_scl => p_inout_scl,
---
-----System
---p_in_clk    => i_sys_clk,
---p_in_rst    => i_sys_rst
---);
-
-m_dvi7301 : ctrl_dvi7301
+m_i2c_core : i2c_core_master
 generic map(
 G_CLK_FREQ => 25000000,
 G_BAUD     => 100000,
-G_DBG      => "OFF",
-G_SIM      => "ON"
+G_DBG => "OFF",
+G_SIM => "OFF"
 )
 port map(
-p_in_mode   => "000",
-p_out_err   => open,
+p_in_cmd    => i_cmd_wr,
+--p_in_cmd_rd => i_cmd_rd,
+p_in_start  => i_start,
+p_out_done  => i_done,
+p_in_txack  => i_txack,
+p_out_rxack => i_rxack,
 
---VOUT
-p_out_dvi_clk => p_out_dvi_clk,
-p_out_dvi_d   => p_out_dvi_d  ,
-p_out_dvi_hs  => p_out_dvi_hs ,
-p_out_dvi_vs  => p_out_dvi_vs ,
+p_in_txd    => i_txd,
+p_out_rxd   => i_rxd,
 
 --I2C
 p_inout_sda => p_inout_sda,
 p_inout_scl => p_inout_scl,
 
---Технологический
-p_in_tst    => (others=>'0'),
+--DBG
+p_in_tst    => (others => '0'),
 p_out_tst   => open,
 
 --System
 p_in_clk    => i_sys_clk,
 p_in_rst    => i_sys_rst
 );
+
+--m_dvi7301 : ctrl_dvi7301
+--generic map(
+--G_CLK_FREQ => 25000000,
+--G_BAUD     => 100000,
+--G_DBG      => "OFF",
+--G_SIM      => "ON"
+--)
+--port map(
+--p_in_mode   => "000",
+--p_out_err   => open,
+--
+----VOUT
+--p_out_dvi_clk => p_out_dvi_clk,
+--p_out_dvi_d   => p_out_dvi_d  ,
+--p_out_dvi_hs  => p_out_dvi_hs ,
+--p_out_dvi_vs  => p_out_dvi_vs ,
+--
+----I2C
+--p_inout_sda => p_inout_sda,
+--p_inout_scl => p_inout_scl,
+--
+----Технологический
+--p_in_tst    => (others=>'0'),
+--p_out_tst   => open,
+--
+----System
+--p_in_clk    => i_sys_clk,
+--p_in_rst    => i_sys_rst
+--);
 
 
 --m_i2c_slave : i2c_slave_model
