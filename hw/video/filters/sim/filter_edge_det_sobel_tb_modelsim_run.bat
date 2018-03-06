@@ -1,0 +1,1 @@
+vsim -do ./filter_edge_det_sobel_tb.do

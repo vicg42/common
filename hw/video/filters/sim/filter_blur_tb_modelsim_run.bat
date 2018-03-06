@@ -1,0 +1,1 @@
+vsim -do ./filter_blur_tb.do
