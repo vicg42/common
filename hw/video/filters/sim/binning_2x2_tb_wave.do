@@ -5,8 +5,14 @@ add wave -noupdate /binning_2x2_tb/binning_2x2/di_i
 add wave -noupdate /binning_2x2_tb/binning_2x2/de_i
 add wave -noupdate /binning_2x2_tb/binning_2x2/hs_i
 add wave -noupdate /binning_2x2_tb/binning_2x2/vs_i
+add wave -noupdate /binning_2x2_tb/binning_2x2/sr_vs_i
 add wave -noupdate -divider {New Divider}
+add wave -noupdate /binning_2x2_tb/binning_2x2/sr_de_i
+add wave -noupdate /binning_2x2_tb/binning_2x2/sr_hs_i
+add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr_en
 add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr
+add wave -noupdate /binning_2x2_tb/binning_2x2/dv_opt
+add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr_clr
 add wave -noupdate /binning_2x2_tb/binning_2x2/buf0_do
 add wave -noupdate /binning_2x2_tb/binning_2x2/x
 add wave -noupdate {/binning_2x2_tb/binning_2x2/x[0]}
@@ -20,11 +26,18 @@ add wave -noupdate /binning_2x2_tb/binning_2x2/line_out_en
 add wave -noupdate /binning_2x2_tb/binning_2x2/sumx12
 add wave -noupdate /binning_2x2_tb/binning_2x2/sumx34
 add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_de[0]}
-add wave -noupdate /binning_2x2_tb/binning_2x2/sumx1234
+add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs[0]}
+add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_vs[0]}
+add wave -noupdate -radix unsigned /binning_2x2_tb/binning_2x2/sumx1234
 add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_de[1]}
-add wave -noupdate /binning_2x2_tb/binning_2x2/sumx1234_div4
+add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs[1]}
+add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_vs[1]}
+add wave -noupdate -radix unsigned /binning_2x2_tb/binning_2x2/sumx1234_div4
 add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_de[2]}
+add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs[2]}
+add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_vs[2]}
 add wave -noupdate /binning_2x2_tb/binning_2x2/de_sel
+add wave -noupdate /binning_2x2_tb/binning_2x2/sr_de_sel
 add wave -noupdate /binning_2x2_tb/binning_2x2/do_
 add wave -noupdate -divider {New Divider}
 add wave -noupdate /binning_2x2_tb/binning_2x2/do_o
@@ -48,4 +61,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {119119 ps} {405003 ps}
+WaveRestoreZoom {183071 ps} {280634 ps}

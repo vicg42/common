@@ -99,6 +99,13 @@ initial begin : sim_main
                 de_i = 1'b1;
                 hs_i = 1'b0;
                 vs_i = 1'b1;
+
+//                de_i = 1'b0;
+//                hs_i = 1'b0;
+//                vs_i = 1'b1;
+//                @(posedge clk);
+//                de_i = 1'b1;
+
                 #0;
             end
             @(posedge clk);
