@@ -9,7 +9,10 @@
 //------------------------------------------------------------------------
 
 module binning_2x2 #(
-    parameter DE_SPARSE = 1, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
+    parameter DE_SPARSE = 1, //0 - no empty cycles
+                             //1 - one empty cycle per pixel
+                             //3 - 3 empty cycle per pixel
+                             //etc...
     parameter LINE_SIZE_MAX = 1024,
     parameter PIXEL_WIDTH = 8
 )(
@@ -32,7 +35,10 @@ module binning_2x2 #(
 );
 
 // -------------------------------------------------------------------------
-localparam PIPELINE = 8*(DE_SPARSE+1);
+localparam PIPELINE = (DE_SPARSE == 0) ? 8 :
+                      (DE_SPARSE == 1) ? 16 :
+                      (DE_SPARSE == 3) ? 32 : 64;
+
 //For Altera: (* ramstyle = "MLAB" *)
 //For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
 (* RAM_STYLE = "BLOCK" *) reg [PIXEL_WIDTH-1:0] buf0 [LINE_SIZE_MAX-1:0];
@@ -42,9 +48,9 @@ reg [$clog2(LINE_SIZE_MAX)-1:0] buf_wptr = 0;
 wire buf_wptr_clr;
 wire buf_wptr_en;
 
-reg [PIXEL_WIDTH-1:0] sr_di_i [0:1];
+reg [PIXEL_WIDTH:0] sr_di_i [0:1];
 
-reg [0:(PIPELINE-1)] sr_de_i = 0;
+reg [0:(PIPELINE)] sr_de_i = 0;
 reg [0:3] sr_hs_i = {4{1'b1}};
 reg [0:3] sr_vs_i = 0;
 
@@ -91,19 +97,28 @@ reg de = 1'b0;
 reg hs = 1'b0;
 reg vs = 1'b0;
 
-
-wire [(PIPELINE/2)-1:0] en_opt;
+wire [8:0] en_opt;
 genvar a;
 generate
-    for (a=0; a <= (PIPELINE-1); a=a+2) begin
-        assign en_opt[a/2] = sr_de_i[a+1];
+    if (DE_SPARSE == 0) begin
+        for (a=0; a <= (PIPELINE); a=a+1) begin
+            assign en_opt[a] = sr_de_i[a];
+        end
+    end else if (DE_SPARSE == 1) begin
+        for (a=2; a <= (PIPELINE); a=a+2) begin
+            assign en_opt[a/2-1] = sr_de_i[a-1];
+        end
+    end else if (DE_SPARSE == 3) begin
+        for (a=4; a <= (PIPELINE); a=a+4) begin
+            assign en_opt[a/4-1] = sr_de_i[a-1];
+        end
     end
 endgenerate
 
-assign en = (de_i | (|en_opt));
+assign en = (de_i | (|en_opt[7:0]));
 
 always @(posedge clk) begin
-    sr_de_i <= {de_i, sr_de_i[0:(PIPELINE-2)]};
+    sr_de_i <= {de_i, sr_de_i[0:(PIPELINE-1)]};
     if (en) begin
         sr_hs_i <= {hs_i, sr_hs_i[0:2]};
         sr_vs_i <= {vs_i, sr_vs_i[0:2]};

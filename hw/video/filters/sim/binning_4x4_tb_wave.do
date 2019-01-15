@@ -10,6 +10,7 @@ add wave -noupdate -divider {New Divider}
 add wave -noupdate /binning_2x2_tb/binning_2x2/DE_SPARSE
 add wave -noupdate /binning_2x2_tb/binning_2x2/sr_de_i
 add wave -noupdate /binning_2x2_tb/binning_2x2/en_opt
+add wave -noupdate /binning_2x2_tb/binning_2x2/en
 add wave -noupdate /binning_2x2_tb/binning_2x2/sr_hs_i
 add wave -noupdate /binning_2x2_tb/binning_2x2/sr_vs_i
 add wave -noupdate /binning_2x2_tb/binning_2x2/dv_opt
@@ -54,6 +55,7 @@ add wave -noupdate -radix unsigned /binning_2x2_tb/binning_4x4/DE_SPARSE
 add wave -noupdate -radix unsigned /binning_2x2_tb/binning_4x4/PIPELINE
 add wave -noupdate /binning_2x2_tb/binning_4x4/di_i
 add wave -noupdate /binning_2x2_tb/binning_4x4/de_i
+add wave -noupdate /binning_2x2_tb/binning_4x4/sr_de_i
 add wave -noupdate /binning_2x2_tb/binning_4x4/hs_i
 add wave -noupdate /binning_2x2_tb/binning_4x4/sr_hs_i
 add wave -noupdate /binning_2x2_tb/binning_4x4/vs_i
@@ -72,18 +74,28 @@ add wave -noupdate /binning_2x2_tb/binning_4x4/vs
 add wave -noupdate /binning_2x2_tb/binning_4x4/sumx12
 add wave -noupdate /binning_2x2_tb/binning_4x4/sumx34
 add wave -noupdate {/binning_2x2_tb/binning_4x4/sr_de[0]}
+add wave -noupdate {/binning_2x2_tb/binning_4x4/sr_hs[0]}
 add wave -noupdate /binning_2x2_tb/binning_4x4/sumx1234
 add wave -noupdate {/binning_2x2_tb/binning_4x4/sr_de[1]}
+add wave -noupdate {/binning_2x2_tb/binning_4x4/sr_hs[1]}
 add wave -noupdate /binning_2x2_tb/binning_4x4/sumx1234_div4
+add wave -noupdate /binning_2x2_tb/binning_4x4/de_sel
+add wave -noupdate {/binning_2x2_tb/binning_4x4/sr_de[2]}
+add wave -noupdate {/binning_2x2_tb/binning_4x4/sr_hs[2]}
+add wave -noupdate /binning_2x2_tb/binning_4x4/do_
+add wave -noupdate /binning_2x2_tb/binning_4x4/sr_de_sel
 add wave -noupdate {/binning_2x2_tb/binning_4x4/sr_de[3]}
+add wave -noupdate {/binning_2x2_tb/binning_4x4/sr_hs[3]}
+add wave -noupdate /binning_2x2_tb/binning_4x4/do_o_
+add wave -noupdate /binning_2x2_tb/binning_4x4/de_o_
+add wave -noupdate /binning_2x2_tb/binning_4x4/hs_o_
 add wave -noupdate -divider {New Divider}
-add wave -noupdate /binning_2x2_tb/binning_4x4/clk
 add wave -noupdate /binning_2x2_tb/do_o
 add wave -noupdate /binning_2x2_tb/de_o
 add wave -noupdate /binning_2x2_tb/hs_o
 add wave -noupdate /binning_2x2_tb/vs_o
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
+WaveRestoreCursors
 quietly wave cursor active 0
 configure wave -namecolwidth 285
 configure wave -valuecolwidth 100
@@ -99,4 +111,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {4767228 ps} {5012252 ps}
+WaveRestoreZoom {2361564 ps} {4322108 ps}

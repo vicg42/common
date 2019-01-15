@@ -96,6 +96,8 @@ initial begin : sim_main
     w = 16;
     h = 16;
     @(posedge clk);
+    vs_i = 1;
+    #500;
     for (fr = 0; fr < FRAME_COUNT; fr++) begin
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
@@ -127,7 +129,7 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #150; //delay between line
+            #350; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin
@@ -143,7 +145,7 @@ end : sim_main
 
 
 binning_2x2 #(
-    .DE_SPARSE(0),
+    .DE_SPARSE(DE_SPARSE),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) binning_2x2 (
