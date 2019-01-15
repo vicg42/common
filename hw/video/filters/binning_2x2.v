@@ -138,6 +138,10 @@ reg [0:3] sr_vs = 0;
 reg de_sel = 1'b0;
 reg sr_de_sel = 1'b0;
 reg [PIXEL_WIDTH-1:0] do_ = 0;
+reg [PIXEL_WIDTH-1:0] do_o_ = 0;
+reg                   de_o_ = 0;
+reg                   hs_o_ = 0;
+reg                   vs_o_ = 0;
 
 //Line1:  X[2] X[3]
 //Line0:  X[0] X[1]
@@ -191,23 +195,17 @@ always @(posedge clk) begin
         //----------------------------
         //pipeline 4
         //----------------------------
-        do_o <= do_;
-        de_o <= sr_de[3];
-        hs_o <= sr_hs[3];
-        vs_o <= sr_vs[3];
-
-//        //----------------------------
-//        //pipeline 3
-//        //----------------------------
-//        sr_de_sel <= de_sel;
-//        if (de_sel) begin
-//        do_ <= sumx1234_div4;
-//        end
-//        do_o <= do_;
-//        de_o <= (sr_de_sel & ~sr_hs[2]);
-//        hs_o <= sr_hs[2];
-//        vs_o <= sr_vs[2];
+        do_o_ <= do_;
+        de_o_ <= sr_de[3];
+        hs_o_ <= sr_hs[3];
+        vs_o_ <= sr_vs[3];
     end
+
+    do_o <= do_o_;
+    de_o <= de_o_ & en;
+    hs_o <= hs_o_;
+    vs_o <= vs_o_;
 end
+
 
 endmodule

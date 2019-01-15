@@ -47,6 +47,11 @@ logic de_o;
 logic hs_o;
 logic vs_o;
 
+wire [PIXEL_WIDTH-1:0] s0_do;
+wire s0_de;
+wire s0_hs;
+wire s0_vs;
+
 //***********************************
 //System clock gen
 //***********************************
@@ -87,6 +92,10 @@ initial begin : sim_main
     de_i = 0;
     hs_i = 1'b1;
     vs_i = 0;
+    #500;
+    w = 16;
+    h = 16;
+    @(posedge clk);
     for (fr = 0; fr < FRAME_COUNT; fr++) begin
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
@@ -134,7 +143,7 @@ end : sim_main
 
 
 binning_2x2 #(
-    .DE_SPARSE(DE_SPARSE),
+    .DE_SPARSE(0),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) binning_2x2 (
@@ -145,6 +154,28 @@ binning_2x2 #(
     .hs_i(hs_i),
     .vs_i(vs_i),
 
+    .do_o(s0_do),//(do_o),
+    .de_o(s0_de),//(de_o),
+    .hs_o(s0_hs),//(hs_o),
+    .vs_o(s0_vs),//(vs_o),
+
+    .clk(clk),
+    .rst(rst)
+);
+
+
+binning_2x2 #(
+    .DE_SPARSE(1),
+    .LINE_SIZE_MAX (LINE_SIZE_MAX),
+    .PIXEL_WIDTH (PIXEL_WIDTH)
+) binning_4x4 (
+    .bypass(1'b0),
+
+    .di_i(s0_do),//(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
+    .de_i(s0_de),//(de_i),
+    .hs_i(s0_hs),//(hs_i),
+    .vs_i(s0_vs),//(vs_i),
+
     .do_o(do_o),
     .de_o(de_o),
     .hs_o(hs_o),
@@ -153,7 +184,6 @@ binning_2x2 #(
     .clk(clk),
     .rst(rst)
 );
-
 
 
 monitor # (
