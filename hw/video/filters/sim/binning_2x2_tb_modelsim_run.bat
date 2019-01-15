@@ -1,0 +1,1 @@
+vsim -do ./binning_2x2_tb.do
