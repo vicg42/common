@@ -4,15 +4,21 @@ add wave -noupdate /binning_2x2_tb/binning_2x2/bypass
 add wave -noupdate /binning_2x2_tb/binning_2x2/di_i
 add wave -noupdate /binning_2x2_tb/binning_2x2/de_i
 add wave -noupdate /binning_2x2_tb/binning_2x2/hs_i
+add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs_i[1]}
+add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs_i[2]}
+add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_de_i[2]}
 add wave -noupdate /binning_2x2_tb/binning_2x2/vs_i
-add wave -noupdate /binning_2x2_tb/binning_2x2/sr_vs_i
 add wave -noupdate -divider {New Divider}
+add wave -noupdate /binning_2x2_tb/binning_2x2/DE_SPARSE
 add wave -noupdate /binning_2x2_tb/binning_2x2/sr_de_i
+add wave -noupdate /binning_2x2_tb/binning_2x2/en_opt
 add wave -noupdate /binning_2x2_tb/binning_2x2/sr_hs_i
+add wave -noupdate /binning_2x2_tb/binning_2x2/sr_vs_i
+add wave -noupdate /binning_2x2_tb/binning_2x2/dv_opt
+add wave -noupdate /binning_2x2_tb/binning_2x2/vs_opt
+add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr_clr
 add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr_en
 add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr
-add wave -noupdate /binning_2x2_tb/binning_2x2/dv_opt
-add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr_clr
 add wave -noupdate /binning_2x2_tb/binning_2x2/buf0_do
 add wave -noupdate /binning_2x2_tb/binning_2x2/x
 add wave -noupdate {/binning_2x2_tb/binning_2x2/x[0]}
@@ -45,7 +51,7 @@ add wave -noupdate /binning_2x2_tb/binning_2x2/de_o
 add wave -noupdate /binning_2x2_tb/binning_2x2/hs_o
 add wave -noupdate /binning_2x2_tb/binning_2x2/vs_o
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
+WaveRestoreCursors
 quietly wave cursor active 0
 configure wave -namecolwidth 285
 configure wave -valuecolwidth 100
@@ -61,4 +67,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {183071 ps} {280634 ps}
+WaveRestoreZoom {0 ps} {4953900 ps}

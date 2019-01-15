@@ -11,6 +11,7 @@ module binning_2x2_tb # (
     parameter READ_IMG_FILE = "8x8_8bit_test0_1pix.bmp",
     parameter WRITE_IMG_FILE = "binning_2x2_tb",
 
+    parameter DE_SPARSE = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_SIZE_MAX = 4096,
     parameter PIXEL_WIDTH = 8
 )();
@@ -96,16 +97,17 @@ initial begin : sim_main
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
                 //di_i[16 +: 8] - R
-                de_i = 1'b1;
-                hs_i = 1'b0;
-                vs_i = 1'b1;
-
-//                de_i = 1'b0;
-//                hs_i = 1'b0;
-//                vs_i = 1'b1;
-//                @(posedge clk);
-//                de_i = 1'b1;
-
+                if (DE_SPARSE == 0) begin
+                    de_i = 1'b1;
+                    hs_i = 1'b0;
+                    vs_i = 1'b1;
+                end else if (DE_SPARSE == 1) begin
+                    de_i = 1'b0;
+                    hs_i = 1'b0;
+                    vs_i = 1'b1;
+                    @(posedge clk);
+                    de_i = 1'b1;
+                end
                 #0;
             end
             @(posedge clk);
@@ -116,7 +118,7 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #50; //delay between line
+            #150; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin
@@ -132,6 +134,7 @@ end : sim_main
 
 
 binning_2x2 #(
+    .DE_SPARSE(DE_SPARSE),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) binning_2x2 (
