@@ -1,16 +1,17 @@
 #-----------------------------------------------------------------------
-# Engineer    : Golovachenko Victor
 #
-# Create Date : 10.10.2017 10:26:46
+# Engineer    : Golovachenko Victor
 #
 #------------------------------------------------------------------------
 file delete -force -- work
 
 vlib work
 
-vlog ../filter_core.v
+vlog ../bmp_io.sv -sv
+vlog ../filter_core_3x3.v
 vlog ../filter_blur.v
-vlog ./filter_blur_tb.sv -sv
+vlog ./monitor.sv -sv +incdir+../
+vlog ./filter_blur_tb.sv -sv +incdir+../
 
 
 vsim -t 1ps -novopt -lib work filter_blur_tb
