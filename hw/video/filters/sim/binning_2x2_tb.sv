@@ -102,8 +102,8 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-//                di_i = image_real.get_pixel(x, y);
-                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x;
+                di_i = image_real.get_pixel(x, y);
+//                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x;
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -165,37 +165,37 @@ binning_2x2 #(
     .rst(rst)
 );
 
-//
-//binning_2x2 #(
-//    .DE_SPARSE(1),
-//    .LINE_SIZE_MAX (LINE_SIZE_MAX),
-//    .PIXEL_WIDTH (PIXEL_WIDTH)
-//) binning_4x4 (
-//    .bypass(1'b0),
-//
-//    .di_i(s0_do),//(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
-//    .de_i(s0_de),//(de_i),
-//    .hs_i(s0_hs),//(hs_i),
-//    .vs_i(s0_vs),//(vs_i),
-//
-//    .do_o(do_o),
-//    .de_o(de_o),
-//    .hs_o(hs_o),
-//    .vs_o(vs_o),
-//
-//    .clk(clk),
-//    .rst(rst)
-//);
+
+binning_2x2 #(
+    .DE_SPARSE(1),
+    .LINE_SIZE_MAX (LINE_SIZE_MAX),
+    .PIXEL_WIDTH (PIXEL_WIDTH)
+) binning_4x4 (
+    .bypass(1'b0),
+
+    .di_i(s0_do),//(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
+    .de_i(s0_de),//(de_i),
+    .hs_i(s0_hs),//(hs_i),
+    .vs_i(s0_vs),//(vs_i),
+
+    .do_o(do_o),
+    .de_o(de_o),
+    .hs_o(hs_o),
+    .vs_o(vs_o),
+
+    .clk(clk),
+    .rst(rst)
+);
 
 
 monitor # (
     .DATA_WIDTH (PIXEL_WIDTH),
     .WRITE_IMG_FILE(WRITE_IMG_FILE)
 ) monitor (
-    .di_i(s0_do),//(do_o),
-    .de_i(s0_de),//(de_o),
-    .hs_i(s0_hs),//(hs_o),
-    .vs_i(s0_vs),//(vs_o),
+    .di_i(do_o),//(s0_do),//
+    .de_i(de_o),//(s0_de),//
+    .hs_i(hs_o),//(s0_hs),//
+    .vs_i(vs_o),//(s0_vs),//
     .clk (clk)
 );
 
