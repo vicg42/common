@@ -1,63 +1,63 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /binning_2x2_tb/binning_2x2/bypass
-add wave -noupdate /binning_2x2_tb/binning_2x2/di_i
-add wave -noupdate /binning_2x2_tb/binning_2x2/de_i
-add wave -noupdate /binning_2x2_tb/binning_2x2/hs_i
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs_i[1]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs_i[2]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_de_i[2]}
-add wave -noupdate /binning_2x2_tb/binning_2x2/vs_i
+add wave -noupdate /binning_tb/binning_2x2/bypass
+add wave -noupdate /binning_tb/binning_2x2/di_i
+add wave -noupdate /binning_tb/binning_2x2/de_i
+add wave -noupdate /binning_tb/binning_2x2/hs_i
+add wave -noupdate {/binning_tb/binning_2x2/sr_hs_i[1]}
+add wave -noupdate {/binning_tb/binning_2x2/sr_hs_i[2]}
+add wave -noupdate {/binning_tb/binning_2x2/sr_de_i[2]}
+add wave -noupdate /binning_tb/binning_2x2/vs_i
 add wave -noupdate -divider {New Divider}
-add wave -noupdate /binning_2x2_tb/binning_2x2/DE_SPARSE
-add wave -noupdate /binning_2x2_tb/binning_2x2/sr_de_i
-add wave -noupdate /binning_2x2_tb/binning_2x2/en_opt
-add wave -noupdate /binning_2x2_tb/binning_2x2/sr_hs_i
-add wave -noupdate /binning_2x2_tb/binning_2x2/sr_vs_i
-add wave -noupdate /binning_2x2_tb/binning_2x2/dv_opt
-add wave -noupdate /binning_2x2_tb/binning_2x2/vs_opt
-add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr_clr
-add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr_en
-add wave -noupdate /binning_2x2_tb/binning_2x2/buf_wptr
-add wave -noupdate /binning_2x2_tb/binning_2x2/buf0_do
-add wave -noupdate /binning_2x2_tb/binning_2x2/x
-add wave -noupdate {/binning_2x2_tb/binning_2x2/x[0]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/x[1]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/x[2]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/x[3]}
-add wave -noupdate /binning_2x2_tb/binning_2x2/de
-add wave -noupdate /binning_2x2_tb/binning_2x2/hs
-add wave -noupdate /binning_2x2_tb/binning_2x2/vs
-add wave -noupdate /binning_2x2_tb/binning_2x2/line_out_en
-add wave -noupdate /binning_2x2_tb/binning_2x2/sumx12
-add wave -noupdate /binning_2x2_tb/binning_2x2/sumx34
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_de[0]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs[0]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_vs[0]}
-add wave -noupdate -radix unsigned /binning_2x2_tb/binning_2x2/sumx1234
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_de[1]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs[1]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_vs[1]}
-add wave -noupdate -radix unsigned /binning_2x2_tb/binning_2x2/sumx1234_div4
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_de[2]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_hs[2]}
-add wave -noupdate {/binning_2x2_tb/binning_2x2/sr_vs[2]}
-add wave -noupdate /binning_2x2_tb/binning_2x2/de_sel
-add wave -noupdate /binning_2x2_tb/binning_2x2/sr_de_sel
-add wave -noupdate /binning_2x2_tb/binning_2x2/do_
+add wave -noupdate /binning_tb/binning_2x2/DE_SPARSE
+add wave -noupdate /binning_tb/binning_2x2/sr_de_i
+add wave -noupdate /binning_tb/binning_2x2/en_opt
+add wave -noupdate /binning_tb/binning_2x2/sr_hs_i
+add wave -noupdate /binning_tb/binning_2x2/sr_vs_i
+add wave -noupdate /binning_tb/binning_2x2/dv_opt
+add wave -noupdate /binning_tb/binning_2x2/vs_opt
+add wave -noupdate /binning_tb/binning_2x2/buf_wptr_clr
+add wave -noupdate /binning_tb/binning_2x2/buf_wptr_en
+add wave -noupdate /binning_tb/binning_2x2/buf_wptr
+add wave -noupdate /binning_tb/binning_2x2/buf0_do
+add wave -noupdate /binning_tb/binning_2x2/x
+add wave -noupdate {/binning_tb/binning_2x2/x[0]}
+add wave -noupdate {/binning_tb/binning_2x2/x[1]}
+add wave -noupdate {/binning_tb/binning_2x2/x[2]}
+add wave -noupdate {/binning_tb/binning_2x2/x[3]}
+add wave -noupdate /binning_tb/binning_2x2/de
+add wave -noupdate /binning_tb/binning_2x2/hs
+add wave -noupdate /binning_tb/binning_2x2/vs
+add wave -noupdate /binning_tb/binning_2x2/line_out_en
+add wave -noupdate /binning_tb/binning_2x2/sumx12
+add wave -noupdate /binning_tb/binning_2x2/sumx34
+add wave -noupdate {/binning_tb/binning_2x2/sr_de[0]}
+add wave -noupdate {/binning_tb/binning_2x2/sr_hs[0]}
+add wave -noupdate {/binning_tb/binning_2x2/sr_vs[0]}
+add wave -noupdate -radix unsigned /binning_tb/binning_2x2/sumx1234
+add wave -noupdate {/binning_tb/binning_2x2/sr_de[1]}
+add wave -noupdate {/binning_tb/binning_2x2/sr_hs[1]}
+add wave -noupdate {/binning_tb/binning_2x2/sr_vs[1]}
+add wave -noupdate -radix unsigned /binning_tb/binning_2x2/sumx1234_div4
+add wave -noupdate {/binning_tb/binning_2x2/sr_de[2]}
+add wave -noupdate {/binning_tb/binning_2x2/sr_hs[2]}
+add wave -noupdate {/binning_tb/binning_2x2/sr_vs[2]}
+add wave -noupdate /binning_tb/binning_2x2/de_sel
+add wave -noupdate /binning_tb/binning_2x2/sr_de_sel
+add wave -noupdate /binning_tb/binning_2x2/do_
 add wave -noupdate -divider {New Divider}
-add wave -noupdate /binning_2x2_tb/binning_2x2/do_o
-add wave -noupdate /binning_2x2_tb/binning_2x2/de_o
-add wave -noupdate /binning_2x2_tb/binning_2x2/hs_o
-add wave -noupdate /binning_2x2_tb/binning_2x2/vs_o
-add wave -noupdate /binning_2x2_tb/monitor/di_i
-add wave -noupdate /binning_2x2_tb/monitor/de_i
-add wave -noupdate /binning_2x2_tb/monitor/hs_i
-add wave -noupdate /binning_2x2_tb/monitor/vs_i
-add wave -noupdate -radix unsigned /binning_2x2_tb/monitor/data_size
-add wave -noupdate -radix unsigned /binning_2x2_tb/monitor/xcnt
-add wave -noupdate -radix unsigned /binning_2x2_tb/monitor/ycnt
-add wave -noupdate /binning_2x2_tb/monitor/frcnt
+add wave -noupdate /binning_tb/binning_2x2/do_o
+add wave -noupdate /binning_tb/binning_2x2/de_o
+add wave -noupdate /binning_tb/binning_2x2/hs_o
+add wave -noupdate /binning_tb/binning_2x2/vs_o
+add wave -noupdate /binning_tb/monitor/di_i
+add wave -noupdate /binning_tb/monitor/de_i
+add wave -noupdate /binning_tb/monitor/hs_i
+add wave -noupdate /binning_tb/monitor/vs_i
+add wave -noupdate -radix unsigned /binning_tb/monitor/data_size
+add wave -noupdate -radix unsigned /binning_tb/monitor/xcnt
+add wave -noupdate -radix unsigned /binning_tb/monitor/ycnt
+add wave -noupdate /binning_tb/monitor/frcnt
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0

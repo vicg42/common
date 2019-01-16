@@ -2,13 +2,13 @@
 // Engineer    : Golovachenko Victor
 //
 // Create Date : 22.05.2018 12:25:06
-// Module Name : binning_2x2
+// Module Name : binning
 //
 // Description :
 //
 //------------------------------------------------------------------------
 
-module binning_2x2 #(
+module binning #(
     parameter DE_SPARSE = 1, //0 - no empty cycles
                              //1 - one empty cycle per pixel
                              //3 - 3 empty cycle per pixel

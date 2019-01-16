@@ -7,9 +7,9 @@
 
 `include "bmp_io.sv"
 
-module binning_2x2_tb # (
+module binning_tb # (
     parameter READ_IMG_FILE = "24x24_8bit_test1.bmp",
-    parameter WRITE_IMG_FILE = "binning_2x2_tb",
+    parameter WRITE_IMG_FILE = "binning_tb",
 
     parameter DE_SPARSE = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_SIZE_MAX = 4096,
@@ -144,7 +144,7 @@ end : sim_main
 
 
 
-binning_2x2 #(
+binning #(
     .DE_SPARSE(DE_SPARSE),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .PIXEL_WIDTH (PIXEL_WIDTH)
@@ -166,7 +166,7 @@ binning_2x2 #(
 );
 
 
-binning_2x2 #(
+binning #(
     .DE_SPARSE(1),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .PIXEL_WIDTH (PIXEL_WIDTH)
