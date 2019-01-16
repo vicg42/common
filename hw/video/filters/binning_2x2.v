@@ -78,7 +78,7 @@ always @(posedge clk) begin
     if (buf_wptr_clr) begin
         buf_wptr <= 0;
 
-    end else if (buf_wptr_en) begin
+    end else if (buf_wptr_en & !bypass) begin
 
         buf_wptr <= buf_wptr + 1'b1;
 
@@ -118,7 +118,7 @@ assign en = (de_i | (|en_opt[7:0]));
 
 always @(posedge clk) begin
     sr_de_i <= {de_i, sr_de_i[0:(PIPELINE-1)]};
-    if (en) begin
+    if (en & !bypass) begin
         sr_hs_i <= {hs_i, sr_hs_i[0:2]};
         sr_vs_i <= {vs_i, sr_vs_i[0:2]};
 
@@ -157,7 +157,7 @@ reg                   vs_o_ = 0;
 //Line1:  X[2] X[3]
 //Line0:  X[0] X[1]
 always @(posedge clk) begin
-    if (en) begin
+    if (en & !bypass) begin
         //----------------------------
         //pipeline 0
         //----------------------------
@@ -209,10 +209,17 @@ always @(posedge clk) begin
         vs_o_ <= sr_vs[3];
     end
 
-    do_o <= do_o_;
-    de_o <= de_o_ & en;
-    hs_o <= ~hs_o_;
-    vs_o <= vs_o_;
+    if (!bypass) begin
+        do_o <= do_o_;
+        de_o <= de_o_ & en;
+        hs_o <= ~hs_o_;
+        vs_o <= vs_o_;
+    end else begin
+        do_o <= di_i;
+        de_o <= de_i;
+        hs_o <= hs_i;
+        vs_o <= vs_i;
+    end
 end
 
 
