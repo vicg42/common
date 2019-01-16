@@ -50,8 +50,16 @@ add wave -noupdate /binning_2x2_tb/binning_2x2/do_o
 add wave -noupdate /binning_2x2_tb/binning_2x2/de_o
 add wave -noupdate /binning_2x2_tb/binning_2x2/hs_o
 add wave -noupdate /binning_2x2_tb/binning_2x2/vs_o
+add wave -noupdate /binning_2x2_tb/monitor/di_i
+add wave -noupdate /binning_2x2_tb/monitor/de_i
+add wave -noupdate /binning_2x2_tb/monitor/hs_i
+add wave -noupdate /binning_2x2_tb/monitor/vs_i
+add wave -noupdate -radix unsigned /binning_2x2_tb/monitor/data_size
+add wave -noupdate -radix unsigned /binning_2x2_tb/monitor/xcnt
+add wave -noupdate -radix unsigned /binning_2x2_tb/monitor/ycnt
+add wave -noupdate /binning_2x2_tb/monitor/frcnt
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors
+WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
 configure wave -namecolwidth 285
 configure wave -valuecolwidth 100
@@ -67,4 +75,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {4953900 ps}
+WaveRestoreZoom {12387500 ps} {28137500 ps}

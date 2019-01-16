@@ -8,7 +8,7 @@
 `include "bmp_io.sv"
 
 module binning_2x2_tb # (
-    parameter READ_IMG_FILE = "8x8_8bit_test0_1pix.bmp",
+    parameter READ_IMG_FILE = "24x24_8bit_test1.bmp",
     parameter WRITE_IMG_FILE = "binning_2x2_tb",
 
     parameter DE_SPARSE = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
@@ -93,10 +93,10 @@ initial begin : sim_main
     hs_i = 1'b1;
     vs_i = 0;
     #500;
-    w = 16;
-    h = 16;
-    @(posedge clk);
-    vs_i = 1;
+//    w = 16;
+//    h = 16;
+//    @(posedge clk);
+//    vs_i = 1;
     #500;
     for (fr = 0; fr < FRAME_COUNT; fr++) begin
         for (y = 0; y < h; y++) begin
@@ -165,37 +165,37 @@ binning_2x2 #(
     .rst(rst)
 );
 
-
-binning_2x2 #(
-    .DE_SPARSE(1),
-    .LINE_SIZE_MAX (LINE_SIZE_MAX),
-    .PIXEL_WIDTH (PIXEL_WIDTH)
-) binning_4x4 (
-    .bypass(1'b0),
-
-    .di_i(s0_do),//(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
-    .de_i(s0_de),//(de_i),
-    .hs_i(s0_hs),//(hs_i),
-    .vs_i(s0_vs),//(vs_i),
-
-    .do_o(do_o),
-    .de_o(de_o),
-    .hs_o(hs_o),
-    .vs_o(vs_o),
-
-    .clk(clk),
-    .rst(rst)
-);
+//
+//binning_2x2 #(
+//    .DE_SPARSE(1),
+//    .LINE_SIZE_MAX (LINE_SIZE_MAX),
+//    .PIXEL_WIDTH (PIXEL_WIDTH)
+//) binning_4x4 (
+//    .bypass(1'b0),
+//
+//    .di_i(s0_do),//(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
+//    .de_i(s0_de),//(de_i),
+//    .hs_i(s0_hs),//(hs_i),
+//    .vs_i(s0_vs),//(vs_i),
+//
+//    .do_o(do_o),
+//    .de_o(de_o),
+//    .hs_o(hs_o),
+//    .vs_o(vs_o),
+//
+//    .clk(clk),
+//    .rst(rst)
+//);
 
 
 monitor # (
     .DATA_WIDTH (PIXEL_WIDTH),
     .WRITE_IMG_FILE(WRITE_IMG_FILE)
 ) monitor (
-    .di_i(do_o),
-    .de_i(de_o),
-    .hs_i(hs_o),
-    .vs_i(vs_o),
+    .di_i(s0_do),//(do_o),
+    .de_i(s0_de),//(de_o),
+    .hs_i(s0_hs),//(hs_o),
+    .vs_i(s0_vs),//(vs_o),
     .clk (clk)
 );
 

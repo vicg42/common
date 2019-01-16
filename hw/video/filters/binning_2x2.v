@@ -64,7 +64,7 @@ wire dv_opt;
 assign vs_opt = vs_i | sr_vs_i[3];
 assign dv_opt = hs_i & (~sr_hs_i[1]);
 
-assign buf_wptr_clr = (!sr_hs_i[2] & sr_hs_i[1] & sr_de_i[PIPELINE-1]) | !(vs_opt);
+assign buf_wptr_clr = (!sr_hs_i[2] & sr_hs_i[1] & sr_de_i[PIPELINE-1]) | !vs_opt;
 assign buf_wptr_en = (de_i | (dv_opt & sr_de_i[PIPELINE-1]));
 
 always @(posedge clk) begin : buf_line0
@@ -93,7 +93,6 @@ always @(posedge clk) begin
     end
 end
 
-reg de = 1'b0;
 reg hs = 1'b0;
 reg vs = 1'b0;
 
@@ -123,21 +122,18 @@ always @(posedge clk) begin
         sr_hs_i <= {hs_i, sr_hs_i[0:2]};
         sr_vs_i <= {vs_i, sr_vs_i[0:2]};
 
-        de <=  (line_out_en & !sr_hs_i[1]);
-        hs <= ~(line_out_en & !sr_hs_i[1]);
+        hs <= (line_out_en & !sr_hs_i[1]);
         vs <= sr_vs_i[1];
     end
 end
 
-
 always @(posedge clk) begin
-    if (!(vs_opt)) begin
+    if (!vs_opt) begin
         line_out_en <= 1'b0;
     end else if (buf_wptr_clr) begin
         line_out_en <= ~line_out_en;
     end
 end
-
 
 reg [PIXEL_WIDTH:0] sumx12 = 0;
 reg [PIXEL_WIDTH:0] sumx34 = 0;
@@ -146,7 +142,7 @@ reg [PIXEL_WIDTH+1:0] sumx1234 = 0;
 
 reg [PIXEL_WIDTH-1:0] sumx1234_div4;
 
-reg [0:3] sr_de = 0;
+reg [0:0] sr_de = 0;
 reg [0:3] sr_hs = 0;
 reg [0:3] sr_vs = 0;
 
@@ -168,7 +164,6 @@ always @(posedge clk) begin
         sumx12 <= {1'b0, x[0]} + {1'b0, x[1]};
         sumx34 <= {1'b0, x[2]} + {1'b0, x[3]};
 
-        sr_de[0] <= de;
         sr_hs[0] <= hs;
         sr_vs[0] <= vs;
 
@@ -177,7 +172,6 @@ always @(posedge clk) begin
         //----------------------------
         sumx1234 <= {1'b0, sumx12} + {1'b0, sumx34};
 
-        sr_de[1] <= sr_de[0];
         sr_hs[1] <= sr_hs[0];
         sr_vs[1] <= sr_vs[0];
 
@@ -186,13 +180,12 @@ always @(posedge clk) begin
         //----------------------------
         sumx1234_div4 <= sumx1234[PIXEL_WIDTH+1:2]; //(x[0] + x[1] + x[2] + x[3])/4
 
-        if (sr_de[1]) begin
+        if (sr_hs[1]) begin
             de_sel <= ~de_sel;
         end else begin
             de_sel <= 1'b0;
         end
 
-        sr_de[2] <= sr_de[1];
         sr_hs[2] <= sr_hs[1];
         sr_vs[2] <= sr_vs[1];
 
@@ -203,7 +196,7 @@ always @(posedge clk) begin
         if (de_sel) begin
         do_ <= sumx1234_div4;
         end
-        sr_de[3] <= (sr_de_sel & ~sr_hs[2]);
+        sr_de[0] <= (sr_de_sel & sr_hs[2]);
         sr_hs[3] <= sr_hs[2];
         sr_vs[3] <= sr_vs[2];
 
@@ -211,14 +204,14 @@ always @(posedge clk) begin
         //pipeline 4
         //----------------------------
         do_o_ <= do_;
-        de_o_ <= sr_de[3];
+        de_o_ <= sr_de[0];
         hs_o_ <= sr_hs[3];
         vs_o_ <= sr_vs[3];
     end
 
     do_o <= do_o_;
     de_o <= de_o_ & en;
-    hs_o <= hs_o_;
+    hs_o <= ~hs_o_;
     vs_o <= vs_o_;
 end
 
