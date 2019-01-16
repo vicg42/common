@@ -11,7 +11,10 @@ module binning_tb # (
     parameter READ_IMG_FILE = "24x24_8bit_test1.bmp",
     parameter WRITE_IMG_FILE = "binning_tb",
 
-    parameter DE_SPARSE = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
+    parameter DE_I_PERIOD = 2, //0 - no empty cycles
+                             //2 - 1 empty cycle per pixel
+                             //4 - 3 empty cycle per pixel
+                             //etc...
     parameter LINE_SIZE_MAX = 4096,
     parameter PIXEL_WIDTH = 8
 )();
@@ -108,11 +111,11 @@ initial begin : sim_main
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
                 //di_i[16 +: 8] - R
-                if (DE_SPARSE == 0) begin
+                if (DE_I_PERIOD == 0) begin
                     de_i = 1'b1;
                     hs_i = 1'b0;
                     vs_i = 1'b1;
-                end else if (DE_SPARSE == 1) begin
+                end else if (DE_I_PERIOD == 2) begin
                     de_i = 1'b0;
                     hs_i = 1'b0;
                     vs_i = 1'b1;
@@ -145,7 +148,7 @@ end : sim_main
 
 
 binning #(
-    .DE_SPARSE(DE_SPARSE),
+    .DE_I_PERIOD(DE_I_PERIOD),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) binning_2x2 (
@@ -167,7 +170,7 @@ binning #(
 
 
 binning #(
-    .DE_SPARSE(1),
+    .DE_I_PERIOD(4),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) binning_4x4 (

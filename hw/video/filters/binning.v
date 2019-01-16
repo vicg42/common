@@ -9,10 +9,10 @@
 //------------------------------------------------------------------------
 
 module binning #(
-    parameter DE_SPARSE = 1, //0 - no empty cycles
-                             //1 - one empty cycle per pixel
-                             //3 - 3 empty cycle per pixel
-                             //etc...
+    parameter DE_I_PERIOD = 0, //0 - no empty cycles
+                               //2 - 1 empty cycle per pixel
+                               //4 - 3 empty cycle per pixel
+                               //etc...
     parameter LINE_SIZE_MAX = 1024,
     parameter PIXEL_WIDTH = 8
 )(
@@ -35,9 +35,7 @@ module binning #(
 );
 
 // -------------------------------------------------------------------------
-localparam PIPELINE = (DE_SPARSE == 0) ? 8 :
-                      (DE_SPARSE == 1) ? 16 :
-                      (DE_SPARSE == 3) ? 32 : 64;
+localparam PIPELINE = (DE_I_PERIOD == 0) ? 8 : (DE_I_PERIOD*8);
 
 //For Altera: (* ramstyle = "MLAB" *)
 //For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
@@ -99,17 +97,13 @@ reg vs = 1'b0;
 wire [8:0] en_opt;
 genvar a;
 generate
-    if (DE_SPARSE == 0) begin
+    if (DE_I_PERIOD == 0) begin
         for (a=0; a <= (PIPELINE); a=a+1) begin
             assign en_opt[a] = sr_de_i[a];
         end
-    end else if (DE_SPARSE == 1) begin
-        for (a=2; a <= (PIPELINE); a=a+2) begin
-            assign en_opt[a/2-1] = sr_de_i[a-1];
-        end
-    end else if (DE_SPARSE == 3) begin
-        for (a=4; a <= (PIPELINE); a=a+4) begin
-            assign en_opt[a/4-1] = sr_de_i[a-1];
+    end else begin
+        for (a=DE_I_PERIOD; a <= (PIPELINE); a=a+DE_I_PERIOD) begin
+            assign en_opt[a/DE_I_PERIOD-1] = sr_de_i[a-1];
         end
     end
 endgenerate
