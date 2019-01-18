@@ -1,0 +1,1 @@
+vsim -do ./filter_core_5x5_tb.do

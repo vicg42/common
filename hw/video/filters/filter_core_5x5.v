@@ -66,7 +66,7 @@ module filter_core_5x5 #(
 );
 
 // -------------------------------------------------------------------------
-localparam PIPELINE = (DE_I_PERIOD == 0) ? 8 : (DE_I_PERIOD*8);
+localparam PIPELINE = (DE_I_PERIOD == 0) ? 16 : (DE_I_PERIOD*16);
 
 //For Altera: (* ramstyle = "MLAB" *)
 //For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
@@ -88,22 +88,21 @@ reg [DATA_WIDTH-1:0] sr_buf1_do [0:0];
 reg [DATA_WIDTH-1:0] sr_buf2_do [0:1];
 reg [DATA_WIDTH-1:0] sr_buf3_do [0:2];
 
-reg [DATA_WIDTH-1:0] x9_;
-
 reg [0:(PIPELINE+1)] sr_de_i = 0;
-reg [0:4] sr_hs_i = {5{1'b1}};
+reg [0:7] sr_hs_i = 0;
 reg [0:(PIPELINE)] sr_vs_i = 0;
-reg [0:(PIPELINE)] sr_buf_wptr_en = 0;
 
 reg [0:3] line_out_en;
 
 wire vs_opt;
-wire dv_opt;
+wire buf_wptr_en_opt;
+wire sr_hs_i_opt;
 assign vs_opt = vs_i | sr_vs_i[PIPELINE-1];
-assign dv_opt = (hs_i & (~sr_hs_i[4]));
+assign buf_wptr_en_opt = (hs_i & (~sr_hs_i[4]));
+assign sr_hs_i_opt = (hs_i & (~sr_hs_i[7]));
 
-assign buf_wptr_clr = (!sr_hs_i[4] && sr_hs_i[3] & sr_de_i[PIPELINE]);
-assign buf_wptr_en = de_i | (dv_opt & sr_de_i[PIPELINE-1]);
+assign buf_wptr_clr = (!sr_hs_i[4] && sr_hs_i[3] & sr_de_i[PIPELINE-1]);
+assign buf_wptr_en = de_i | (buf_wptr_en_opt & sr_de_i[PIPELINE-1]);
 
 always @(posedge clk) begin : buf_line3
     if (buf_wptr_en) begin
@@ -170,8 +169,8 @@ always @(posedge clk) begin
 
         sr_buf1_do[0] <= buf1_do;
         xA <= sr_buf1_do[0];
-        x9_ <= xA;
-        x8 <= x9_;
+        x9 <= xA;
+        x8 <= x9;
         x7 <= x8;
         x6 <= x7;
 
@@ -183,15 +182,12 @@ always @(posedge clk) begin
     end
 end
 
-wire en;
-assign en = buf_wptr_en | (|sr_buf_wptr_en);
 always @(posedge clk) begin
-    sr_de_i <= {de_i, sr_de_i[0:(PIPELINE)]};
+    sr_de_i <= {de_i, sr_de_i[0:(PIPELINE-1)]};
     sr_vs_i <= {vs_i, sr_vs_i[0:(PIPELINE-1)]};
-    if (en) begin
-        sr_hs_i <= {hs_i, sr_hs_i[0:3]};
+    if (de_i || (sr_hs_i_opt && sr_de_i[PIPELINE-1])) begin
+        sr_hs_i <= {hs_i, sr_hs_i[0:6]};
     end
-    sr_buf_wptr_en <= {buf_wptr_en, sr_buf_wptr_en[0:(PIPELINE-1)]};
 end
 
 always @(posedge clk) begin
@@ -204,17 +200,16 @@ end
 
 always @(posedge clk) begin
     if (!bypass) begin
-        x9 <= x9_;
-        de_o <= (&line_out_en) & !sr_hs_i[3] & sr_buf_wptr_en[7] & buf_wptr_en;
-        hs_o <= ~((&line_out_en) & !sr_hs_i[3] & sr_buf_wptr_en[7]);
+        de_o <= (&line_out_en) & !sr_hs_i[3] & !sr_hs_i[7] & buf_wptr_en;
+        hs_o <= ~((&line_out_en) & !sr_hs_i[3] & !sr_hs_i[7]);
         vs_o <= sr_vs_i[(PIPELINE-1)];
     end else begin
-        x9   <= di_i;
         de_o <= de_i;
         hs_o <= hs_i;
         vs_o <= vs_i;
     end
 end
+
 
 
 endmodule
