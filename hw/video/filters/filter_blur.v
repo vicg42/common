@@ -4,6 +4,7 @@
 //
 //------------------------------------------------------------------------
 module filter_blur #(
+    parameter DE_I_PERIOD = 0,
     parameter LINE_SIZE_MAX = 1024,
     parameter DATA_WIDTH = 8
 )(
@@ -40,6 +41,7 @@ wire [DATA_WIDTH-1:0] p8;
 wire [DATA_WIDTH-1:0] p9;
 
 filter_core_3x3 #(
+    .DE_I_PERIOD (DE_I_PERIOD),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .DATA_WIDTH (DATA_WIDTH)
 ) filter_core (
@@ -102,15 +104,13 @@ reg [PIPELINE-1:0] sr_vs = 0;
 //        |1 2 1|   | 0.0625  0.125  0.0625 |
 always @(posedge clk) begin
     //pipeline 0
-    if (de) begin
-        sum_p98 <= {5'd0, p9[7:0]}       + {4'd0, p8[7:0], 1'd0};
-        sum_p65 <= {5'd0, p6[7:0], 1'd0} + {3'd0, p5[7:0], 2'd0};
-        sum_p32 <= {5'd0, p3[7:0]}       + {4'd0, p2[7:0], 1'd0};
+    sum_p98 <= {5'd0, p9[7:0]}       + {4'd0, p8[7:0], 1'd0};
+    sum_p65 <= {5'd0, p6[7:0], 1'd0} + {3'd0, p5[7:0], 2'd0};
+    sum_p32 <= {5'd0, p3[7:0]}       + {4'd0, p2[7:0], 1'd0};
 
-        sr_p7 <= p7;
-        sr_p4 <= p4;
-        sr_p1 <= p1;
-    end
+    sr_p7 <= p7;
+    sr_p4 <= p4;
+    sr_p1 <= p1;
 
     sr_do[0] <= p9;
     sr_de[0] <= de;

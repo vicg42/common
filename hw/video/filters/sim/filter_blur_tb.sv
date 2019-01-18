@@ -8,9 +8,13 @@
 `include "bmp_io.sv"
 
 module filter_blur_tb # (
-    parameter READ_IMG_FILE = "8x8_8bit_test0_1pix.bmp",
+    parameter READ_IMG_FILE = "24x24_8bit_test1.bmp",
     parameter WRITE_IMG_FILE = "filter_blur_tb",
 
+    parameter DE_I_PERIOD = 0, //0 - no empty cycles
+                             //2 - 1 empty cycle per pixel
+                             //4 - 3 empty cycle per pixel
+                             //etc...
     parameter LINE_SIZE_MAX = 4096,
     parameter PIXEL_WIDTH = 8
 )();
@@ -46,6 +50,11 @@ logic de_o;
 logic hs_o;
 logic vs_o;
 
+wire [PIXEL_WIDTH-1:0] s0_do;
+wire s0_de;
+wire s0_hs;
+wire s0_vs;
+
 //***********************************
 //System clock gen
 //***********************************
@@ -80,52 +89,69 @@ initial begin : sim_main
     bc = image_real.get_ColortBitCount();
     $display("read frame: %d x %d; BItCount %d", w, h, bc);
 
-//
-//    image_new = new();
-//    image_new_size = w*h*(bc/8);
-//    image_new.set_pixel_array(image_new_size);
-//    for (y = 0; y < h; y++) begin
-//        for (x = 0; x < w; x++) begin
-//            pixel = image_real.get_pixel(x, y);
-//            for (bcnt = 0; bcnt < (bc/8); bcnt++) begin
-//                image_new.set_pixel(idx, pixel[(bcnt*8) +: 8]);
-//                idx++;
-//            end
-//        end
-//    end
-//
-//    image_new.fwrite_bmp(WRITE_IMG_FILE, bc, w, h);
-
-
     @(posedge clk);
     fr = 0;
     di_i = 0;
     de_i = 0;
     hs_i = 1'b1;
     vs_i = 0;
+    #500;
+//    w = 16;
+//    h = 16;
+//    @(posedge clk);
+//    vs_i = 1;
+    #500;
     for (fr = 0; fr < FRAME_COUNT; fr++) begin
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
                 di_i = image_real.get_pixel(x, y);
+//                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x;
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
                 //di_i[16 +: 8] - R
-                de_i = 1'b1;
-                hs_i = 1'b0;
-                vs_i = 1'b1;
+                if (DE_I_PERIOD == 0) begin
+                    de_i = 1'b1;
+                    hs_i = 1'b0;
+                    vs_i = 1'b1;
+                end else if (DE_I_PERIOD == 2) begin
+                    de_i = 1'b0;
+                    hs_i = 1'b0;
+                    vs_i = 1'b1;
+                    @(posedge clk);
+                    de_i = 1'b1;
+                end else if (DE_I_PERIOD == 4) begin
+                    de_i = 1'b0;
+                    hs_i = 1'b0;
+                    vs_i = 1'b1;
+                    @(posedge clk);
+                    de_i = 1'b0;
+                    hs_i = 1'b0;
+                    vs_i = 1'b1;
+                    @(posedge clk);
+                    de_i = 1'b0;
+                    hs_i = 1'b0;
+                    vs_i = 1'b1;
+                    @(posedge clk);
+                    de_i = 1'b1;
+                end
                 #0;
             end
             @(posedge clk);
             de_i = 1'b0;
             hs_i = 1'b1;
+//            @(posedge clk);
+//            @(posedge clk);
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #50; //delay between line
+            #350; //delay between line
         end
         @(posedge clk);
+//        if (y == h) begin
+//            vs_i = 1'b0;
+//        end
         #110;
     end
 
@@ -134,12 +160,12 @@ initial begin : sim_main
 end : sim_main
 
 
-
 filter_blur #(
+    .DE_I_PERIOD(DE_I_PERIOD),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .DATA_WIDTH (PIXEL_WIDTH)
 ) filter_blur (
-    .bypass(1'b1),
+    .bypass(1'b0),
 
     .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
     .de_i(de_i),

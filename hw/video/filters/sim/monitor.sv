@@ -62,7 +62,7 @@ always @ (posedge clk) begin
             if (frcnt < 4) begin
 
                 //create file name
-                $sformat(strtmp,"_tb_edge_dbg_fr%02d", frcnt);
+                $sformat(strtmp,"_tb_fr%02d", frcnt);
                 filename = {WRITE_IMG_FILE, strtmp, ".bmp"};
 
                 //allocated memary for video data
