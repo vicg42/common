@@ -150,7 +150,7 @@ end : sim_main
 binning #(
     .DE_I_PERIOD(DE_I_PERIOD),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
-    .PIXEL_WIDTH (PIXEL_WIDTH)
+    .DATA_WIDTH (PIXEL_WIDTH)
 ) binning_2x2 (
     .bypass(1'b0),
 

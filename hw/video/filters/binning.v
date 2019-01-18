@@ -14,21 +14,21 @@ module binning #(
                                //4 - 3 empty cycle per pixel
                                //etc...
     parameter LINE_SIZE_MAX = 1024,
-    parameter PIXEL_WIDTH = 8
+    parameter DATA_WIDTH = 8
 )(
     input bypass,
 
     //input resolution X * Y
-    input [PIXEL_WIDTH-1:0] di_i,
-    input                   de_i,
-    input                   hs_i,
-    input                   vs_i,
+    input [DATA_WIDTH-1:0] di_i,
+    input                  de_i,
+    input                  hs_i,
+    input                  vs_i,
 
     //input resolution X/2 * Y/2
-    output reg [PIXEL_WIDTH-1:0] do_o,
-    output reg                   de_o,
-    output reg                   hs_o,
-    output reg                   vs_o,
+    output reg [DATA_WIDTH-1:0] do_o,
+    output reg                  de_o,
+    output reg                  hs_o,
+    output reg                  vs_o,
 
     input clk,
     input rst
@@ -39,14 +39,14 @@ localparam PIPELINE = (DE_I_PERIOD == 0) ? 8 : (DE_I_PERIOD*8);
 
 //For Altera: (* ramstyle = "MLAB" *)
 //For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
-(* RAM_STYLE = "BLOCK" *) reg [PIXEL_WIDTH-1:0] buf0 [LINE_SIZE_MAX-1:0];
-reg [PIXEL_WIDTH-1:0] buf0_do;
+(* RAM_STYLE = "BLOCK" *) reg [DATA_WIDTH-1:0] buf0 [LINE_SIZE_MAX-1:0];
+reg [DATA_WIDTH-1:0] buf0_do;
 
 reg [$clog2(LINE_SIZE_MAX)-1:0] buf_wptr = 0;
 wire buf_wptr_clr;
 wire buf_wptr_en;
 
-reg [PIXEL_WIDTH:0] sr_di_i [0:1];
+reg [DATA_WIDTH:0] sr_di_i [0:1];
 
 reg [0:(PIPELINE)] sr_de_i = 0;
 reg [0:3] sr_hs_i = {4{1'b1}};
@@ -54,7 +54,7 @@ reg [0:3] sr_vs_i = 0;
 
 reg line_out_en;
 
-reg [PIXEL_WIDTH-1:0] x [0:3];
+reg [DATA_WIDTH-1:0] x [0:3];
 
 wire en;
 wire vs_opt;
@@ -129,12 +129,12 @@ always @(posedge clk) begin
     end
 end
 
-reg [PIXEL_WIDTH:0] sumx12 = 0;
-reg [PIXEL_WIDTH:0] sumx34 = 0;
+reg [DATA_WIDTH:0] sumx12 = 0;
+reg [DATA_WIDTH:0] sumx34 = 0;
 
-reg [PIXEL_WIDTH+1:0] sumx1234 = 0;
+reg [DATA_WIDTH+1:0] sumx1234 = 0;
 
-reg [PIXEL_WIDTH-1:0] sumx1234_div4;
+reg [DATA_WIDTH-1:0] sumx1234_div4;
 
 reg [0:0] sr_de = 0;
 reg [0:3] sr_hs = 0;
@@ -142,8 +142,8 @@ reg [0:3] sr_vs = 0;
 
 reg de_sel = 1'b0;
 reg sr_de_sel = 1'b0;
-reg [PIXEL_WIDTH-1:0] do_ = 0;
-reg [PIXEL_WIDTH-1:0] do_o_ = 0;
+reg [DATA_WIDTH-1:0] do_ = 0;
+reg [DATA_WIDTH-1:0] do_o_ = 0;
 reg                   de_o_ = 0;
 reg                   hs_o_ = 0;
 reg                   vs_o_ = 0;
@@ -172,7 +172,7 @@ always @(posedge clk) begin
         //----------------------------
         //pipeline 2
         //----------------------------
-        sumx1234_div4 <= sumx1234[PIXEL_WIDTH+1:2]; //(x[0] + x[1] + x[2] + x[3])/4
+        sumx1234_div4 <= sumx1234[DATA_WIDTH+1:2]; //(x[0] + x[1] + x[2] + x[3])/4
 
         if (sr_hs[1]) begin
             de_sel <= ~de_sel;
