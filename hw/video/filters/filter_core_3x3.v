@@ -99,7 +99,6 @@ always @(posedge clk) begin
         buf_wptr <= 0;
 
     end else if (buf_wptr_en) begin
-
         buf_wptr <= buf_wptr + 1'b1;
 
         //align
