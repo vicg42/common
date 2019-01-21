@@ -8,7 +8,7 @@
 `include "bmp_io.sv"
 
 module filter_blur_tb # (
-    parameter READ_IMG_FILE = "24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
     parameter WRITE_IMG_FILE = "filter_blur_tb",
 
     parameter DE_I_PERIOD = 0, //0 - no empty cycles

@@ -8,9 +8,11 @@ file delete -force -- work
 
 vlib work
 
-vlog ../filter_core.v
+vlog ../bmp_io.sv -sv
+vlog ../filter_core_3x3.v
 vlog ../filter_sharpening.v
-vlog ./filter_sharpening_tb.sv -sv
+vlog ./monitor.sv -sv +incdir+../
+vlog ./filter_sharpening_tb.sv -sv +incdir+../
 
 
 vsim -t 1ps -novopt -lib work filter_sharpening_tb
