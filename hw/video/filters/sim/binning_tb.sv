@@ -8,7 +8,7 @@
 `include "bmp_io.sv"
 
 module binning_tb # (
-    parameter READ_IMG_FILE = "24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",//"24x24_8bit_test1.bmp",
     parameter WRITE_IMG_FILE = "binning_tb",
 
     parameter DE_I_PERIOD = 2, //0 - no empty cycles
@@ -172,7 +172,7 @@ binning #(
 binning #(
     .DE_I_PERIOD(4),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
-    .PIXEL_WIDTH (PIXEL_WIDTH)
+    .DATA_WIDTH (PIXEL_WIDTH)
 ) binning_4x4 (
     .bypass(1'b0),
 
