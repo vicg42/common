@@ -1,0 +1,1 @@
+vsim -do ./filter_median_tb.do
