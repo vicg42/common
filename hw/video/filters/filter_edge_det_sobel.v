@@ -46,6 +46,7 @@ reg [DATA_WIDTH-1:0] sr_p5 [0:4];
 
 
 filter_core_3x3 #(
+    .DE_I_PERIOD (DE_I_PERIOD),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .DATA_WIDTH (DATA_WIDTH)
 ) filter_core (
@@ -115,93 +116,93 @@ reg [DATA_WIDTH:0] gm = 0;
 
 //G = |Gx| + |Gy|
 always @(posedge clk) begin
-        //----------------------------
-        //pipeline 0
-        //----------------------------
-        sum_p13 <= {1'd0, p1} + {1'd0, p3}; //P1 + P3
-        sum_p79 <= {1'd0, p7} + {1'd0, p9}; //P7 + P9
+    //----------------------------
+    //pipeline 0
+    //----------------------------
+    sum_p13 <= {1'd0, p1} + {1'd0, p3}; //P1 + P3
+    sum_p79 <= {1'd0, p7} + {1'd0, p9}; //P7 + P9
 
-        sum_p17 <= {1'd0, p1} + {1'd0, p7}; //P1 + P7
-        sum_p39 <= {1'd0, p3} + {1'd0, p9}; //P3 + P9
+    sum_p17 <= {1'd0, p1} + {1'd0, p7}; //P1 + P7
+    sum_p39 <= {1'd0, p3} + {1'd0, p9}; //P3 + P9
 
-        sr_p2 <= {p2, 1'd0};//P2*2
-        sr_p8 <= {p8, 1'd0};//P8*2
-        sr_p4 <= {p4, 1'd0};//P4*2
-        sr_p6 <= {p6, 1'd0};//P6*2
+    sr_p2 <= {p2, 1'd0};//P2*2
+    sr_p8 <= {p8, 1'd0};//P8*2
+    sr_p4 <= {p4, 1'd0};//P4*2
+    sr_p6 <= {p6, 1'd0};//P6*2
 
-        sr_de[0] <= de;
-        sr_hs[0] <= hs;
-        sr_vs[0] <= vs;
-        sr_do[0] <= p9;//bypass
-        sr_p5[0] <= p5;//aux
+    sr_de[0] <= de;
+    sr_hs[0] <= hs;
+    sr_vs[0] <= vs;
+    sr_do[0] <= p9;//bypass
+    sr_p5[0] <= p5;//aux
 
-        //----------------------------
-        //pipeline 1
-        //----------------------------
-        sum_p123 <= {1'd0, sum_p13} + {1'd0, sr_p2}; //P1 + P2*2 + P3
-        sum_p789 <= {1'd0, sum_p79} + {1'd0, sr_p8}; //P7 + P8*2 + P9
+    //----------------------------
+    //pipeline 1
+    //----------------------------
+    sum_p123 <= {1'd0, sum_p13} + {1'd0, sr_p2}; //P1 + P2*2 + P3
+    sum_p789 <= {1'd0, sum_p79} + {1'd0, sr_p8}; //P7 + P8*2 + P9
 
-        sum_p147 <= {1'd0, sum_p17} + {1'd0, sr_p4}; //P1 + P4*2 + P7
-        sum_p369 <= {1'd0, sum_p39} + {1'd0, sr_p6}; //P3 + P6*2 + P9
+    sum_p147 <= {1'd0, sum_p17} + {1'd0, sr_p4}; //P1 + P4*2 + P7
+    sum_p369 <= {1'd0, sum_p39} + {1'd0, sr_p6}; //P3 + P6*2 + P9
 
-        sr_de[1] <= sr_de[0];
-        sr_hs[1] <= sr_hs[0];
-        sr_vs[1] <= sr_vs[0];
-        sr_do[1] <= sr_do[0];
-        sr_p5[1] <= sr_p5[0];
+    sr_de[1] <= sr_de[0];
+    sr_hs[1] <= sr_hs[0];
+    sr_vs[1] <= sr_vs[0];
+    sr_do[1] <= sr_do[0];
+    sr_p5[1] <= sr_p5[0];
 
-        //----------------------------
-        //pipeline 2
-        //----------------------------
-        sum_p123_round <= sum_p123[DATA_WIDTH+1:2]; //div4
-        sum_p789_round <= sum_p789[DATA_WIDTH+1:2]; //div4
+    //----------------------------
+    //pipeline 2
+    //----------------------------
+    sum_p123_round <= sum_p123[DATA_WIDTH+1:2]; //div4
+    sum_p789_round <= sum_p789[DATA_WIDTH+1:2]; //div4
 
-        sum_p147_round <= sum_p147[DATA_WIDTH+1:2]; //div4
-        sum_p369_round <= sum_p369[DATA_WIDTH+1:2]; //div4
+    sum_p147_round <= sum_p147[DATA_WIDTH+1:2]; //div4
+    sum_p369_round <= sum_p369[DATA_WIDTH+1:2]; //div4
 
-        sr_de[2] <= sr_de[1];
-        sr_hs[2] <= sr_hs[1];
-        sr_vs[2] <= sr_vs[1];
-        sr_do[2] <= sr_do[1];
-        sr_p5[2] <= sr_p5[1];
+    sr_de[2] <= sr_de[1];
+    sr_hs[2] <= sr_hs[1];
+    sr_vs[2] <= sr_vs[1];
+    sr_do[2] <= sr_do[1];
+    sr_p5[2] <= sr_p5[1];
 
-        //----------------------------
-        //pipeline 3 (|Gx|, |Gy|)
-        //----------------------------
-        gx <= (sum_p123_round > sum_p789_round) ? (sum_p123_round - sum_p789_round) : (sum_p789_round - sum_p123_round);
-        gy <= (sum_p147_round > sum_p369_round) ? (sum_p147_round - sum_p369_round) : (sum_p369_round - sum_p147_round);
+    //----------------------------
+    //pipeline 3 (|Gx|, |Gy|)
+    //----------------------------
+    gx <= (sum_p123_round > sum_p789_round) ? (sum_p123_round - sum_p789_round) : (sum_p789_round - sum_p123_round);
+    gy <= (sum_p147_round > sum_p369_round) ? (sum_p147_round - sum_p369_round) : (sum_p369_round - sum_p147_round);
 
-        sr_de[3] <= sr_de[2];
-        sr_hs[3] <= sr_hs[2];
-        sr_vs[3] <= sr_vs[2];
-        sr_do[3] <= sr_do[2];
-        sr_p5[3] <= sr_p5[2];
+    sr_de[3] <= sr_de[2];
+    sr_hs[3] <= sr_hs[2];
+    sr_vs[3] <= sr_vs[2];
+    sr_do[3] <= sr_do[2];
+    sr_p5[3] <= sr_p5[2];
 
-        //----------------------------
-        //pipeline 4 (G = |Gx| + |Gy|)
-        //----------------------------
-        gm <= {1'b0, gx} + {1'b0, gy};
+    //----------------------------
+    //pipeline 4 (G = |Gx| + |Gy|)
+    //----------------------------
+    gm <= {1'b0, gx} + {1'b0, gy};
 
-        sr_de[4] <= sr_de[3];
-        sr_hs[4] <= sr_hs[3];
-        sr_vs[4] <= sr_vs[3];
-        sr_do[4] <= sr_do[3];
-        sr_p5[4] <= sr_p5[3];
+    sr_de[4] <= sr_de[3];
+    sr_hs[4] <= sr_hs[3];
+    sr_vs[4] <= sr_vs[3];
+    sr_do[4] <= sr_do[3];
+    sr_p5[4] <= sr_p5[3];
 
-        //----------------------------
-        //pipeline 5 (bypass/gate)
-        //----------------------------
-        if (bypass) begin
-            do_o <= sr_do[4];
-        end else if (gate) begin
-            do_o <= ((gm[DATA_WIDTH:1] >= threshold_l[DATA_WIDTH-1:0]) && (gm[DATA_WIDTH:1] <= threshold_h[DATA_WIDTH-1:0])) ? gm[DATA_WIDTH:1] : 0;
-        end else begin
-            do_o <= gm[DATA_WIDTH:1];
-        end
+    //----------------------------
+    //pipeline 5 (bypass/gate)
+    //----------------------------
+    if (bypass) begin
+        do_o <= sr_do[4];
+    end else if (gate) begin
+        do_o <= ((gm[DATA_WIDTH:1] >= threshold_l[DATA_WIDTH-1:0]) && (gm[DATA_WIDTH:1] <= threshold_h[DATA_WIDTH-1:0])) ? gm[DATA_WIDTH:1] : 0;
+    end else begin
+        do_o <= gm[DATA_WIDTH:1];
+    end
 
-        de_o <= sr_de[4];
-        hs_o <= sr_hs[4];
-        vs_o <= sr_vs[4];
+    de_o <= sr_de[4];
+    hs_o <= sr_hs[4];
+    vs_o <= sr_vs[4];
 end
 
 endmodule
