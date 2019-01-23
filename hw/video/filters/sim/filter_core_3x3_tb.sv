@@ -11,7 +11,7 @@ module filter_core_3x3_tb # (
     parameter READ_IMG_FILE = "24x24_8bit_test1.bmp",
     parameter WRITE_IMG_FILE = "filter_core_3x3_tb",
 
-    parameter DE_I_PERIOD = 0, //0 - no empty cycles
+    parameter DE_I_PERIOD = 2, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
