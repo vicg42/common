@@ -9,9 +9,10 @@
 
 module binning_tb # (
     parameter READ_IMG_FILE = "img_600x600_8bit.bmp",//"24x24_8bit_test1.bmp",
-    parameter WRITE_IMG_FILE = "binning_tb",
+    parameter WRITE_IMG_FILE0 = "binning_tb_res0",
+    parameter WRITE_IMG_FILE1 = "binning_tb_res1",
 
-    parameter DE_I_PERIOD = 2, //0 - no empty cycles
+    parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
@@ -148,7 +149,7 @@ end : sim_main
 
 
 binning #(
-    .DE_I_PERIOD(DE_I_PERIOD),
+    .DE_I_PERIOD(0),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .DATA_WIDTH (PIXEL_WIDTH)
 ) binning_2x2 (
@@ -159,27 +160,37 @@ binning #(
     .hs_i(hs_i),
     .vs_i(vs_i),
 
-    .do_o(s0_do),//(do_o),
-    .de_o(s0_de),//(de_o),
-    .hs_o(s0_hs),//(hs_o),
-    .vs_o(s0_vs),//(vs_o),
+    .do_o(s0_do),
+    .de_o(s0_de),
+    .hs_o(s0_hs),
+    .vs_o(s0_vs),
 
     .clk(clk),
     .rst(rst)
 );
 
+monitor # (
+    .DATA_WIDTH (PIXEL_WIDTH),
+    .WRITE_IMG_FILE(WRITE_IMG_FILE0)
+) monitor0 (
+    .di_i(s0_do),
+    .de_i(s0_de),
+    .hs_i(s0_hs),
+    .vs_i(s0_vs),
+    .clk (clk)
+);
 
 binning #(
-    .DE_I_PERIOD(4),
+    .DE_I_PERIOD(2),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .DATA_WIDTH (PIXEL_WIDTH)
 ) binning_4x4 (
     .bypass(1'b0),
 
-    .di_i(s0_do),//(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
-    .de_i(s0_de),//(de_i),
-    .hs_i(s0_hs),//(hs_i),
-    .vs_i(s0_vs),//(vs_i),
+    .di_i(s0_do),
+    .de_i(s0_de),
+    .hs_i(s0_hs),
+    .vs_i(s0_vs),
 
     .do_o(do_o),
     .de_o(de_o),
@@ -193,12 +204,12 @@ binning #(
 
 monitor # (
     .DATA_WIDTH (PIXEL_WIDTH),
-    .WRITE_IMG_FILE(WRITE_IMG_FILE)
-) monitor (
-    .di_i(do_o),//(s0_do),//
-    .de_i(de_o),//(s0_de),//
-    .hs_i(hs_o),//(s0_hs),//
-    .vs_i(vs_o),//(s0_vs),//
+    .WRITE_IMG_FILE(WRITE_IMG_FILE1)
+) monitor1 (
+    .di_i(do_o),
+    .de_i(de_o),
+    .hs_i(hs_o),
+    .vs_i(vs_o),
     .clk (clk)
 );
 
