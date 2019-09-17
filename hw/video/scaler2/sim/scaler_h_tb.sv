@@ -177,10 +177,10 @@ scaler_h #(
 ) scaler_h (
     .scale_step(scale_step),
 
-    .di_ii(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
-    .de_ii(de_i),
-    .hs_ii(hs_i),
-    .vs_ii(~vs_i),
+    .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
+    .de_i(de_i),
+    .hs_i(hs_i),
+    .vs_i(~vs_i),
 
     .do_o(do_o),
     .de_o(de_o),

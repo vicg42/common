@@ -68,8 +68,13 @@ always @(posedge clk) begin
 
     end else begin
 
+        new_pix <= 0;
+        new_line <= 0;
+        new_fr <= 0;
+
         if (hs_i || vs_i) begin
             cnt_pix_i <= 0;
+            cnt_pix_o <= PIXEL_STEP;
 
         end else if (de_i && !hs_i && !vs_i) begin
             sr_di_i[0] <= di_i;
@@ -85,39 +90,28 @@ always @(posedge clk) begin
 //            if (vs_i) begin
                 start_fr <= 1;
 //            end
-        end
 
-        new_pix <= 0;
-        new_line <= 0;
-        new_fr <= 0;
+            if (cnt_pix_i > cnt_pix_o) begin
 
-        if (cnt_pix_i > cnt_pix_o) begin
+                new_pix <= 1;
 
-            new_pix <= 1;
+                pix[0] <= sr_di_i[0];
+                pix[1] <= sr_di_i[1];
+                pix[2] <= sr_di_i[2];
+                pix[3] <= (cnt_pix_i <= (PIXEL_STEP*2))? 1'b0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
 
-            pix[0] <= sr_di_i[0];
-            pix[1] <= sr_di_i[1];
-            pix[2] <= sr_di_i[2];
-            pix[3] <= (cnt_pix_i <= (PIXEL_STEP*2))? 1'b0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
+                cnt_pix_o <= cnt_pix_o + scale_step;
 
-            cnt_pix_o <= cnt_pix_o + scale_step;
+                if (!hs_i) begin
+                    new_line <= 1;
+                end
 
-            if (!hs_i) begin
-                new_line <= 1;
+                if (!vs_i) begin
+                    new_fr <= 1;
+                end
+
             end
 
-            if (!vs_i) begin
-                new_fr <= 1;
-            end
-
-//            if (start_line) begin
-//                start_line <= 0;
-//                new_line <= 1;
-//            end
-//            if (start_fr) begin
-//                start_fr <= 0;
-//                new_fr <= 1;
-//            end
         end
 
     end
