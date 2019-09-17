@@ -39,9 +39,9 @@ reg [23:0] cnt_pix_i = 0;             // input pixels coordinate counter
 reg [23:0] cnt_pix_o = PIXEL_STEP;             // output pixels coordinate counter
 
 reg new_pix = 0;
-reg [1:0] sr_new_pix = 0;
-reg [1:0] sr_new_line = 0;
-reg [1:0] sr_new_fr = 0;
+reg [1:0] sr_de = 0;
+reg [1:0] sr_hs = 0;
+reg [1:0] sr_vs = 0;
 
 reg signed [MUL_WIDTH+2-1:0] sum;
 
@@ -110,34 +110,26 @@ always @(posedge clk) begin
     mult[2] <= coe[2] * pix[2];
     mult[3] <= coe[3] * pix[3];
 
-    sr_new_pix[0] <= new_pix;
-    sr_new_line[0] <= hs_i;
-    sr_new_fr[0] <= vs_i;
+    sr_de[0] <= new_pix;
+    sr_hs[0] <= hs_i;
+    sr_vs[0] <= vs_i;
 
     //stage 1
     sum <= mult[1] + mult[2] - mult[0] - mult[3] + ROUND_ADDER;
 
-    sr_new_pix[1] <= sr_new_pix[0];
-    sr_new_line[1] <= sr_new_line[0];
-    sr_new_fr[1] <= sr_new_fr[0];
+    sr_de[1] <= sr_de[0];
+    sr_hs[1] <= sr_hs[0];
+    sr_vs[1] <= sr_vs[0];
 
     //stage 2
-    if (sr_new_pix[1]) begin
+    if (sr_de[1]) begin
         do_o <= sum[COEFF_WIDTH-1 +: DATA_WIDTH];
         if (sum[OVERFLOW_BIT]) do_o <= MAX_OUTPUT;
         if (sum < 0) do_o <= 0;
     end
-    de_o <= sr_new_pix[1];
-    hs_o <= sr_new_line[1];
-    vs_o <= sr_new_fr[1];
-end
-
-
-reg [15:0] dbg_cnt_pix_o = 0;
-always @(posedge clk) begin
-    if (new_pix) begin
-        dbg_cnt_pix_o <= dbg_cnt_pix_o + 1;
-    end
+    de_o <= sr_de[1];
+    hs_o <= sr_hs[1];
+    vs_o <= sr_vs[1];
 end
 
 
