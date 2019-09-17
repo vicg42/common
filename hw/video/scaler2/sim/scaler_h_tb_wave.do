@@ -25,6 +25,7 @@ add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_i
 add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/cnt_pix_o_23_12
 add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_o_11_0
 add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_o
+add wave -noupdate /scaler_h_tb/SCALE_FACTOR
 add wave -noupdate /scaler_h_tb/scaler_h/scale_step
 add wave -noupdate /scaler_h_tb/scaler_h/new_pix
 add wave -noupdate /scaler_h_tb/scaler_h/new_line
@@ -54,4 +55,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {997569 ps} {1092857 ps}
+WaveRestoreZoom {1011789 ps} {1077778 ps}
