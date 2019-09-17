@@ -8,10 +8,14 @@
 `include "bmp_io.sv"
 
 module scaler_h_tb # (
-    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "_24x24_8bit.bmp", //"img_600x600_8bit.bmp", //
     parameter WRITE_IMG_FILE = "scaler_h_tb",
 
-    parameter DE_I_PERIOD = 0, //0 - no empty cycles
+    parameter STEP = 4096,
+    parameter real SCALE_FACTOR = 1.5,
+    // (4.12) unsigned fixed point. 4096 is 1.000 scale
+
+    parameter DE_I_PERIOD = 2, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
@@ -82,7 +86,7 @@ initial begin : sim_main
     di_i = 0;
     de_i = 0;
     hs_i = 1'b1;
-    vs_i = 0;
+    vs_i = 1'b1;
 
     image_real = new();
     image_real.fread_bmp(READ_IMG_FILE);
@@ -100,12 +104,8 @@ initial begin : sim_main
     di_i = 0;
     de_i = 0;
     hs_i = 1'b1;
-    vs_i = 0;
+    vs_i = 1'b1;
     #500;
-//    w = 16;
-//    h = 16;
-//    @(posedge clk);
-//    vs_i = 1;
     #500;
     for (fr = 0; fr < FRAME_COUNT; fr++) begin
         for (y = 0; y < h; y++) begin
@@ -120,25 +120,25 @@ initial begin : sim_main
                 if (DE_I_PERIOD == 0) begin
                     de_i = 1'b1;
                     hs_i = 1'b0;
-                    vs_i = 1'b1;
+                    vs_i = 1'b0;
                 end else if (DE_I_PERIOD == 2) begin
                     de_i = 1'b0;
                     hs_i = 1'b0;
-                    vs_i = 1'b1;
+                    vs_i = 1'b0;
                     @(posedge clk);
                     de_i = 1'b1;
                 end else if (DE_I_PERIOD == 4) begin
                     de_i = 1'b0;
                     hs_i = 1'b0;
-                    vs_i = 1'b1;
+                    vs_i = 1'b0;
                     @(posedge clk);
                     de_i = 1'b0;
                     hs_i = 1'b0;
-                    vs_i = 1'b1;
+                    vs_i = 1'b0;
                     @(posedge clk);
                     de_i = 1'b0;
                     hs_i = 1'b0;
-                    vs_i = 1'b1;
+                    vs_i = 1'b0;
                     @(posedge clk);
                     de_i = 1'b1;
                 end
@@ -150,7 +150,7 @@ initial begin : sim_main
 //            @(posedge clk);
 //            @(posedge clk);
             if (y == (h-1)) begin
-                vs_i = 1'b0;
+                vs_i = 1'b1;
             end
             #350; //delay between line
         end
@@ -165,8 +165,16 @@ initial begin : sim_main
 
 end : sim_main
 
-localparam STEP = 4096;
-localparam real SCALE_FACTOR = 1.5;
+logic [15:0] dbg_cnt_i = 0;
+always @(posedge clk) begin
+    if (hs_i) begin
+        dbg_cnt_i <= 0;
+    end else if (de_i) begin
+        dbg_cnt_i <= dbg_cnt_i + 1;
+    end
+end
+
+
 // (4.12) unsigned fixed point. 4096 is 1.000 scale
 logic [15:0] scale_step = SCALE_FACTOR * STEP;
 
@@ -180,7 +188,7 @@ scaler_h #(
     .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
     .de_i(de_i),
     .hs_i(hs_i),
-    .vs_i(~vs_i),
+    .vs_i(vs_i),
 
     .do_o(do_o),
     .de_o(de_o),
@@ -206,20 +214,13 @@ scaler_h #(
 
 logic [15:0] dbg_cnt_o = 0;
 always @(posedge clk) begin
-    if (de_o && hs_o) begin
-        dbg_cnt_o <= dbg_cnt_o + 1;
-    end else begin
+    if (hs_o) begin
         dbg_cnt_o <= 0;
+    end else if (de_o) begin
+        dbg_cnt_o <= dbg_cnt_o + 1;
     end
 end
 
 
-logic [15:0] dbg_cnt_i = 0;
-always @(posedge clk) begin
-    if (de_i && !hs_i) begin
-        dbg_cnt_i <= dbg_cnt_i + 1;
-    end else begin
-        dbg_cnt_i <= 0;
-    end
-end
+
 endmodule
