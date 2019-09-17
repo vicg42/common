@@ -8,7 +8,7 @@
 `include "bmp_io.sv"
 
 module scaler_h_tb # (
-    parameter READ_IMG_FILE = "_24x24_8bit.bmp", //"img_600x600_8bit.bmp", //
+    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"_24x24_8bit.bmp", //
     parameter WRITE_IMG_FILE = "scaler_h_tb",
 
     parameter STEP = 4096,
@@ -200,17 +200,17 @@ scaler_h #(
 );
 
 
-//
-//monitor # (
-//    .DATA_WIDTH (PIXEL_WIDTH),
-//    .WRITE_IMG_FILE(WRITE_IMG_FILE)
-//) monitor (
-//    .di_i(do_o),
-//    .de_i(de_o),
-//    .hs_i(hs_o),
-//    .vs_i(vs_o),
-//    .clk (clk)
-//);
+
+monitor # (
+    .DATA_WIDTH (PIXEL_WIDTH),
+    .WRITE_IMG_FILE(WRITE_IMG_FILE)
+) monitor (
+    .di_i(do_o),
+    .de_i(de_o),
+    .hs_i(hs_o),
+    .vs_i(vs_o),
+    .clk (clk)
+);
 
 logic [15:0] dbg_cnt_o = 0;
 always @(posedge clk) begin

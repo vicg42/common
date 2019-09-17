@@ -50,7 +50,7 @@ always @(posedge clk) begin
         new_pix <= 0;
 
         cnt_pix_i <= 0;
-        cnt_pix_o <= 0;
+        cnt_pix_o <= PIXEL_STEP;
 
         sr_di_i[0] <= 0;
         sr_di_i[1] <= 0;

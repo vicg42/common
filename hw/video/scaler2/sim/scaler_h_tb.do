@@ -12,6 +12,7 @@ vlog ../src/scaler_coe.v
 vlog ../src/scaler_h.v
 
 vlog ./bmp_io.sv -sv
+vlog ./monitor.sv -sv
 vlog ./scaler_h_tb.sv -sv
 
 vsim -t 1ps -novopt -lib work scaler_h_tb \
