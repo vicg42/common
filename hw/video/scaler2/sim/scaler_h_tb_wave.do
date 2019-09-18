@@ -25,22 +25,26 @@ add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/cnt_pix_o_23_12
 add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_o_11_0
 add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_i
 add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_o
+add wave -noupdate /scaler_h_tb/scaler_h/hs
 add wave -noupdate /scaler_h_tb/SCALE_FACTOR
 add wave -noupdate /scaler_h_tb/scaler_h/scale_step
 add wave -noupdate /scaler_h_tb/scaler_h/new_pix
-add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/dbg_cnt_pix_o
-add wave -noupdate /scaler_h_tb/scaler_h/new_line
-add wave -noupdate /scaler_h_tb/scaler_h/new_fr
-add wave -noupdate /scaler_h_tb/scaler_h/pix
-add wave -noupdate /scaler_h_tb/scaler_h/coe
+add wave -noupdate -expand /scaler_h_tb/scaler_h/pix
+add wave -noupdate -childformat {{{/scaler_h_tb/scaler_h/coe[0]} -radix decimal} {{/scaler_h_tb/scaler_h/coe[1]} -radix decimal} {{/scaler_h_tb/scaler_h/coe[2]} -radix decimal} {{/scaler_h_tb/scaler_h/coe[3]} -radix decimal}} -expand -subitemconfig {{/scaler_h_tb/scaler_h/coe[0]} {-height 15 -radix decimal} {/scaler_h_tb/scaler_h/coe[1]} {-height 15 -radix decimal} {/scaler_h_tb/scaler_h/coe[2]} {-height 15 -radix decimal} {/scaler_h_tb/scaler_h/coe[3]} {-height 15 -radix decimal}} /scaler_h_tb/scaler_h/coe
 add wave -noupdate -divider OUTPUT
 add wave -noupdate -radix unsigned /scaler_h_tb/dbg_cnt_o
 add wave -noupdate /scaler_h_tb/scaler_h/de_o
 add wave -noupdate /scaler_h_tb/scaler_h/hs_o
 add wave -noupdate /scaler_h_tb/scaler_h/vs_o
 add wave -noupdate /scaler_h_tb/scaler_h/do_o
+add wave -noupdate -divider Monitor
+add wave -noupdate /scaler_h_tb/monitor/result_en
+add wave -noupdate -radix unsigned /scaler_h_tb/monitor/data_size
+add wave -noupdate -radix unsigned /scaler_h_tb/monitor/xcnt
+add wave -noupdate -radix unsigned /scaler_h_tb/monitor/ycnt
+add wave -noupdate -radix unsigned /scaler_h_tb/monitor/frcnt
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
+WaveRestoreCursors
 quietly wave cursor active 0
 configure wave -namecolwidth 234
 configure wave -valuecolwidth 100
@@ -56,4 +60,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {4200 ns}
+WaveRestoreZoom {0 ps} {5880 ns}

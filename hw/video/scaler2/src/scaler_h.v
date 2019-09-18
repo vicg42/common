@@ -30,52 +30,73 @@ localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COEFF_WIDTH-2));
 
 
 reg [DATA_WIDTH-1:0] sr_di_i [0:3];
+initial
+begin
+   sr_di_i[0] = 0;
+   sr_di_i[1] = 0;
+   sr_di_i[2] = 0;
+   sr_di_i[3] = 0;
+end
+reg [3:0] sr_hs_i = 0;
+reg [3:0] sr_vs_i = 0;
 
 wire [COEFF_WIDTH-1:0] coe [0:3];
 reg [DATA_WIDTH-1:0] pix [0:3];
-(* mult_style = "block" *) reg [MUL_WIDTH-1:0] mult [0:3];
+reg [MUL_WIDTH-1:0] mult [0:3];
+//(* mult_style = "block" *)
 
-reg [23:0] cnt_pix_i = 0;             // input pixels coordinate counter
-reg [23:0] cnt_pix_o = PIXEL_STEP;             // output pixels coordinate counter
+reg [23:0] cnt_pix_i = 0; // input pixels coordinate counter
+reg [23:0] cnt_pix_o = PIXEL_STEP; // output pixels coordinate counter
 
-reg new_pix = 0;
+reg new_de = 0;
 reg [1:0] sr_de = 0;
 reg [1:0] sr_hs = 0;
 reg [1:0] sr_vs = 0;
 
 reg signed [MUL_WIDTH+2-1:0] sum;
 
+wire hs;
+wire vs;
+assign hs = hs_i && sr_hs_i[3];
+assign vs = vs_i && sr_vs_i[3];
+
+always @(posedge clk) begin
+        sr_hs_i[0] <= hs_i;
+        sr_hs_i[1] <= sr_hs_i[0];
+        sr_hs_i[2] <= sr_hs_i[1];
+        sr_hs_i[3] <= sr_hs_i[2];
+
+        sr_vs_i[0] <= vs_i;
+        sr_vs_i[1] <= sr_vs_i[0];
+        sr_vs_i[2] <= sr_vs_i[1];
+        sr_vs_i[3] <= sr_vs_i[2];
+end
+
 always @(posedge clk) begin
     if (rst) begin
-        new_pix <= 0;
+        new_de <= 0;
 
         cnt_pix_i <= 0;
-        cnt_pix_o <= PIXEL_STEP;
-
-        sr_di_i[0] <= 0;
-        sr_di_i[1] <= 0;
-        sr_di_i[2] <= 0;
-        sr_di_i[3] <= 0;
+        cnt_pix_o <= 0;//PIXEL_STEP;
 
     end else begin
-        new_pix <= 0;
+        new_de <= 0;
 
-        if (hs_i || vs_i) begin
+        if (hs || vs) begin
             cnt_pix_i <= 0;
             cnt_pix_o <= PIXEL_STEP;
 
         end else begin
-            if (de_i && !hs_i && !vs_i) begin
+            if (de_i && !hs && !vs) begin
                 sr_di_i[0] <= di_i;
                 sr_di_i[1] <= sr_di_i[0];
                 sr_di_i[2] <= sr_di_i[1];
                 sr_di_i[3] <= sr_di_i[2];
-
                 cnt_pix_i <= cnt_pix_i + PIXEL_STEP;
             end
 
             if (cnt_pix_i > cnt_pix_o) begin
-                new_pix <= 1;
+                new_de <= 1;
 
                 pix[0] <= sr_di_i[0];
                 pix[1] <= sr_di_i[1];
@@ -91,16 +112,23 @@ end
 wire [9:0] coe_idx;
 assign coe_idx = cnt_pix_o[2 +: 10];
 
-scaler_coe scaler_coe(
-    .idx(coe_idx & TABLE_INPUT_WIDTH_MASK),
+scaler_rom_coe # (
+    .COE_WIDTH (COEFF_WIDTH)
+) scaler_rom_coe(
+    .addr(coe_idx & TABLE_INPUT_WIDTH_MASK),
 
-    .f0(coe[0]),
-    .f1(coe[1]),
-    .f2(coe[2]),
-    .f3(coe[3]),
+    .coe0(coe[0]),
+    .coe1(coe[1]),
+    .coe2(coe[2]),
+    .coe3(coe[3]),
 
     .clk(clk)
 );
+
+//assign coe[0]=10'd512;
+//assign coe[1]=0;
+//assign coe[2]=0;
+//assign coe[3]=0;
 
 
 always @(posedge clk) begin
@@ -110,22 +138,26 @@ always @(posedge clk) begin
     mult[2] <= coe[2] * pix[2];
     mult[3] <= coe[3] * pix[3];
 
-    sr_de[0] <= new_pix;
-    sr_hs[0] <= hs_i;
-    sr_vs[0] <= vs_i;
+//    sr_de[0] <= sr_new_pix;
+    sr_hs[0] <= hs;
+    sr_vs[0] <= vs;
 
     //stage 1
     sum <= mult[1] + mult[2] - mult[0] - mult[3] + ROUND_ADDER;
 
-    sr_de[1] <= sr_de[0];
+    sr_de[1] <= new_de;//sr_de[0];
     sr_hs[1] <= sr_hs[0];
     sr_vs[1] <= sr_vs[0];
 
     //stage 2
     if (sr_de[1]) begin
-        do_o <= sum[COEFF_WIDTH-1 +: DATA_WIDTH];
-        if (sum[OVERFLOW_BIT]) do_o <= MAX_OUTPUT;
-        if (sum < 0) do_o <= 0;
+        if (sum < 0) begin
+            do_o <= 0;
+        end else if (sum[OVERFLOW_BIT]) begin
+            do_o <= MAX_OUTPUT;
+        end else begin
+            do_o <= sum[COEFF_WIDTH-1 +: DATA_WIDTH];
+        end
     end
     de_o <= sr_de[1];
     hs_o <= sr_hs[1];
