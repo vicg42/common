@@ -108,17 +108,41 @@ reg vs_out_early_d = 0;
 reg vs_out_early_dd = 0;
 reg vs_out_early_ddd = 0;
 
+reg [DATA_WIDTH-1:0] sr_di_i [0:0];
+reg [0:0] sr_de_i = 0;
+reg [0:0] sr_hs_i = 0;
+reg [0:0] sr_vs_i = 0;
+
+reg [DATA_WIDTH-1:0] di = 0;
+reg de = 1'b0;
+reg hs = 1'b0;
+reg vs = 1'b0;
+
+always @(posedge clk) begin
+    sr_di_i[0] <= di_i;
+    di <= sr_di_i[0];
+
+    sr_de_i[0] <= de_i;
+    de <= sr_de_i[0];
+
+    sr_hs_i[0] <= hs_i;
+    hs <= !sr_hs_i[0] && hs_i; //rissing edge of HS
+
+    sr_vs_i[0] <= vs_i;
+    vs <= sr_vs_i[0] && !vs_i; //falling edge of VS
+end
+
 // Store input line process
 always @(posedge clk) begin
-    if (de_i) begin
-        d_in_d <= di_i;
+    if (de) begin
+        d_in_d <= di;
         if (dbuf_num == BUF_A_NUM) dbuf[0][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_A_NUM) buf_a[dbuf_wrcnt] <= d_in_d;
         if (dbuf_num == BUF_B_NUM) dbuf[1][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_B_NUM) buf_b[dbuf_wrcnt] <= d_in_d;
         if (dbuf_num == BUF_C_NUM) dbuf[2][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_C_NUM) buf_c[dbuf_wrcnt] <= d_in_d;
         if (dbuf_num == BUF_D_NUM) dbuf[3][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_D_NUM) buf_d[dbuf_wrcnt] <= d_in_d;
         if (dbuf_num == BUF_E_NUM) dbuf[4][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_E_NUM) buf_e[dbuf_wrcnt] <= d_in_d;
         dbuf_wrcnt <= dbuf_wrcnt + 1'b1;
-        if (hs_i) begin
+        if (hs) begin
             cnt_line_i <= cnt_line_i + LINE_STEP;
             dbuf_wrcnt <= 0;
             if (dbuf_num == 4) begin
@@ -127,7 +151,7 @@ always @(posedge clk) begin
                 dbuf_num <= dbuf_num + 1'b1;
             end
         end
-        if (vs_i) begin
+        if (vs) begin
             dbuf_num <= 0;
             cnt_line_i <= 0;
         end

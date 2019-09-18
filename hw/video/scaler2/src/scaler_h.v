@@ -60,15 +60,15 @@ assign hs = hs_i && sr_hs_i[3];
 assign vs = vs_i && sr_vs_i[3];
 
 always @(posedge clk) begin
-        sr_hs_i[0] <= hs_i;
-        sr_hs_i[1] <= sr_hs_i[0];
-        sr_hs_i[2] <= sr_hs_i[1];
-        sr_hs_i[3] <= sr_hs_i[2];
+    sr_hs_i[0] <= hs_i;
+    sr_hs_i[1] <= sr_hs_i[0];
+    sr_hs_i[2] <= sr_hs_i[1];
+    sr_hs_i[3] <= sr_hs_i[2];
 
-        sr_vs_i[0] <= vs_i;
-        sr_vs_i[1] <= sr_vs_i[0];
-        sr_vs_i[2] <= sr_vs_i[1];
-        sr_vs_i[3] <= sr_vs_i[2];
+    sr_vs_i[0] <= vs_i;
+    sr_vs_i[1] <= sr_vs_i[0];
+    sr_vs_i[2] <= sr_vs_i[1];
+    sr_vs_i[3] <= sr_vs_i[2];
 end
 
 always @(posedge clk) begin

@@ -205,8 +205,17 @@ scaler_h #(
     .rst(rst)
 );
 
+logic [15:0] dbg_scaler_h_cnt_o = 0;
+always @(posedge clk) begin
+    if (scaler_h_hs_o) begin
+        dbg_scaler_h_cnt_o <= 0;
+    end else if (scaler_h_de_o) begin
+        dbg_scaler_h_cnt_o <= dbg_scaler_h_cnt_o + 1;
+    end
+end
+
 scaler_v #(
-    .SPARSE_OUTPUT(2), // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
+    .SPARSE_OUTPUT(0), // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     .TABLE_INPUT_WIDTH(10),
     .LINE_SIZE_MAX(LINE_SIZE_MAX),
     .LINE_STEP (STEP),
@@ -214,7 +223,7 @@ scaler_v #(
 ) scaler_v (
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
     .scale_step(scale_step),
-    .scale_line_size(16'd800),
+    .scale_line_size(16'd27),
 
     .di_i(scaler_h_do_o),
     .de_i(scaler_h_de_o),
