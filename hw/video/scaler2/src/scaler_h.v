@@ -28,6 +28,15 @@ localparam OVERFLOW_BIT = COE_WIDTH + DATA_WIDTH - 1;
 localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (DATA_WIDTH+COE_WIDTH)) - 1;
 localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2));
 
+reg [23:0] cnt_pix_i = 0; // input pixels coordinate counter
+reg [23:0] cnt_pix_o = PIXEL_STEP; // output pixels coordinate counter
+
+wire [COE_WIDTH-1:0] coe [0:3];
+reg [DATA_WIDTH-1:0] pix [0:3];
+reg [MUL_WIDTH-1:0] mult [0:3];
+//(* mult_style = "block" *)
+
+reg signed [MUL_WIDTH+2-1:0] sum;
 
 reg [DATA_WIDTH-1:0] sr_di_i [0:3];
 initial
@@ -40,20 +49,10 @@ end
 reg [3:0] sr_hs_i = 0;
 reg [3:0] sr_vs_i = 0;
 
-wire [COE_WIDTH-1:0] coe [0:3];
-reg [DATA_WIDTH-1:0] pix [0:3];
-reg [MUL_WIDTH-1:0] mult [0:3];
-//(* mult_style = "block" *)
-
-reg [23:0] cnt_pix_i = 0; // input pixels coordinate counter
-reg [23:0] cnt_pix_o = PIXEL_STEP; // output pixels coordinate counter
-
 reg new_de = 0;
 reg [1:0] sr_de = 0;
 reg [1:0] sr_hs = 0;
 reg [1:0] sr_vs = 0;
-
-reg signed [MUL_WIDTH+2-1:0] sum;
 
 wire hs;
 wire vs;

@@ -9,15 +9,15 @@ vlib work
 
 vlog ../src/scaler_rom_coe.v
 vlog ../src/scaler_h.v
-vlog ../src/scaler_v.v
+vlog ../src/scaler_v.v -sv +define+SIM_FSM
 
 vlog ./bmp_io.sv -sv
 vlog ./monitor.sv -sv
-vlog ./scaler_h_tb.sv -sv
+vlog ./scaler_tb.sv -sv
 
-vsim -t 1ps -novopt -lib work scaler_h_tb \
+vsim -t 1ps -novopt -lib work scaler_tb \
 
-do scaler_h_tb_wave.do
+do scaler_tb_wave.do
 
 #--------------------------
 #View waveform
