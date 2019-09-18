@@ -20,13 +20,13 @@ module scaler_h #(
     input rst
 );
 // -------------------------------------------------------------------------
-localparam COEFF_WIDTH = 10;
+localparam COE_WIDTH = 10;
 localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
 
-localparam MUL_WIDTH = COEFF_WIDTH + DATA_WIDTH;
-localparam OVERFLOW_BIT = COEFF_WIDTH + DATA_WIDTH - 1;
-localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (DATA_WIDTH+COEFF_WIDTH)) - 1;
-localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COEFF_WIDTH-2));
+localparam MUL_WIDTH = COE_WIDTH + DATA_WIDTH;
+localparam OVERFLOW_BIT = COE_WIDTH + DATA_WIDTH - 1;
+localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (DATA_WIDTH+COE_WIDTH)) - 1;
+localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2));
 
 
 reg [DATA_WIDTH-1:0] sr_di_i [0:3];
@@ -40,7 +40,7 @@ end
 reg [3:0] sr_hs_i = 0;
 reg [3:0] sr_vs_i = 0;
 
-wire [COEFF_WIDTH-1:0] coe [0:3];
+wire [COE_WIDTH-1:0] coe [0:3];
 reg [DATA_WIDTH-1:0] pix [0:3];
 reg [MUL_WIDTH-1:0] mult [0:3];
 //(* mult_style = "block" *)
@@ -113,14 +113,14 @@ wire [9:0] coe_idx;
 assign coe_idx = cnt_pix_o[2 +: 10];
 
 scaler_rom_coe # (
-    .COE_WIDTH (COEFF_WIDTH)
-) scaler_rom_coe(
+    .COE_WIDTH (COE_WIDTH)
+) rom_coe(
     .addr(coe_idx & TABLE_INPUT_WIDTH_MASK),
 
-    .coe0(coe[0]),
-    .coe1(coe[1]),
-    .coe2(coe[2]),
-    .coe3(coe[3]),
+    .rom0_do(coe[0]),
+    .rom1_do(coe[1]),
+    .rom2_do(coe[2]),
+    .rom3_do(coe[3]),
 
     .clk(clk)
 );
@@ -156,7 +156,7 @@ always @(posedge clk) begin
         end else if (sum[OVERFLOW_BIT]) begin
             do_o <= MAX_OUTPUT;
         end else begin
-            do_o <= sum[COEFF_WIDTH-1 +: DATA_WIDTH];
+            do_o <= sum[COE_WIDTH-1 +: DATA_WIDTH];
         end
     end
     de_o <= sr_de[1];

@@ -5,10 +5,10 @@ module scaler_rom_coe #(
 )(
     input [9:0] addr,
 
-    output reg [COE_WIDTH-1:0] coe0,
-    output reg [COE_WIDTH-1:0] coe1,
-    output reg [COE_WIDTH-1:0] coe2,
-    output reg [COE_WIDTH-1:0] coe3,
+    output reg [COE_WIDTH-1:0] rom0_do,
+    output reg [COE_WIDTH-1:0] rom1_do,
+    output reg [COE_WIDTH-1:0] rom2_do,
+    output reg [COE_WIDTH-1:0] rom3_do,
 
     input clk
 );
@@ -24,10 +24,10 @@ initial $readmemb("../src/cubic_table_2.txt", rom_2);
 initial $readmemb("../src/cubic_table_3.txt", rom_3);
 
 always @(posedge clk) begin
-    coe0 <= rom_0[addr];
-    coe1 <= rom_1[addr];
-    coe2 <= rom_2[addr];
-    coe3 <= rom_3[addr];
+    rom0_do <= rom_0[addr];
+    rom1_do <= rom_1[addr];
+    rom2_do <= rom_2[addr];
+    rom3_do <= rom_3[addr];
 end
 
 endmodule
