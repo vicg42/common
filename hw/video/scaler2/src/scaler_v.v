@@ -61,6 +61,17 @@ reg dv_out_early = 0;
 // Store buffers
 reg [DATA_WIDTH-1:0] d_in_d = 0;
 reg [DATA_WIDTH-1:0] dbuf[4:0][LINE_SIZE_MAX-1:0];
+`ifdef INITAL
+    initial
+    begin
+        integer i, d;
+        for (i=0; i < 5; i = i + 1) begin
+            for (d=0; d < LINE_SIZE_MAX; d = d + 1) begin
+                dbuf[i][d] = 0;
+            end
+        end
+    end
+`endif
 //(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_a[LINE_SIZE_MAX-1:0];
 //(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_b[LINE_SIZE_MAX-1:0];
 //(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_c[LINE_SIZE_MAX-1:0];

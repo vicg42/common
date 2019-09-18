@@ -9,7 +9,7 @@ vlib work
 
 vlog ../src/scaler_rom_coe.v
 vlog ../src/scaler_h.v
-vlog ../src/scaler_v.v -sv +define+SIM_FSM
+vlog ../src/scaler_v.v -sv +define+SIM_FSM +define+INITAL
 
 vlog ./bmp_io.sv -sv
 vlog ./monitor.sv -sv

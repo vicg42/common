@@ -40,6 +40,8 @@ add wave -noupdate -divider SCALER_V
 add wave -noupdate /scaler_tb/scaler_v/dbuf_num
 add wave -noupdate /scaler_tb/scaler_v/dbuf_wrcnt
 add wave -noupdate /scaler_tb/scaler_v/dbuf
+add wave -noupdate -color {Slate Blue} -itemcolor Gold /scaler_tb/scaler_v/fsm_cs
+add wave -noupdate -expand /scaler_tb/scaler_v/dbuf_do
 add wave -noupdate /scaler_tb/scaler_v/cnt_line_i
 add wave -noupdate /scaler_tb/scaler_v/cnt_line_o
 add wave -noupdate -divider Monitor
@@ -65,4 +67,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {5880 ns}
+WaveRestoreZoom {0 ps} {2100 ns}
