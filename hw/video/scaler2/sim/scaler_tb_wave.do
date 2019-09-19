@@ -41,23 +41,29 @@ add wave -noupdate /scaler_tb/scaler_h/hs_o
 add wave -noupdate /scaler_tb/scaler_h/vs_o
 add wave -noupdate /scaler_tb/scaler_h/do_o
 add wave -noupdate -divider SCALER_V
+add wave -noupdate -radix unsigned /scaler_tb/scaler_v/LINE_STEP
 add wave -noupdate /scaler_tb/scaler_v/di
 add wave -noupdate /scaler_tb/scaler_v/de
 add wave -noupdate /scaler_tb/scaler_v/hs
 add wave -noupdate /scaler_tb/scaler_v/vs
+add wave -noupdate -radix unsigned /scaler_tb/scaler_v/cnt_line_i_23_12
+add wave -noupdate /scaler_tb/scaler_v/cnt_line_i_11_0
+add wave -noupdate /scaler_tb/scaler_v/cnt_line_i
 add wave -noupdate /scaler_tb/scaler_v/dbuf_num
 add wave -noupdate /scaler_tb/scaler_v/dbuf_wrcnt
 add wave -noupdate /scaler_tb/scaler_v/dbuf
 add wave -noupdate -color {Slate Blue} -itemcolor Gold /scaler_tb/scaler_v/fsm_cs
-add wave -noupdate -expand /scaler_tb/scaler_v/dbuf_do
+add wave -noupdate /scaler_tb/scaler_v/scale_line_size
+add wave -noupdate /scaler_tb/scaler_v/dbuf_do
 add wave -noupdate -radix unsigned /scaler_tb/scaler_v/dbuf_rdcnt
-add wave -noupdate -radix unsigned /scaler_tb/scaler_v/cnt_line_i_23_12
-add wave -noupdate /scaler_tb/scaler_v/cnt_line_i_11_0
-add wave -noupdate /scaler_tb/scaler_v/cnt_line_i
 add wave -noupdate -radix unsigned /scaler_tb/scaler_v/cnt_line_o_23_12
 add wave -noupdate /scaler_tb/scaler_v/cnt_line_o_11_0
 add wave -noupdate /scaler_tb/scaler_v/cnt_line_o
 add wave -noupdate -divider Monitor
+add wave -noupdate /scaler_tb/monitor/di_i
+add wave -noupdate /scaler_tb/monitor/de_i
+add wave -noupdate /scaler_tb/monitor/hs_i
+add wave -noupdate /scaler_tb/monitor/vs_i
 add wave -noupdate -radix unsigned /scaler_tb/dbg_cnt_o
 add wave -noupdate /scaler_tb/monitor/result_en
 add wave -noupdate -radix unsigned /scaler_tb/monitor/data_size
@@ -81,4 +87,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {4321428 ps}
+WaveRestoreZoom {0 ps} {8101824 ps}

@@ -60,23 +60,23 @@ reg dv_out_early = 0;
 
 // Store buffers
 reg [DATA_WIDTH-1:0] d_in_d = 0;
-reg [DATA_WIDTH-1:0] dbuf[4:0][LINE_SIZE_MAX-1:0];
-`ifdef INITAL
-    initial
-    begin
-        integer i, d;
-        for (i=0; i < 5; i = i + 1) begin
-            for (d=0; d < LINE_SIZE_MAX; d = d + 1) begin
-                dbuf[i][d] = 0;
-            end
-        end
-    end
-`endif
-//(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_a[LINE_SIZE_MAX-1:0];
-//(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_b[LINE_SIZE_MAX-1:0];
-//(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_c[LINE_SIZE_MAX-1:0];
-//(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_d[LINE_SIZE_MAX-1:0];
-//(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_e[LINE_SIZE_MAX-1:0];
+//reg [DATA_WIDTH-1:0] dbuf[4:0][LINE_SIZE_MAX-1:0];
+//`ifdef INITAL
+//    initial
+//    begin
+//        integer i, d;
+//        for (i=0; i<5; i=i+1) begin
+//            for (d=0; d<LINE_SIZE_MAX; d=d+1) begin
+//                dbuf[i][d] = 0;
+//            end
+//        end
+//    end
+//`endif
+(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_a[LINE_SIZE_MAX-1:0];
+(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_b[LINE_SIZE_MAX-1:0];
+(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_c[LINE_SIZE_MAX-1:0];
+(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_d[LINE_SIZE_MAX-1:0];
+(* RAM_STYLE="BLOCK" *) reg [DATA_WIDTH-1:0] buf_e[LINE_SIZE_MAX-1:0];
 
 localparam BUF_A_NUM = 0;
 localparam BUF_B_NUM = 1;
@@ -89,12 +89,12 @@ reg [15:0] dbuf_wrcnt = 0;
 reg [15:0] dbuf_rdcnt = 0;
 reg [9:0] delta_y = 0;
 
-reg [DATA_WIDTH-1:0] dbuf_do [4:0];
-//reg [DATA_WIDTH-1:0] buf_a_do;
-//reg [DATA_WIDTH-1:0] buf_b_do;
-//reg [DATA_WIDTH-1:0] buf_c_do;
-//reg [DATA_WIDTH-1:0] buf_d_do;
-//reg [DATA_WIDTH-1:0] buf_e_do;
+//reg [DATA_WIDTH-1:0] dbuf_do [4:0];
+reg [DATA_WIDTH-1:0] buf_a_do;
+reg [DATA_WIDTH-1:0] buf_b_do;
+reg [DATA_WIDTH-1:0] buf_c_do;
+reg [DATA_WIDTH-1:0] buf_d_do;
+reg [DATA_WIDTH-1:0] buf_e_do;
 
 reg dv_out_early_d = 0;
 reg dv_out_early_dd = 0;
@@ -126,7 +126,7 @@ always @(posedge clk) begin
     de <= sr_de_i[0];
 
     sr_hs_i[0] <= hs_i;
-    hs <= !sr_hs_i[0] && hs_i; //rissing edge of HS
+    hs <= !sr_hs_i[0] && hs_i && !sr_vs_i[0]; //rissing edge of HS
 
     sr_vs_i[0] <= vs_i;
     vs <= sr_vs_i[0] && !vs_i; //falling edge of VS
@@ -134,15 +134,10 @@ end
 
 // Store input line process
 always @(posedge clk) begin
-    if (de) begin
-        d_in_d <= di;
-        if (dbuf_num == BUF_A_NUM) dbuf[0][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_A_NUM) buf_a[dbuf_wrcnt] <= d_in_d;
-        if (dbuf_num == BUF_B_NUM) dbuf[1][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_B_NUM) buf_b[dbuf_wrcnt] <= d_in_d;
-        if (dbuf_num == BUF_C_NUM) dbuf[2][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_C_NUM) buf_c[dbuf_wrcnt] <= d_in_d;
-        if (dbuf_num == BUF_D_NUM) dbuf[3][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_D_NUM) buf_d[dbuf_wrcnt] <= d_in_d;
-        if (dbuf_num == BUF_E_NUM) dbuf[4][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_E_NUM) buf_e[dbuf_wrcnt] <= d_in_d;
-        dbuf_wrcnt <= dbuf_wrcnt + 1'b1;
-        if (hs) begin
+        if (vs) begin
+            dbuf_num <= 0;
+            cnt_line_i <= 0;
+        end else if (hs) begin
             cnt_line_i <= cnt_line_i + LINE_STEP;
             dbuf_wrcnt <= 0;
             if (dbuf_num == 4) begin
@@ -150,51 +145,114 @@ always @(posedge clk) begin
             end else begin
                 dbuf_num <= dbuf_num + 1'b1;
             end
+        end else if (de) begin
+            d_in_d <= di;
+            if (dbuf_num == BUF_A_NUM) buf_a[dbuf_wrcnt] <= d_in_d;//if (dbuf_num == BUF_A_NUM) dbuf[0][dbuf_wrcnt] <= d_in_d; //
+            if (dbuf_num == BUF_B_NUM) buf_b[dbuf_wrcnt] <= d_in_d;//if (dbuf_num == BUF_B_NUM) dbuf[1][dbuf_wrcnt] <= d_in_d; //
+            if (dbuf_num == BUF_C_NUM) buf_c[dbuf_wrcnt] <= d_in_d;//if (dbuf_num == BUF_C_NUM) dbuf[2][dbuf_wrcnt] <= d_in_d; //
+            if (dbuf_num == BUF_D_NUM) buf_d[dbuf_wrcnt] <= d_in_d;//if (dbuf_num == BUF_D_NUM) dbuf[3][dbuf_wrcnt] <= d_in_d; //
+            if (dbuf_num == BUF_E_NUM) buf_e[dbuf_wrcnt] <= d_in_d;//if (dbuf_num == BUF_E_NUM) dbuf[4][dbuf_wrcnt] <= d_in_d; //
+            dbuf_wrcnt <= dbuf_wrcnt + 1'b1;
         end
-        if (vs) begin
-            dbuf_num <= 0;
-            cnt_line_i <= 0;
-        end
-    end
 end
+//always @(posedge clk) begin
+//    if (de) begin
+//        d_in_d <= di;
+//        if (dbuf_num == BUF_A_NUM) dbuf[0][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_A_NUM) buf_a[dbuf_wrcnt] <= d_in_d;
+//        if (dbuf_num == BUF_B_NUM) dbuf[1][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_B_NUM) buf_b[dbuf_wrcnt] <= d_in_d;
+//        if (dbuf_num == BUF_C_NUM) dbuf[2][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_C_NUM) buf_c[dbuf_wrcnt] <= d_in_d;
+//        if (dbuf_num == BUF_D_NUM) dbuf[3][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_D_NUM) buf_d[dbuf_wrcnt] <= d_in_d;
+//        if (dbuf_num == BUF_E_NUM) dbuf[4][dbuf_wrcnt] <= d_in_d; //if (dbuf_num == BUF_E_NUM) buf_e[dbuf_wrcnt] <= d_in_d;
+//        dbuf_wrcnt <= dbuf_wrcnt + 1'b1;
+//        if (hs) begin
+//            cnt_line_i <= cnt_line_i + LINE_STEP;
+//            dbuf_wrcnt <= 0;
+//            if (dbuf_num == 4) begin
+//                dbuf_num <= 0;
+//            end else begin
+//                dbuf_num <= dbuf_num + 1'b1;
+//            end
+//        end
+//        if (vs) begin
+//            dbuf_num <= 0;
+//            cnt_line_i <= 0;
+//        end
+//    end
+//end
 
 
 // Control FSM
 always @(posedge clk) begin
     dv_out_early <= 0;
-    case (fsm_cs)
-        IDLE: begin
-            if (cnt_line_i > cnt_line_o) begin
-                delta_y <= cnt_line_o[2 +: 10];
-                fsm_cs <= CALC_F_PARAMS_CYCLE;
-            end
-        end
-        CALC_F_PARAMS_CYCLE: begin
-            fsm_cs <= LINE_GENERATE;
-            dbuf_rdcnt <= 0;
-            sparse_cntr <= 0;
-        end
-        LINE_GENERATE: begin
-            sparse_cntr <= sparse_cntr + 1'b1;
-            if (sparse_cntr == SPARSE_OUTPUT) begin
-                sparse_cntr <= 0;
-                dv_out_early <= 1;
-                dbuf_rdcnt <= dbuf_rdcnt + 1'b1;
-                if (dbuf_rdcnt == scale_line_size) begin
-                    cnt_line_o <= cnt_line_o + scale_step;
-                    fsm_cs <= IDLE;
+    if (vs_i) begin
+        cnt_line_o <= LINE_STEP*2;
+        dbuf_rdcnt <= 0;
+        sparse_cntr <= 0;
+        fsm_cs <= IDLE;
+    end else begin
+        case (fsm_cs)
+            IDLE: begin
+                if (cnt_line_i > cnt_line_o) begin
+                    delta_y <= cnt_line_o[2 +: 10];
+                    fsm_cs <= CALC_F_PARAMS_CYCLE;
                 end
             end
-        end
-        default: fsm_cs <= IDLE; // fsm_cs recovery
-    endcase
-    if (de_i && vs_i) cnt_line_o <= LINE_STEP*2;
+            CALC_F_PARAMS_CYCLE: begin
+                fsm_cs <= LINE_GENERATE;
+                dbuf_rdcnt <= 0;
+                sparse_cntr <= 0;
+            end
+            LINE_GENERATE: begin
+                sparse_cntr <= sparse_cntr + 1'b1;
+                if (sparse_cntr == SPARSE_OUTPUT) begin
+                    sparse_cntr <= 0;
+                    dv_out_early <= 1;
+                    dbuf_rdcnt <= dbuf_rdcnt + 1'b1;
+                    if (dbuf_rdcnt == scale_line_size) begin
+                        cnt_line_o <= cnt_line_o + scale_step;
+                        fsm_cs <= IDLE;
+                    end
+                end
+            end
+            default: fsm_cs <= IDLE; // fsm_cs recovery
+        endcase
+    end
 end
+//always @(posedge clk) begin
+//    dv_out_early <= 0;
+//    case (fsm_cs)
+//        IDLE: begin
+//            if (cnt_line_i > cnt_line_o) begin
+//                delta_y <= cnt_line_o[2 +: 10];
+//                fsm_cs <= CALC_F_PARAMS_CYCLE;
+//            end
+//        end
+//        CALC_F_PARAMS_CYCLE: begin
+//            fsm_cs <= LINE_GENERATE;
+//            dbuf_rdcnt <= 0;
+//            sparse_cntr <= 0;
+//        end
+//        LINE_GENERATE: begin
+//            sparse_cntr <= sparse_cntr + 1'b1;
+//            if (sparse_cntr == SPARSE_OUTPUT) begin
+//                sparse_cntr <= 0;
+//                dv_out_early <= 1;
+//                dbuf_rdcnt <= dbuf_rdcnt + 1'b1;
+//                if (dbuf_rdcnt == scale_line_size) begin
+//                    cnt_line_o <= cnt_line_o + scale_step;
+//                    fsm_cs <= IDLE;
+//                end
+//            end
+//        end
+//        default: fsm_cs <= IDLE; // fsm_cs recovery
+//    endcase
+//    if (de_i && vs_i) cnt_line_o <= LINE_STEP*2;
+//end
 
 
 scaler_rom_coe # (
     .COE_WIDTH (COE_WIDTH)
-) rom_coe(
+) rom_coe (
     .addr (delta_y & TABLE_INPUT_WIDTH_MASK),
 
     .rom0_do(coe[0]),
@@ -208,11 +266,11 @@ scaler_rom_coe # (
 
 // Memory read
 always @(posedge clk) begin
-    dbuf_do[0] <= dbuf[0][dbuf_rdcnt];//buf_a_do <= buf_a[dbuf_rdcnt];
-    dbuf_do[1] <= dbuf[1][dbuf_rdcnt];//buf_b_do <= buf_b[dbuf_rdcnt];
-    dbuf_do[2] <= dbuf[2][dbuf_rdcnt];//buf_c_do <= buf_c[dbuf_rdcnt];
-    dbuf_do[3] <= dbuf[3][dbuf_rdcnt];//buf_d_do <= buf_d[dbuf_rdcnt];
-    dbuf_do[4] <= dbuf[4][dbuf_rdcnt];//buf_e_do <= buf_e[dbuf_rdcnt];
+    buf_a_do <= buf_a[dbuf_rdcnt];//dbuf_do[0] <= dbuf[0][dbuf_rdcnt];//
+    buf_b_do <= buf_b[dbuf_rdcnt];//dbuf_do[1] <= dbuf[1][dbuf_rdcnt];//
+    buf_c_do <= buf_c[dbuf_rdcnt];//dbuf_do[2] <= dbuf[2][dbuf_rdcnt];//
+    buf_d_do <= buf_d[dbuf_rdcnt];//dbuf_do[3] <= dbuf[3][dbuf_rdcnt];//
+    buf_e_do <= buf_e[dbuf_rdcnt];//dbuf_do[4] <= dbuf[4][dbuf_rdcnt];//
 end
 
 
@@ -220,34 +278,34 @@ end
 // Calculate output
 always @(posedge clk) begin
     if (dbuf_num == BUF_A_NUM) begin
-        pix[3] <= dbuf_do[1];//buf_b_do;
-        pix[2] <= dbuf_do[2];//buf_c_do;
-        pix[1] <= dbuf_do[3];//buf_d_do;
-        pix[0] <= dbuf_do[4];//buf_e_do;
+        pix[3] <= buf_b_do;//dbuf_do[1];//
+        pix[2] <= buf_c_do;//dbuf_do[2];//
+        pix[1] <= buf_d_do;//dbuf_do[3];//
+        pix[0] <= buf_e_do;//dbuf_do[4];//
     end
     if (dbuf_num == BUF_B_NUM) begin
-        pix[3] <= dbuf_do[2];//buf_c_do;
-        pix[2] <= dbuf_do[3];//buf_d_do;
-        pix[1] <= dbuf_do[4];//buf_e_do;
-        pix[0] <= dbuf_do[0];//buf_a_do;
+        pix[3] <= buf_c_do;//dbuf_do[2];//
+        pix[2] <= buf_d_do;//dbuf_do[3];//
+        pix[1] <= buf_e_do;//dbuf_do[4];//
+        pix[0] <= buf_a_do;//dbuf_do[0];//
     end
     if (dbuf_num == BUF_C_NUM) begin
-        pix[3] <= dbuf_do[3];//buf_d_do;
-        pix[2] <= dbuf_do[4];//buf_e_do;
-        pix[1] <= dbuf_do[0];//buf_a_do;
-        pix[0] <= dbuf_do[1];//buf_b_do;
+        pix[3] <= buf_d_do;//dbuf_do[3];//
+        pix[2] <= buf_e_do;//dbuf_do[4];//
+        pix[1] <= buf_a_do;//dbuf_do[0];//
+        pix[0] <= buf_b_do;//dbuf_do[1];//
     end
     if (dbuf_num == BUF_D_NUM) begin
-        pix[3] <= dbuf_do[4];//buf_e_do;
-        pix[2] <= dbuf_do[0];//buf_a_do;
-        pix[1] <= dbuf_do[1];//buf_b_do;
-        pix[0] <= dbuf_do[2];//buf_c_do;
+        pix[3] <= buf_e_do;//dbuf_do[4];//
+        pix[2] <= buf_a_do;//dbuf_do[0];//
+        pix[1] <= buf_b_do;//dbuf_do[1];//
+        pix[0] <= buf_c_do;//dbuf_do[2];//
     end
     if (dbuf_num == BUF_E_NUM) begin
-        pix[3] <= dbuf_do[0];//buf_a_do;
-        pix[2] <= dbuf_do[1];//buf_b_do;
-        pix[1] <= dbuf_do[2];//buf_c_do;
-        pix[0] <= dbuf_do[3];//buf_d_do;
+        pix[3] <= buf_a_do;//dbuf_do[0];//
+        pix[2] <= buf_b_do;//dbuf_do[1];//
+        pix[1] <= buf_c_do;//dbuf_do[2];//
+        pix[0] <= buf_d_do;//dbuf_do[3];//
     end
     if (cnt_line_i < (4*LINE_STEP)) pix[3] <= 0; // boundary effect elimination
 

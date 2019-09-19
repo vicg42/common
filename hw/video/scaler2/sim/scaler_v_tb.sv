@@ -7,7 +7,7 @@
 
 `include "bmp_io.sv"
 
-module scaler_tb # (
+module scaler_v_tb # (
 //    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
 //    parameter READ_IMG_FILE = "_24x24_8bit.bmp",
     parameter READ_IMG_FILE = "_8x8_8bit_test0_1pix.bmp",
@@ -185,36 +185,6 @@ end
 // (4.12) unsigned fixed point. 4096 is 1.000 scale
 logic [15:0] scale_step = SCALE_FACTOR * STEP;
 
-scaler_h #(
-    .TABLE_INPUT_WIDTH (10),
-    .PIXEL_STEP (STEP),
-    .DATA_WIDTH (PIXEL_WIDTH)
-) scaler_h (
-    .scale_step(scale_step),
-
-    .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
-    .de_i(de_i),
-    .hs_i(hs_i),
-    .vs_i(vs_i),
-
-    .do_o(scaler_h_do_o),
-    .de_o(scaler_h_de_o),
-    .hs_o(scaler_h_hs_o),
-    .vs_o(scaler_h_vs_o),
-
-    .clk(clk),
-    .rst(rst)
-);
-
-logic [15:0] dbg_scaler_h_cnt_o = 0;
-always @(posedge clk) begin
-    if (scaler_h_hs_o) begin
-        dbg_scaler_h_cnt_o <= 0;
-    end else if (scaler_h_de_o) begin
-        dbg_scaler_h_cnt_o <= dbg_scaler_h_cnt_o + 1;
-    end
-end
-
 scaler_v #(
     .SPARSE_OUTPUT(0), // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     .TABLE_INPUT_WIDTH(10),
@@ -226,10 +196,10 @@ scaler_v #(
     .scale_step(scale_step),
     .scale_line_size(SCALE_LINE_SIZE),
 
-    .di_i(scaler_h_do_o),
-    .de_i(scaler_h_de_o),
-    .hs_i(scaler_h_hs_o),
-    .vs_i(scaler_h_vs_o),
+    .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
+    .de_i(de_i),
+    .hs_i(hs_i),
+    .vs_i(vs_i),
 
     .do_o(do_o),
     .de_o(de_o),
