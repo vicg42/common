@@ -35,7 +35,7 @@ localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) 
 localparam MUL_WIDTH = COE_WIDTH + DATA_WIDTH;
 localparam OVERFLOW_BIT = COE_WIDTH + DATA_WIDTH - 1;
 localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (DATA_WIDTH+COE_WIDTH)) - 1;
-localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2));
+localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2)); //0.5
 
 reg [23:0] cnt_pix_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_pix_o = PIXEL_STEP; // output pixels coordinate counter
