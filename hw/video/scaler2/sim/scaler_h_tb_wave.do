@@ -3,6 +3,7 @@ quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/s
 quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_pix_i[23], /scaler_h_tb/scaler_h/cnt_pix_i[22], /scaler_h_tb/scaler_h/cnt_pix_i[21], /scaler_h_tb/scaler_h/cnt_pix_i[20], /scaler_h_tb/scaler_h/cnt_pix_i[19], /scaler_h_tb/scaler_h/cnt_pix_i[18], /scaler_h_tb/scaler_h/cnt_pix_i[17], /scaler_h_tb/scaler_h/cnt_pix_i[16], /scaler_h_tb/scaler_h/cnt_pix_i[15], /scaler_h_tb/scaler_h/cnt_pix_i[14], /scaler_h_tb/scaler_h/cnt_pix_i[13], /scaler_h_tb/scaler_h/cnt_pix_i[12] }} cnt_pix_i_23_12
 quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_pix_o[23], /scaler_h_tb/scaler_h/cnt_pix_o[22], /scaler_h_tb/scaler_h/cnt_pix_o[21], /scaler_h_tb/scaler_h/cnt_pix_o[20], /scaler_h_tb/scaler_h/cnt_pix_o[19], /scaler_h_tb/scaler_h/cnt_pix_o[18], /scaler_h_tb/scaler_h/cnt_pix_o[17], /scaler_h_tb/scaler_h/cnt_pix_o[16], /scaler_h_tb/scaler_h/cnt_pix_o[15], /scaler_h_tb/scaler_h/cnt_pix_o[14], /scaler_h_tb/scaler_h/cnt_pix_o[13], /scaler_h_tb/scaler_h/cnt_pix_o[12] }} cnt_pix_o_23_12
 quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_pix_o[11], /scaler_h_tb/scaler_h/cnt_pix_o[10], /scaler_h_tb/scaler_h/cnt_pix_o[9], /scaler_h_tb/scaler_h/cnt_pix_o[8], /scaler_h_tb/scaler_h/cnt_pix_o[7], /scaler_h_tb/scaler_h/cnt_pix_o[6], /scaler_h_tb/scaler_h/cnt_pix_o[5], /scaler_h_tb/scaler_h/cnt_pix_o[4], /scaler_h_tb/scaler_h/cnt_pix_o[3], /scaler_h_tb/scaler_h/cnt_pix_o[2], /scaler_h_tb/scaler_h/cnt_pix_o[1], /scaler_h_tb/scaler_h/cnt_pix_o[0] }} cnt_pix_o_11_0
+quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/sum[16], /scaler_h_tb/scaler_h/sum[15], /scaler_h_tb/scaler_h/sum[14], /scaler_h_tb/scaler_h/sum[13], /scaler_h_tb/scaler_h/sum[12], /scaler_h_tb/scaler_h/sum[11], /scaler_h_tb/scaler_h/sum[10], /scaler_h_tb/scaler_h/sum[9] }} sum_16_9
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /scaler_h_tb/SCALE_FACTOR
 add wave -noupdate -radix unsigned /scaler_h_tb/dbg_cnt_i
@@ -28,15 +29,26 @@ add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_o
 add wave -noupdate /scaler_h_tb/scaler_h/hs
 add wave -noupdate /scaler_h_tb/SCALE_FACTOR
 add wave -noupdate /scaler_h_tb/scaler_h/scale_step
-add wave -noupdate /scaler_h_tb/scaler_h/new_pix
-add wave -noupdate -expand /scaler_h_tb/scaler_h/pix
-add wave -noupdate -childformat {{{/scaler_h_tb/scaler_h/coe[0]} -radix decimal} {{/scaler_h_tb/scaler_h/coe[1]} -radix decimal} {{/scaler_h_tb/scaler_h/coe[2]} -radix decimal} {{/scaler_h_tb/scaler_h/coe[3]} -radix decimal}} -expand -subitemconfig {{/scaler_h_tb/scaler_h/coe[0]} {-height 15 -radix decimal} {/scaler_h_tb/scaler_h/coe[1]} {-height 15 -radix decimal} {/scaler_h_tb/scaler_h/coe[2]} {-height 15 -radix decimal} {/scaler_h_tb/scaler_h/coe[3]} {-height 15 -radix decimal}} /scaler_h_tb/scaler_h/coe
+add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h/pix[0]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[1]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[2]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[3]} -radix unsigned}} -expand -subitemconfig {{/scaler_h_tb/scaler_h/pix[0]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[1]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[2]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[3]} {-height 15 -radix unsigned}} /scaler_h_tb/scaler_h/pix
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/rom_coe/addr
+add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom0_do
+add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom1_do
+add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom2_do
+add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom3_do
+add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_0
+add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_1
+add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_2
+add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_3
+add wave -noupdate -expand /scaler_h_tb/scaler_h/sr_de
+add wave -noupdate -expand /scaler_h_tb/scaler_h/mult
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/sum_16_9
+add wave -noupdate /scaler_h_tb/scaler_h/sum
 add wave -noupdate -divider OUTPUT
-add wave -noupdate -radix unsigned /scaler_h_tb/dbg_cnt_o
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/do_o
 add wave -noupdate /scaler_h_tb/scaler_h/de_o
 add wave -noupdate /scaler_h_tb/scaler_h/hs_o
 add wave -noupdate /scaler_h_tb/scaler_h/vs_o
-add wave -noupdate /scaler_h_tb/scaler_h/do_o
+add wave -noupdate -radix unsigned /scaler_h_tb/dbg_cnt_o
 add wave -noupdate -divider Monitor
 add wave -noupdate /scaler_h_tb/monitor/result_en
 add wave -noupdate -radix unsigned /scaler_h_tb/monitor/data_size
@@ -44,7 +56,7 @@ add wave -noupdate -radix unsigned /scaler_h_tb/monitor/xcnt
 add wave -noupdate -radix unsigned /scaler_h_tb/monitor/ycnt
 add wave -noupdate -radix unsigned /scaler_h_tb/monitor/frcnt
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors
+WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
 configure wave -namecolwidth 234
 configure wave -valuecolwidth 100
@@ -60,4 +72,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {5880 ns}
+WaveRestoreZoom {1067200 ps} {1787557 ps}

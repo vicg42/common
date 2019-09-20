@@ -1,3 +1,12 @@
+//-----------------------------------------------------------------------
+//
+// Engineer    : Golovachenko Victor
+//
+//------------------------------------------------------------------------
+`timescale 1ns / 1ps
+
+`include "user_pkg.v"
+
 module scaler_h #(
     parameter TABLE_INPUT_WIDTH = 10,
     parameter PIXEL_STEP = 4096,
@@ -109,11 +118,11 @@ always @(posedge clk) begin
 end
 
 wire [9:0] coe_idx;
-assign coe_idx = cnt_pix_o[2 +: 10];
+assign coe_idx = cnt_pix_o[7 +: 5];
 
 scaler_rom_coe # (
     .COE_WIDTH (COE_WIDTH)
-) rom_coe(
+) rom_coe (
     .addr(coe_idx & TABLE_INPUT_WIDTH_MASK),
 
     .rom0_do(coe[0]),
@@ -137,14 +146,14 @@ always @(posedge clk) begin
     mult[2] <= coe[2] * pix[2];
     mult[3] <= coe[3] * pix[3];
 
-//    sr_de[0] <= sr_new_pix;
+    sr_de[0] <= new_de;//sr_new_pix;
     sr_hs[0] <= hs;
     sr_vs[0] <= vs;
 
     //stage 1
     sum <= mult[1] + mult[2] - mult[0] - mult[3] + ROUND_ADDER;
 
-    sr_de[1] <= new_de;//sr_de[0];
+    sr_de[1] <= sr_de[0];//new_de;//
     sr_hs[1] <= sr_hs[0];
     sr_vs[1] <= sr_vs[0];
 

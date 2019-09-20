@@ -6,28 +6,35 @@ quietly virtual function -install /scaler_v_tb/scaler_v -env /scaler_v_tb { &{/s
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /scaler_v_tb/SCALE_FACTOR
 add wave -noupdate -radix unsigned /scaler_v_tb/dbg_cnt_i
+add wave -noupdate /scaler_v_tb/clk
 add wave -noupdate /scaler_v_tb/de_i
 add wave -noupdate /scaler_v_tb/hs_i
 add wave -noupdate /scaler_v_tb/vs_i
+add wave -noupdate /scaler_v_tb/scaler_v/i_di
+add wave -noupdate /scaler_v_tb/scaler_v/i_de
+add wave -noupdate /scaler_v_tb/scaler_v/i_hs_edge
+add wave -noupdate /scaler_v_tb/scaler_v/i_vs_edge
 add wave -noupdate -divider SCALER_V
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v/LINE_STEP
-add wave -noupdate /scaler_v_tb/scaler_v/di
-add wave -noupdate /scaler_v_tb/scaler_v/de
-add wave -noupdate /scaler_v_tb/scaler_v/hs
-add wave -noupdate /scaler_v_tb/scaler_v/vs
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v/cnt_line_i_23_12
 add wave -noupdate /scaler_v_tb/scaler_v/cnt_line_i_11_0
 add wave -noupdate /scaler_v_tb/scaler_v/cnt_line_i
 add wave -noupdate /scaler_v_tb/scaler_v/dbuf_num
-add wave -noupdate /scaler_v_tb/scaler_v/dbuf_wrcnt
+add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v/dbuf_wrcnt
+add wave -noupdate /scaler_v_tb/scaler_v/dbuf
 add wave -noupdate -color {Slate Blue} -itemcolor Gold /scaler_v_tb/scaler_v/fsm_cs
 add wave -noupdate /scaler_v_tb/scaler_v/scale_line_size
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v/dbuf_rdcnt
+add wave -noupdate /scaler_v_tb/scaler_v/dbuf_do
+add wave -noupdate /scaler_v_tb/scaler_v/o_de
+add wave -noupdate /scaler_v_tb/scaler_v/o_hs
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v/cnt_line_o_23_12
 add wave -noupdate /scaler_v_tb/scaler_v/cnt_line_o_11_0
 add wave -noupdate /scaler_v_tb/scaler_v/cnt_line_o
+add wave -noupdate -radix unsigned -childformat {{{/scaler_v_tb/scaler_v/pix[0]} -radix unsigned} {{/scaler_v_tb/scaler_v/pix[1]} -radix unsigned} {{/scaler_v_tb/scaler_v/pix[2]} -radix unsigned} {{/scaler_v_tb/scaler_v/pix[3]} -radix unsigned}} -expand -subitemconfig {{/scaler_v_tb/scaler_v/pix[0]} {-height 15 -radix unsigned} {/scaler_v_tb/scaler_v/pix[1]} {-height 15 -radix unsigned} {/scaler_v_tb/scaler_v/pix[2]} {-height 15 -radix unsigned} {/scaler_v_tb/scaler_v/pix[3]} {-height 15 -radix unsigned}} /scaler_v_tb/scaler_v/pix
+add wave -noupdate /scaler_v_tb/scaler_v/hs_out_early
 add wave -noupdate -divider Monitor
-add wave -noupdate /scaler_v_tb/monitor/di_i
+add wave -noupdate -radix unsigned /scaler_v_tb/monitor/di_i
 add wave -noupdate /scaler_v_tb/monitor/de_i
 add wave -noupdate /scaler_v_tb/monitor/hs_i
 add wave -noupdate /scaler_v_tb/monitor/vs_i
@@ -54,4 +61,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {8101824 ps}
+WaveRestoreZoom {0 ps} {77324288 ps}
