@@ -35,14 +35,7 @@ add wave -noupdate /scaler_h_tb/SCALE_FACTOR
 add wave -noupdate /scaler_h_tb/scaler_h/scale_step
 add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h/pix[0]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[1]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[2]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[3]} -radix unsigned}} -expand -subitemconfig {{/scaler_h_tb/scaler_h/pix[0]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[1]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[2]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[3]} {-height 15 -radix unsigned}} /scaler_h_tb/scaler_h/pix
 add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/rom_coe/addr
-add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom0_do
-add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom1_do
-add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom2_do
-add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom3_do
-add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_0
-add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_1
-add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_2
-add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_3
+add wave -noupdate /scaler_h_tb/scaler_h/coe
 add wave -noupdate -expand /scaler_h_tb/scaler_h/sr_de
 add wave -noupdate /scaler_h_tb/scaler_h/mult
 add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/sum_16_9
@@ -76,4 +69,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {963542 ps} {1515625 ps}
+WaveRestoreZoom {9946667 ps} {11558125 ps}

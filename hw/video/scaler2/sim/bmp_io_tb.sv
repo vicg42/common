@@ -90,12 +90,16 @@ initial begin : sim_main
 //            else if ((y==11) && (x==14)) pixel = 32;
 //            else if ((y==11) && (x==10)) pixel = 32;
 
-            else if ((y==12) && (x==1) ) pixel = 64;
+            else if ((y==12) && (x==0) ) pixel = 50;
+            else if ((y==12) && (x==1) ) pixel = 60;
+            else if ((y==12) && (x==2) ) pixel = 70;
+            else if ((y==12) && (x==3) ) pixel = 80;
+
 //            else if ((y==12) && (x==23) ) pixel = 128;
-            else if ((y==12) && (x==24) ) pixel = 92;
-            else if ((y==12) && (x==23) ) pixel = 92;
-            else if ((y==12) && (x==22) ) pixel = 94;
-            else if ((y==12) && (x==21) ) pixel = 99;
+            else if ((y==12) && (x==24) ) pixel = 120;
+            else if ((y==12) && (x==23) ) pixel = 110;
+            else if ((y==12) && (x==22) ) pixel = 100;
+            else if ((y==12) && (x==21) ) pixel = 90;
 //
 //            else if ((y==1) && (x==12) ) pixel = 64;
 //            else if ((y==23) && (x==12) ) pixel = 128;
@@ -110,7 +114,7 @@ initial begin : sim_main
         end
     end
 
-    image_new.fwrite_bmp("_25_25_8bit_deltapulse_v5_hs_4.bmp", bc, w, h);
+    image_new.fwrite_bmp("_25_25_8bit_deltapulse_v5_hs_5.bmp", bc, w, h);
 
     $stop;
 

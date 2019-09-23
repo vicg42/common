@@ -94,7 +94,7 @@ always @(posedge clk) begin
 
         if (hs || vs) begin
             cnt_pix_i <= 0;
-            cnt_pix_o <= PIXEL_STEP*3;//PIXEL_STEP;//
+            cnt_pix_o <= PIXEL_STEP*2;//PIXEL_STEP*3;//
 
         end else begin
             if (de_i && !hs && !vs) begin
