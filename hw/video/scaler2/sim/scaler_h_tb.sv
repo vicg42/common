@@ -9,14 +9,14 @@
 
 module scaler_h_tb # (
 //    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
-    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_hs_3.bmp",
+    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_hs_4.bmp",
     parameter WRITE_IMG_FILE = "scaler_h_tb",
 
     parameter STEP = 4096,
     parameter real SCALE_FACTOR = 0.7,
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
 
-    parameter DE_I_PERIOD = 4, //0 - no empty cycles
+    parameter DE_I_PERIOD = 2, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
@@ -193,6 +193,7 @@ scaler_h #(
     .hs_i(hs_i),
     .vs_i(vs_i),
 
+    .pix_count_o(),
     .do_o(do_o),
     .de_o(de_o),
     .hs_o(hs_o),

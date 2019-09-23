@@ -21,6 +21,7 @@ module scaler_h #(
     input hs_i,
     input vs_i,
 
+    output reg [15:0] pix_count_o = 0,
     output reg [DATA_WIDTH-1:0] do_o = 0,
     output reg de_o = 0,
     output reg hs_o = 0,
@@ -172,6 +173,17 @@ always @(posedge clk) begin
     de_o <= sr_de[1];
     hs_o <= sr_hs[1];
     vs_o <= sr_vs[1];
+end
+
+
+reg [15:0] pix_cnt_o = 0;
+always @(posedge clk) begin
+    if (sr_hs[0] && !sr_hs[1]) begin
+        pix_count_o <= pix_cnt_o;
+        pix_cnt_o <= 0;
+    end else if (de_o) begin
+        pix_cnt_o <= pix_cnt_o + 1;
+    end
 end
 
 

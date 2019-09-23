@@ -188,7 +188,7 @@ always @(posedge clk) begin
     o_hs <= 1;
 
     if (i_vs_edge) begin
-        cnt_line_o <= LINE_STEP*2;
+        cnt_line_o <= LINE_STEP*3;//*2;
         dbuf_rdcnt <= 0;
         sparse_cntr <= 0;
         fsm_cs <= IDLE;
@@ -212,7 +212,7 @@ always @(posedge clk) begin
                     sparse_cntr <= 0;
                     o_de <= 1;
                     dbuf_rdcnt <= dbuf_rdcnt + 1'b1;
-                    if (dbuf_rdcnt == scale_line_size) begin
+                    if (dbuf_rdcnt == (scale_line_size - 1)) begin
                         cnt_line_o <= cnt_line_o + scale_step;
                         fsm_cs <= IDLE;
                     end

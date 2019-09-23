@@ -8,12 +8,12 @@
 `include "bmp_io.sv"
 
 module scaler_tb # (
-//    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
-    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v4.bmp",
+    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
+//    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_hs_4.bmp",
     parameter WRITE_IMG_FILE = "scaler_tb",
 
     parameter STEP = 4096,
-    parameter real SCALE_FACTOR = 0.5,
+    parameter real SCALE_FACTOR = 0.9,
     parameter SCALE_LINE_SIZE = 50-1,
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
 
@@ -21,7 +21,7 @@ module scaler_tb # (
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
-    parameter LINE_SIZE_MAX = 150,
+    parameter LINE_SIZE_MAX = 4096,
     parameter COE_WIDTH = 10,
     parameter PIXEL_WIDTH = 8
 )();
@@ -57,6 +57,7 @@ logic [PIXEL_WIDTH-1:0] scaler_h_do_o;
 logic scaler_h_de_o;
 logic scaler_h_hs_o;
 logic scaler_h_vs_o;
+logic [15:0] scaler_h_pix_count_o;
 
 logic [PIXEL_WIDTH-1:0] do_o;
 logic de_o;
@@ -198,6 +199,7 @@ scaler_h #(
     .hs_i(hs_i),
     .vs_i(vs_i),
 
+    .pix_count_o(scaler_h_pix_count_o),
     .do_o(scaler_h_do_o),
     .de_o(scaler_h_de_o),
     .hs_o(scaler_h_hs_o),
@@ -226,7 +228,7 @@ scaler_v #(
 ) scaler_v (
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
     .scale_step(scale_step),
-    .scale_line_size(SCALE_LINE_SIZE),
+    .scale_line_size(scaler_h_pix_count_o),//(SCALE_LINE_SIZE),
 
     .di_i(scaler_h_do_o),
     .de_i(scaler_h_de_o),
