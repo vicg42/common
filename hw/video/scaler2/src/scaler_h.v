@@ -93,7 +93,7 @@ always @(posedge clk) begin
 
         if (hs || vs) begin
             cnt_pix_i <= 0;
-            cnt_pix_o <= PIXEL_STEP;
+            cnt_pix_o <= PIXEL_STEP*3;//PIXEL_STEP;//
 
         end else begin
             if (de_i && !hs && !vs) begin
@@ -110,7 +110,8 @@ always @(posedge clk) begin
                 pix[0] <= sr_di_i[0];
                 pix[1] <= sr_di_i[1];
                 pix[2] <= sr_di_i[2];
-                pix[3] <= sr_di_i[3]; //(cnt_pix_i <= (PIXEL_STEP*2))? 1'b0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
+                pix[3] <= sr_di_i[3];
+//                pix[3] <= (cnt_pix_i <= (PIXEL_STEP*2)) ? 0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
 
                 cnt_pix_o <= cnt_pix_o + scale_step;
             end
