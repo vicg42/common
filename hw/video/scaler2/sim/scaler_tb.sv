@@ -9,20 +9,20 @@
 
 module scaler_tb # (
 //    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
-//    parameter READ_IMG_FILE = "_24x24_8bit.bmp",
-    parameter READ_IMG_FILE = "_8x8_8bit_test0_1pix.bmp",
-    parameter WRITE_IMG_FILE = "scaler_h_tb",
+    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v4.bmp",
+    parameter WRITE_IMG_FILE = "scaler_tb",
 
     parameter STEP = 4096,
-    parameter real SCALE_FACTOR = 1.00,
-    parameter SCALE_LINE_SIZE = 8,
+    parameter real SCALE_FACTOR = 0.5,
+    parameter SCALE_LINE_SIZE = 50-1,
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
 
     parameter DE_I_PERIOD = 4, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
-    parameter LINE_SIZE_MAX = 1024,
+    parameter LINE_SIZE_MAX = 150,
+    parameter COE_WIDTH = 10,
     parameter PIXEL_WIDTH = 8
 )();
 
@@ -118,7 +118,7 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                di_i = di_i + 1;//image_real.get_pixel(x, y);
+                di_i = image_real.get_pixel(x, y);
 //                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x;
                 //for color image:
                 //di_i[0  +: 8] - B
@@ -186,7 +186,8 @@ end
 logic [15:0] scale_step = SCALE_FACTOR * STEP;
 
 scaler_h #(
-    .TABLE_INPUT_WIDTH (10),
+//    .TABLE_INPUT_WIDTH (10),
+    .COE_WIDTH(COE_WIDTH),
     .PIXEL_STEP (STEP),
     .DATA_WIDTH (PIXEL_WIDTH)
 ) scaler_h (
@@ -217,7 +218,8 @@ end
 
 scaler_v #(
     .SPARSE_OUTPUT(0), // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
-    .TABLE_INPUT_WIDTH(10),
+//    .TABLE_INPUT_WIDTH(10),
+    .COE_WIDTH(COE_WIDTH),
     .LINE_SIZE_MAX(LINE_SIZE_MAX),
     .LINE_STEP (STEP),
     .DATA_WIDTH (PIXEL_WIDTH)

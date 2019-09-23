@@ -8,7 +8,8 @@
 `include "user_pkg.v"
 
 module scaler_h #(
-    parameter TABLE_INPUT_WIDTH = 10,
+//    parameter TABLE_INPUT_WIDTH = 10,
+    parameter COE_WIDTH = 10,
     parameter PIXEL_STEP = 4096,
     parameter DATA_WIDTH = 8
 )(
@@ -29,8 +30,8 @@ module scaler_h #(
     input rst
 );
 // -------------------------------------------------------------------------
-localparam COE_WIDTH = 10;
-localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
+//localparam COE_WIDTH = TABLE_INPUT_WIDTH;
+//localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
 
 localparam MUL_WIDTH = COE_WIDTH + DATA_WIDTH;
 localparam OVERFLOW_BIT = COE_WIDTH + DATA_WIDTH - 1;
@@ -123,7 +124,7 @@ assign coe_idx = cnt_pix_o[7 +: 5];
 scaler_rom_coe # (
     .COE_WIDTH (COE_WIDTH)
 ) rom_coe (
-    .addr(coe_idx & TABLE_INPUT_WIDTH_MASK),
+    .addr(coe_idx),// & TABLE_INPUT_WIDTH_MASK),
 
     .rom0_do(coe[0]),
     .rom1_do(coe[1]),

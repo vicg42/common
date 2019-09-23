@@ -62,7 +62,7 @@ always @ (posedge clk) begin
             if (frcnt < 4) begin
 
                 //create file name
-                $sformat(strtmp,"_tb_fr%02d", frcnt);
+                $sformat(strtmp,"_result_fr%02d", frcnt);
                 filename = {WRITE_IMG_FILE, strtmp, ".bmp"};
 
 //                $display("\tdata_size=%04d; xcnt=%04d; ycnt=%04d", data_size, xcnt, ycnt);

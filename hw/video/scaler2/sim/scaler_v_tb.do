@@ -7,7 +7,7 @@ file delete -force -- work
 
 vlib work
 
-vlog ../src/scaler_rom_coe.v
+vlog ../src/scaler_rom_coe.v +define+../src/
 vlog ../src/scaler_v.v -sv +define+SIM_FSM +define+INITAL
 
 vlog ./bmp_io.sv -sv

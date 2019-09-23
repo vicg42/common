@@ -1,6 +1,7 @@
 module scaler_v #(
     parameter SPARSE_OUTPUT = 2, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
-    parameter TABLE_INPUT_WIDTH = 10,
+//    parameter TABLE_INPUT_WIDTH = 10,
+    parameter COE_WIDTH = 10,
     parameter LINE_SIZE_MAX = 12,
     parameter LINE_STEP = 4096,
     parameter DATA_WIDTH = 8
@@ -23,13 +24,13 @@ module scaler_v #(
     input rst
 );
 // -------------------------------------------------------------------------
-localparam COE_WIDTH = 10;
-localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
+//localparam COE_WIDTH = 10;
+//localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
 
 localparam MUL_WIDTH = COE_WIDTH + DATA_WIDTH;
 localparam OVERFLOW_BIT = COE_WIDTH + DATA_WIDTH - 1;
 localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (DATA_WIDTH+COE_WIDTH)) - 1;
-localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2));
+localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2)); //0.5
 
 reg [23:0] cnt_line_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_line_o = 0; // output pixels coordinate counter
@@ -97,7 +98,7 @@ localparam BUF_E_NUM = 4;
 reg [2:0] dbuf_num = 0;
 reg [15:0] dbuf_wrcnt = 0;
 reg [15:0] dbuf_rdcnt = 0;
-reg [9:0] delta_y = 0;
+reg [9:0] coe_idx = 0;
 
 reg [DATA_WIDTH-1:0] dbuf_do [0:4];
 //reg [DATA_WIDTH-1:0] buf_a_do;
@@ -167,6 +168,16 @@ always @(posedge clk) begin
                 dbuf_num <= dbuf_num + 1'b1;
             end
         end
+    end else begin
+        if (i_hs_edge && !vs_i) begin
+            cnt_line_i <= cnt_line_i + LINE_STEP;
+            dbuf_wrcnt <= 0;
+            if (dbuf_num == 4) begin
+                dbuf_num <= 0;
+            end else begin
+                dbuf_num <= dbuf_num + 1'b1;
+            end
+        end
     end
 end
 
@@ -185,7 +196,7 @@ always @(posedge clk) begin
         case (fsm_cs)
             IDLE: begin
                 if (cnt_line_i > cnt_line_o) begin
-                    delta_y <= cnt_line_o[2 +: 10];
+                    coe_idx <= cnt_line_o[7 +: 5];//[2 +: 10];
                     fsm_cs <= CALC_F_PARAMS_CYCLE;
                 end
             end
@@ -216,7 +227,7 @@ end
 scaler_rom_coe # (
     .COE_WIDTH (COE_WIDTH)
 ) rom_coe (
-    .addr (delta_y & TABLE_INPUT_WIDTH_MASK),
+    .addr (coe_idx),// & TABLE_INPUT_WIDTH_MASK),
 
     .rom0_do(coe[0]),
     .rom1_do(coe[1]),

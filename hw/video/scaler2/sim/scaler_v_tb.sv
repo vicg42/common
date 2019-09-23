@@ -9,15 +9,12 @@
 
 module scaler_v_tb # (
 //    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
-//    parameter READ_IMG_FILE = "_24x24_8bit.bmp",
-    parameter READ_IMG_FILE = "_24x24_8bit_1pix.bmp",
-//    parameter READ_IMG_FILE = "_8x8_8bit_test0_1pix.bmp",
-//    parameter READ_IMG_FILE = "13_13_8bit_deltapulse.bmp",
-    parameter WRITE_IMG_FILE = "scaler_h_tb",
+    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v4_vs.bmp",
+    parameter WRITE_IMG_FILE = "scaler_v_tb",
 
     parameter STEP = 4096,
     parameter real SCALE_FACTOR = 0.5,
-    parameter SCALE_LINE_SIZE = 47,
+    parameter SCALE_LINE_SIZE = 50-1,
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
 
     parameter DE_I_PERIOD = 4, //0 - no empty cycles
@@ -25,6 +22,7 @@ module scaler_v_tb # (
                              //4 - 3 empty cycle per pixel
                              //etc...
     parameter LINE_SIZE_MAX = 150,
+    parameter COE_WIDTH = 10,
     parameter PIXEL_WIDTH = 8
 )();
 
@@ -189,7 +187,8 @@ logic [15:0] scale_step = SCALE_FACTOR * STEP;
 
 scaler_v #(
     .SPARSE_OUTPUT(0), // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
-    .TABLE_INPUT_WIDTH(10),
+//    .TABLE_INPUT_WIDTH(10),
+    .COE_WIDTH(COE_WIDTH),
     .LINE_SIZE_MAX(LINE_SIZE_MAX),
     .LINE_STEP (STEP),
     .DATA_WIDTH (PIXEL_WIDTH)

@@ -6,6 +6,9 @@ quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/s
 quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/sum[16], /scaler_h_tb/scaler_h/sum[15], /scaler_h_tb/scaler_h/sum[14], /scaler_h_tb/scaler_h/sum[13], /scaler_h_tb/scaler_h/sum[12], /scaler_h_tb/scaler_h/sum[11], /scaler_h_tb/scaler_h/sum[10], /scaler_h_tb/scaler_h/sum[9] }} sum_16_9
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /scaler_h_tb/SCALE_FACTOR
+add wave -noupdate -radix unsigned /scaler_h_tb/COE_WIDTH
+add wave -noupdate -radix unsigned /scaler_h_tb/LINE_SIZE_MAX
+add wave -noupdate -radix unsigned /scaler_h_tb/STEP
 add wave -noupdate -radix unsigned /scaler_h_tb/dbg_cnt_i
 add wave -noupdate /scaler_h_tb/de_i
 add wave -noupdate /scaler_h_tb/hs_i
@@ -22,9 +25,9 @@ add wave -noupdate -divider {New Divider}
 add wave -noupdate /scaler_h_tb/scaler_h/PIXEL_STEP
 add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/cnt_pix_i_23_12
 add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_i_11_0
+add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_i
 add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/cnt_pix_o_23_12
 add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_o_11_0
-add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_i
 add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_o
 add wave -noupdate /scaler_h_tb/scaler_h/hs
 add wave -noupdate /scaler_h_tb/SCALE_FACTOR
@@ -40,7 +43,7 @@ add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_1
 add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_2
 add wave -noupdate /scaler_h_tb/scaler_h/rom_coe/rom_3
 add wave -noupdate -expand /scaler_h_tb/scaler_h/sr_de
-add wave -noupdate -expand /scaler_h_tb/scaler_h/mult
+add wave -noupdate /scaler_h_tb/scaler_h/mult
 add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/sum_16_9
 add wave -noupdate /scaler_h_tb/scaler_h/sum
 add wave -noupdate -divider OUTPUT
@@ -72,4 +75,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {1067200 ps} {1787557 ps}
+WaveRestoreZoom {0 ps} {15423232 ps}
