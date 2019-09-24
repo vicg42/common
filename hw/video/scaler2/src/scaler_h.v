@@ -65,6 +65,9 @@ reg [1:0] sr_de = 0;
 reg [1:0] sr_hs = 0;
 reg [1:0] sr_vs = 0;
 
+reg bondary = 0;
+reg [1:0] sr_bondary = 0;
+
 wire hs;
 wire vs;
 assign hs = hs_i && sr_hs_i[3];
@@ -94,24 +97,29 @@ always @(posedge clk) begin
 
         if (hs || vs) begin
             cnt_pix_i <= 0;
-            cnt_pix_o <= PIXEL_STEP*2;//PIXEL_STEP*3;//
+            cnt_pix_o <= PIXEL_STEP*0;//PIXEL_STEP*2;//
+            bondary <= 1;
 
         end else begin
             if (de_i && !hs && !vs) begin
-                sr_di_i[0] <= di_i;
+                sr_di_i[0] <= di_i      ;
                 sr_di_i[1] <= sr_di_i[0];
                 sr_di_i[2] <= sr_di_i[1];
                 sr_di_i[3] <= sr_di_i[2];
                 cnt_pix_i <= cnt_pix_i + PIXEL_STEP;
             end
 
+            if (new_de) begin
+                bondary <= 0;
+            end
+
             if (cnt_pix_i > cnt_pix_o) begin
                 new_de <= 1;
 
-                pix[0] <= sr_di_i[0];
-                pix[1] <= sr_di_i[1];
-                pix[2] <= sr_di_i[2];
-                pix[3] <= sr_di_i[3];
+                pix[0] <= di_i      ;//sr_di_i[0];
+                pix[1] <= sr_di_i[0];//sr_di_i[1];
+                pix[2] <= sr_di_i[1];//sr_di_i[2];
+                pix[3] <= sr_di_i[2];//sr_di_i[3];
 //                pix[3] <= (cnt_pix_i <= (PIXEL_STEP*2)) ? 0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
 
                 cnt_pix_o <= cnt_pix_o + scale_step;
@@ -126,7 +134,7 @@ assign coe_idx = cnt_pix_o[7 +: 5];
 scaler_rom_coe # (
     .COE_WIDTH (COE_WIDTH)
 ) rom_coe (
-    .addr(coe_idx),// & TABLE_INPUT_WIDTH_MASK),
+    .addr(coe_idx),
 
     .rom0_do(coe[0]),
     .rom1_do(coe[1]),
@@ -136,12 +144,6 @@ scaler_rom_coe # (
     .clk(clk)
 );
 
-//assign coe[0]=10'd512;
-//assign coe[1]=0;
-//assign coe[2]=0;
-//assign coe[3]=0;
-
-
 always @(posedge clk) begin
     //stage 0
     mult[0] <= coe[0] * pix[0];
@@ -149,16 +151,18 @@ always @(posedge clk) begin
     mult[2] <= coe[2] * pix[2];
     mult[3] <= coe[3] * pix[3];
 
-    sr_de[0] <= new_de;//sr_new_pix;
+    sr_de[0] <= new_de;
     sr_hs[0] <= hs;
     sr_vs[0] <= vs;
+    sr_bondary[0] <= bondary;
 
     //stage 1
     sum <= mult[1] + mult[2] - mult[0] - mult[3] + ROUND_ADDER;
 
-    sr_de[1] <= sr_de[0];//new_de;//
+    sr_de[1] <= sr_de[0];
     sr_hs[1] <= sr_hs[0];
     sr_vs[1] <= sr_vs[0];
+    sr_bondary[1] <= sr_bondary[0];
 
     //stage 2
     if (sr_de[1]) begin
@@ -170,7 +174,7 @@ always @(posedge clk) begin
             do_o <= sum[COE_WIDTH-1 +: DATA_WIDTH];
         end
     end
-    de_o <= sr_de[1];
+    de_o <= sr_de[1] && !sr_bondary[1];
     hs_o <= sr_hs[1];
     vs_o <= sr_vs[1];
 end
@@ -178,7 +182,7 @@ end
 
 reg [15:0] pix_cnt_o = 0;
 always @(posedge clk) begin
-    if (sr_hs[0] && !sr_hs[1]) begin
+    if (!hs_o && sr_hs[1]) begin
         pix_count_o <= pix_cnt_o;
         pix_cnt_o <= 0;
     end else if (de_o) begin

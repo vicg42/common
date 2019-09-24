@@ -13,7 +13,7 @@ module scaler_h_tb # (
     parameter WRITE_IMG_FILE = "scaler_h_tb",
 
     parameter STEP = 4096,
-    parameter real SCALE_FACTOR = 1.0,
+    parameter real SCALE_FACTOR = 1.3,
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
 
     parameter DE_I_PERIOD = 2, //0 - no empty cycles

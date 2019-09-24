@@ -16,8 +16,8 @@ add wave -noupdate /scaler_h_tb/vs_i
 add wave -noupdate -divider INPUT
 add wave -noupdate /scaler_h_tb/scaler_h/rst
 add wave -noupdate /scaler_h_tb/scaler_h/clk
-add wave -noupdate /scaler_h_tb/scaler_h/di_i
-add wave -noupdate -expand /scaler_h_tb/scaler_h/sr_di_i
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/di_i
+add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h/sr_di_i[0]} -radix unsigned} {{/scaler_h_tb/scaler_h/sr_di_i[1]} -radix unsigned} {{/scaler_h_tb/scaler_h/sr_di_i[2]} -radix unsigned} {{/scaler_h_tb/scaler_h/sr_di_i[3]} -radix unsigned}} -expand -subitemconfig {{/scaler_h_tb/scaler_h/sr_di_i[0]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/sr_di_i[1]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/sr_di_i[2]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/sr_di_i[3]} {-height 15 -radix unsigned}} /scaler_h_tb/scaler_h/sr_di_i
 add wave -noupdate /scaler_h_tb/scaler_h/de_i
 add wave -noupdate /scaler_h_tb/scaler_h/hs_i
 add wave -noupdate /scaler_h_tb/scaler_h/vs_i
@@ -34,12 +34,14 @@ add wave -noupdate /scaler_h_tb/scaler_h/hs
 add wave -noupdate /scaler_h_tb/SCALE_FACTOR
 add wave -noupdate /scaler_h_tb/scaler_h/scale_step
 add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h/pix[0]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[1]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[2]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[3]} -radix unsigned}} -expand -subitemconfig {{/scaler_h_tb/scaler_h/pix[0]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[1]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[2]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[3]} {-height 15 -radix unsigned}} /scaler_h_tb/scaler_h/pix
-add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/rom_coe/addr
-add wave -noupdate /scaler_h_tb/scaler_h/coe
+add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h/rom_coe/addr[4]} -radix unsigned} {{/scaler_h_tb/scaler_h/rom_coe/addr[3]} -radix unsigned} {{/scaler_h_tb/scaler_h/rom_coe/addr[2]} -radix unsigned} {{/scaler_h_tb/scaler_h/rom_coe/addr[1]} -radix unsigned} {{/scaler_h_tb/scaler_h/rom_coe/addr[0]} -radix unsigned}} -subitemconfig {{/scaler_h_tb/scaler_h/rom_coe/addr[4]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/rom_coe/addr[3]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/rom_coe/addr[2]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/rom_coe/addr[1]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/rom_coe/addr[0]} {-height 15 -radix unsigned}} /scaler_h_tb/scaler_h/rom_coe/addr
+add wave -noupdate -expand /scaler_h_tb/scaler_h/coe
 add wave -noupdate -expand /scaler_h_tb/scaler_h/sr_de
-add wave -noupdate /scaler_h_tb/scaler_h/mult
+add wave -noupdate -expand /scaler_h_tb/scaler_h/mult
 add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/sum_16_9
 add wave -noupdate /scaler_h_tb/scaler_h/sum
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/pix_count_o
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/pix_cnt_o
 add wave -noupdate -divider OUTPUT
 add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/do_o
 add wave -noupdate /scaler_h_tb/scaler_h/de_o
@@ -53,8 +55,8 @@ add wave -noupdate -radix unsigned /scaler_h_tb/monitor/xcnt
 add wave -noupdate -radix unsigned /scaler_h_tb/monitor/ycnt
 add wave -noupdate -radix unsigned /scaler_h_tb/monitor/frcnt
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
-quietly wave cursor active 0
+WaveRestoreCursors {{Cursor 1} {10112000 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 234
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -69,4 +71,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {9946667 ps} {11558125 ps}
+WaveRestoreZoom {9200149 ps} {11598957 ps}
