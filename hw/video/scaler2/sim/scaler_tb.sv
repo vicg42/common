@@ -9,7 +9,7 @@
 
 module scaler_tb # (
 //    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
-    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_hs_4.bmp",
+    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_hs_5.bmp",
     parameter WRITE_IMG_FILE = "scaler_tb",
 
     parameter STEP = 4096,

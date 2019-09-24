@@ -98,6 +98,10 @@ always @(posedge clk) begin
             cnt_pix_i <= 0;
             cnt_pix_o <= PIXEL_STEP*0;//PIXEL_STEP*2;//
             bondary <= 1;
+            sr_di_i[0] <= 0; pix[0] <= 0;
+            sr_di_i[1] <= 0; pix[1] <= 0;
+            sr_di_i[2] <= 0; pix[2] <= 0;
+            sr_di_i[3] <= 0; pix[3] <= 0;
 
         end else begin
             if (de_i && !hs && !vs) begin
