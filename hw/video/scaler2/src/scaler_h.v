@@ -8,13 +8,13 @@
 `include "user_pkg.v"
 
 module scaler_h #(
-//    parameter TABLE_INPUT_WIDTH = 10,
+    parameter STEP_CORD_I = 4096,
     parameter COE_WIDTH = 10,
-    parameter PIXEL_STEP = 4096,
     parameter DATA_WIDTH = 8
 )(
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
-    input [15:0] scale_step,
+//    input [15:0] step_cord_i,
+    input [15:0] step_cord_o,
 
     input [DATA_WIDTH-1:0] di_i,
     input de_i,
@@ -31,16 +31,13 @@ module scaler_h #(
     input rst
 );
 // -------------------------------------------------------------------------
-//localparam COE_WIDTH = TABLE_INPUT_WIDTH;
-//localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
-
 localparam MUL_WIDTH = COE_WIDTH + DATA_WIDTH;
 localparam OVERFLOW_BIT = COE_WIDTH + DATA_WIDTH - 1;
 localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (DATA_WIDTH+COE_WIDTH)) - 1;
 localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2)); //0.5
 
-reg [23:0] cnt_pix_i = 0; // input pixels coordinate counter
-reg [23:0] cnt_pix_o = PIXEL_STEP; // output pixels coordinate counter
+reg [23:0] cnt_cord_i = 0; // input coordinate counter
+reg [23:0] cnt_cord_o = 0; // output coordinate counter
 
 wire [COE_WIDTH-1:0] coe [0:3];
 reg [DATA_WIDTH-1:0] pix [0:3];
@@ -61,9 +58,9 @@ reg [3:0] sr_hs_i = 0;
 reg [3:0] sr_vs_i = 0;
 
 reg new_de = 0;
-reg [1:0] sr_de = 0;
-reg [1:0] sr_hs = 0;
-reg [1:0] sr_vs = 0;
+reg [2:0] sr_de = 0;
+reg [2:0] sr_hs = 0;
+reg [2:0] sr_vs = 0;
 
 reg bondary = 0;
 reg [1:0] sr_bondary = 0;
@@ -88,15 +85,15 @@ end
 always @(posedge clk) begin
     if (rst) begin
         new_de <= 0;
-        cnt_pix_i <= 0;
-        cnt_pix_o <= 0;//PIXEL_STEP;
+        cnt_cord_i <= 0;
+        cnt_cord_o <= 0;//STEP_CORD_I;
 
     end else begin
         new_de <= 0;
 
         if (hs || vs) begin
-            cnt_pix_i <= 0;
-            cnt_pix_o <= PIXEL_STEP*0;//PIXEL_STEP*2;//
+            cnt_cord_i <= 0;
+            cnt_cord_o <= STEP_CORD_I*3;//STEP_CORD_I*0;//
             bondary <= 1;
             sr_di_i[0] <= 0; pix[0] <= 0;
             sr_di_i[1] <= 0; pix[1] <= 0;
@@ -109,30 +106,31 @@ always @(posedge clk) begin
                 sr_di_i[1] <= sr_di_i[0];
                 sr_di_i[2] <= sr_di_i[1];
                 sr_di_i[3] <= sr_di_i[2];
-                cnt_pix_i <= cnt_pix_i + PIXEL_STEP;
+                cnt_cord_i <= cnt_cord_i + STEP_CORD_I;
             end
 
             if (new_de) begin
                 bondary <= 0;
             end
 
-            if (cnt_pix_i > cnt_pix_o) begin
+            if (cnt_cord_i > cnt_cord_o) begin
                 new_de <= 1;
 
-                pix[0] <= di_i      ;//sr_di_i[0];
-                pix[1] <= sr_di_i[0];//sr_di_i[1];
-                pix[2] <= sr_di_i[1];//sr_di_i[2];
-                pix[3] <= sr_di_i[2];//sr_di_i[3];
-//                pix[3] <= (cnt_pix_i <= (PIXEL_STEP*2)) ? 0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
+                pix[0] <= sr_di_i[0];//di_i      ;//
+                pix[1] <= sr_di_i[1];//sr_di_i[0];//
+                pix[2] <= sr_di_i[2];//sr_di_i[1];//
+                pix[3] <= sr_di_i[3];//sr_di_i[2];//
 
-                cnt_pix_o <= cnt_pix_o + scale_step;
+//                pix[3] <= (cnt_cord_i <= (STEP_CORD_I*2)) ? 0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
+
+                cnt_cord_o <= cnt_cord_o + step_cord_o;
             end
         end
     end
 end
 
-wire [9:0] coe_idx;
-assign coe_idx = cnt_pix_o[7 +: 5];
+wire [4:0] coe_idx;
+assign coe_idx = cnt_cord_o[7 +: 5];
 
 scaler_rom_coe # (
     .COE_WIDTH (COE_WIDTH)
@@ -147,6 +145,7 @@ scaler_rom_coe # (
     .clk(clk)
 );
 
+reg de_o_ = 0;
 always @(posedge clk) begin
     //stage 0
     mult[0] <= coe[0] * pix[0];
@@ -177,15 +176,25 @@ always @(posedge clk) begin
             do_o <= sum[COE_WIDTH-1 +: DATA_WIDTH];
         end
     end
-    de_o <= sr_de[1] && !sr_bondary[1];
-    hs_o <= sr_hs[1];
-    vs_o <= sr_vs[1];
+//    de_o <= sr_de[1];// && !sr_bondary[1];
+//    hs_o <= hs;//sr_hs[1];
+//    vs_o <= vs;//sr_vs[1];
+    sr_de[2] <= sr_de[1];
+    sr_hs[2] <= hs;
+    sr_vs[2] <= vs;
+
+    //stage 3
+    de_o <= sr_de[2] && !hs;
+    hs_o <= sr_hs[2];
+    vs_o <= sr_vs[2];
 end
+
+//assign de_o = de_o_ && !hs;
 
 
 reg [15:0] pix_cnt_o = 0;
 always @(posedge clk) begin
-    if (!hs_o && sr_hs[1]) begin
+    if (!sr_hs_i[3] && sr_hs_i[2]) begin
         pix_count_o <= pix_cnt_o;
         pix_cnt_o <= 0;
     end else if (de_o) begin

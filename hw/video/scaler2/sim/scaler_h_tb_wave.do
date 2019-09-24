@@ -1,8 +1,8 @@
 onerror {resume}
-quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_pix_i[11], /scaler_h_tb/scaler_h/cnt_pix_i[10], /scaler_h_tb/scaler_h/cnt_pix_i[9], /scaler_h_tb/scaler_h/cnt_pix_i[8], /scaler_h_tb/scaler_h/cnt_pix_i[7], /scaler_h_tb/scaler_h/cnt_pix_i[6], /scaler_h_tb/scaler_h/cnt_pix_i[5], /scaler_h_tb/scaler_h/cnt_pix_i[4], /scaler_h_tb/scaler_h/cnt_pix_i[3], /scaler_h_tb/scaler_h/cnt_pix_i[2], /scaler_h_tb/scaler_h/cnt_pix_i[1], /scaler_h_tb/scaler_h/cnt_pix_i[0] }} cnt_pix_i_11_0
-quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_pix_i[23], /scaler_h_tb/scaler_h/cnt_pix_i[22], /scaler_h_tb/scaler_h/cnt_pix_i[21], /scaler_h_tb/scaler_h/cnt_pix_i[20], /scaler_h_tb/scaler_h/cnt_pix_i[19], /scaler_h_tb/scaler_h/cnt_pix_i[18], /scaler_h_tb/scaler_h/cnt_pix_i[17], /scaler_h_tb/scaler_h/cnt_pix_i[16], /scaler_h_tb/scaler_h/cnt_pix_i[15], /scaler_h_tb/scaler_h/cnt_pix_i[14], /scaler_h_tb/scaler_h/cnt_pix_i[13], /scaler_h_tb/scaler_h/cnt_pix_i[12] }} cnt_pix_i_23_12
-quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_pix_o[23], /scaler_h_tb/scaler_h/cnt_pix_o[22], /scaler_h_tb/scaler_h/cnt_pix_o[21], /scaler_h_tb/scaler_h/cnt_pix_o[20], /scaler_h_tb/scaler_h/cnt_pix_o[19], /scaler_h_tb/scaler_h/cnt_pix_o[18], /scaler_h_tb/scaler_h/cnt_pix_o[17], /scaler_h_tb/scaler_h/cnt_pix_o[16], /scaler_h_tb/scaler_h/cnt_pix_o[15], /scaler_h_tb/scaler_h/cnt_pix_o[14], /scaler_h_tb/scaler_h/cnt_pix_o[13], /scaler_h_tb/scaler_h/cnt_pix_o[12] }} cnt_pix_o_23_12
-quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_pix_o[11], /scaler_h_tb/scaler_h/cnt_pix_o[10], /scaler_h_tb/scaler_h/cnt_pix_o[9], /scaler_h_tb/scaler_h/cnt_pix_o[8], /scaler_h_tb/scaler_h/cnt_pix_o[7], /scaler_h_tb/scaler_h/cnt_pix_o[6], /scaler_h_tb/scaler_h/cnt_pix_o[5], /scaler_h_tb/scaler_h/cnt_pix_o[4], /scaler_h_tb/scaler_h/cnt_pix_o[3], /scaler_h_tb/scaler_h/cnt_pix_o[2], /scaler_h_tb/scaler_h/cnt_pix_o[1], /scaler_h_tb/scaler_h/cnt_pix_o[0] }} cnt_pix_o_11_0
+quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_cord_i[11], /scaler_h_tb/scaler_h/cnt_cord_i[10], /scaler_h_tb/scaler_h/cnt_cord_i[9], /scaler_h_tb/scaler_h/cnt_cord_i[8], /scaler_h_tb/scaler_h/cnt_cord_i[7], /scaler_h_tb/scaler_h/cnt_cord_i[6], /scaler_h_tb/scaler_h/cnt_cord_i[5], /scaler_h_tb/scaler_h/cnt_cord_i[4], /scaler_h_tb/scaler_h/cnt_cord_i[3], /scaler_h_tb/scaler_h/cnt_cord_i[2], /scaler_h_tb/scaler_h/cnt_cord_i[1], /scaler_h_tb/scaler_h/cnt_cord_i[0] }} cnt_cord_i_11_0
+quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_cord_i[23], /scaler_h_tb/scaler_h/cnt_cord_i[22], /scaler_h_tb/scaler_h/cnt_cord_i[21], /scaler_h_tb/scaler_h/cnt_cord_i[20], /scaler_h_tb/scaler_h/cnt_cord_i[19], /scaler_h_tb/scaler_h/cnt_cord_i[18], /scaler_h_tb/scaler_h/cnt_cord_i[17], /scaler_h_tb/scaler_h/cnt_cord_i[16], /scaler_h_tb/scaler_h/cnt_cord_i[15], /scaler_h_tb/scaler_h/cnt_cord_i[14], /scaler_h_tb/scaler_h/cnt_cord_i[13], /scaler_h_tb/scaler_h/cnt_cord_i[12] }} cnt_cord_i_23_12
+quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_cord_o[23], /scaler_h_tb/scaler_h/cnt_cord_o[22], /scaler_h_tb/scaler_h/cnt_cord_o[21], /scaler_h_tb/scaler_h/cnt_cord_o[20], /scaler_h_tb/scaler_h/cnt_cord_o[19], /scaler_h_tb/scaler_h/cnt_cord_o[18], /scaler_h_tb/scaler_h/cnt_cord_o[17], /scaler_h_tb/scaler_h/cnt_cord_o[16], /scaler_h_tb/scaler_h/cnt_cord_o[15], /scaler_h_tb/scaler_h/cnt_cord_o[14], /scaler_h_tb/scaler_h/cnt_cord_o[13], /scaler_h_tb/scaler_h/cnt_cord_o[12] }} cnt_cord_o_23_12
+quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/cnt_cord_o[11], /scaler_h_tb/scaler_h/cnt_cord_o[10], /scaler_h_tb/scaler_h/cnt_cord_o[9], /scaler_h_tb/scaler_h/cnt_cord_o[8], /scaler_h_tb/scaler_h/cnt_cord_o[7], /scaler_h_tb/scaler_h/cnt_cord_o[6], /scaler_h_tb/scaler_h/cnt_cord_o[5], /scaler_h_tb/scaler_h/cnt_cord_o[4], /scaler_h_tb/scaler_h/cnt_cord_o[3], /scaler_h_tb/scaler_h/cnt_cord_o[2], /scaler_h_tb/scaler_h/cnt_cord_o[1], /scaler_h_tb/scaler_h/cnt_cord_o[0] }} cnt_cord_o_11_0
 quietly virtual function -install /scaler_h_tb/scaler_h -env /scaler_h_tb { &{/scaler_h_tb/scaler_h/sum[16], /scaler_h_tb/scaler_h/sum[15], /scaler_h_tb/scaler_h/sum[14], /scaler_h_tb/scaler_h/sum[13], /scaler_h_tb/scaler_h/sum[12], /scaler_h_tb/scaler_h/sum[11], /scaler_h_tb/scaler_h/sum[10], /scaler_h_tb/scaler_h/sum[9] }} sum_16_9
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /scaler_h_tb/SCALE_FACTOR
@@ -22,17 +22,17 @@ add wave -noupdate /scaler_h_tb/scaler_h/de_i
 add wave -noupdate /scaler_h_tb/scaler_h/hs_i
 add wave -noupdate /scaler_h_tb/scaler_h/vs_i
 add wave -noupdate -divider {New Divider}
-add wave -noupdate /scaler_h_tb/scaler_h/PIXEL_STEP
-add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/cnt_pix_i_23_12
-add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_i_11_0
-add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/cnt_pix_o_23_12
-add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_o_11_0
-add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_i
-add wave -noupdate /scaler_h_tb/scaler_h/cnt_pix_o
+add wave -noupdate /scaler_h_tb/scaler_h/STEP_CORD_I
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/cnt_cord_i_23_12
+add wave -noupdate /scaler_h_tb/scaler_h/cnt_cord_i_11_0
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h/cnt_cord_o_23_12
+add wave -noupdate /scaler_h_tb/scaler_h/cnt_cord_o_11_0
+add wave -noupdate /scaler_h_tb/scaler_h/cnt_cord_i
+add wave -noupdate /scaler_h_tb/scaler_h/cnt_cord_o
 add wave -noupdate /scaler_h_tb/scaler_h/new_de
 add wave -noupdate /scaler_h_tb/scaler_h/hs
 add wave -noupdate /scaler_h_tb/SCALE_FACTOR
-add wave -noupdate /scaler_h_tb/scaler_h/scale_step
+add wave -noupdate /scaler_h_tb/scaler_h/step_cord_o
 add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h/pix[0]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[1]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[2]} -radix unsigned} {{/scaler_h_tb/scaler_h/pix[3]} -radix unsigned}} -expand -subitemconfig {{/scaler_h_tb/scaler_h/pix[0]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[1]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[2]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/pix[3]} {-height 15 -radix unsigned}} /scaler_h_tb/scaler_h/pix
 add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h/rom_coe/addr[4]} -radix unsigned} {{/scaler_h_tb/scaler_h/rom_coe/addr[3]} -radix unsigned} {{/scaler_h_tb/scaler_h/rom_coe/addr[2]} -radix unsigned} {{/scaler_h_tb/scaler_h/rom_coe/addr[1]} -radix unsigned} {{/scaler_h_tb/scaler_h/rom_coe/addr[0]} -radix unsigned}} -subitemconfig {{/scaler_h_tb/scaler_h/rom_coe/addr[4]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/rom_coe/addr[3]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/rom_coe/addr[2]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/rom_coe/addr[1]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h/rom_coe/addr[0]} {-height 15 -radix unsigned}} /scaler_h_tb/scaler_h/rom_coe/addr
 add wave -noupdate -expand /scaler_h_tb/scaler_h/coe

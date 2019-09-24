@@ -21,7 +21,7 @@ module scaler_v_tb # (
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
-    parameter LINE_SIZE_MAX = 150,
+    parameter LINE_SIZE_MAX = 53,
     parameter COE_WIDTH = 10,
     parameter PIXEL_WIDTH = 8
 )();
@@ -187,7 +187,6 @@ logic [15:0] scale_step = SCALE_FACTOR * STEP;
 
 scaler_v #(
     .SPARSE_OUTPUT(0), // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
-//    .TABLE_INPUT_WIDTH(10),
     .COE_WIDTH(COE_WIDTH),
     .LINE_SIZE_MAX(LINE_SIZE_MAX),
     .LINE_STEP (STEP),

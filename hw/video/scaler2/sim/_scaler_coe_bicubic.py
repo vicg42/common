@@ -11,12 +11,20 @@ x = np.linspace(-2.0, 2.0, num=x_resolution, endpoint=False)
 def Discrete(x):
     return int(round(y_resolution*x))
 
+#def Cubic(x, a):
+#    x = abs(x)
+#    if x < 1.0:
+#        return (a+2.0)*x*x*x - (a+3)*x*x + 1
+#    elif x < 2.0:
+#        return a*x*x*x - 5*a*x*x + 8*a*x - 4*a
+#    else:
+#        return 0.0
 def Cubic(x, a):
     x = abs(x)
     if x < 1.0:
-        return (a+2.0)*x*x*x - (a+3)*x*x + 1
+        return (a+2.0)*(x**3) - (a+3)*(x**2) + 1
     elif x < 2.0:
-        return a*x*x*x - 5*a*x*x + 8*a*x - 4*a
+        return a*(x**3) - 5*a*(x**2) + 8*a*x - 4*a
     else:
         return 0.0
 

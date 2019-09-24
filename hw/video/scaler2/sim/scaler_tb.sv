@@ -8,12 +8,12 @@
 `include "bmp_io.sv"
 
 module scaler_tb # (
-//    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
-    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_hs_5.bmp",
+    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
+//    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_vs_5.bmp",
     parameter WRITE_IMG_FILE = "scaler_tb",
 
     parameter STEP = 4096,
-    parameter real SCALE_FACTOR = 0.9,
+    parameter real SCALE_FACTOR = 1.29,
     parameter SCALE_LINE_SIZE = 50-1,
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
 
@@ -189,10 +189,11 @@ logic [15:0] scale_step = SCALE_FACTOR * STEP;
 scaler_h #(
 //    .TABLE_INPUT_WIDTH (10),
     .COE_WIDTH(COE_WIDTH),
-    .PIXEL_STEP (STEP),
+    .STEP_CORD_I (STEP),
     .DATA_WIDTH (PIXEL_WIDTH)
 ) scaler_h (
-    .scale_step(scale_step),
+//    .step_cord_i(STEP),
+    .step_cord_o(scale_step),
 
     .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
     .de_i(de_i),
@@ -221,14 +222,15 @@ end
 scaler_v #(
     .SPARSE_OUTPUT(0), // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
 //    .TABLE_INPUT_WIDTH(10),
-    .COE_WIDTH(COE_WIDTH),
     .LINE_SIZE_MAX(LINE_SIZE_MAX),
-    .LINE_STEP (STEP),
+    .STEP_CORD_I (STEP),
+    .COE_WIDTH(COE_WIDTH),
     .DATA_WIDTH (PIXEL_WIDTH)
 ) scaler_v (
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
-    .scale_step(scale_step),
-    .scale_line_size(scaler_h_pix_count_o),//(SCALE_LINE_SIZE),
+//    .step_cord_i(STEP),
+    .step_cord_o(scale_step),
+    .scale_line_size(scaler_h_pix_count_o),
 
     .di_i(scaler_h_do_o),
     .de_i(scaler_h_de_o),
