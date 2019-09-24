@@ -88,7 +88,6 @@ end
 always @(posedge clk) begin
     if (rst) begin
         new_de <= 0;
-
         cnt_pix_i <= 0;
         cnt_pix_o <= 0;//PIXEL_STEP;
 
