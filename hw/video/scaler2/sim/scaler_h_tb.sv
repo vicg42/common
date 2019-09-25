@@ -12,6 +12,9 @@ module scaler_h_tb # (
     parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_hs_5.bmp",
     parameter WRITE_IMG_FILE = "scaler_h_tb",
 
+    parameter POINT_COUNT = 4,
+    parameter COE_ROM_DEPTH = 32,
+
     parameter STEP = 4096,
     parameter real SCALE_FACTOR = 0.5,
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
@@ -52,16 +55,10 @@ logic vs_i;
 localparam FRAME_COUNT = 2;
 int fr;
 
-
 logic [PIXEL_WIDTH-1:0] do_o;
 logic de_o;
 logic hs_o;
 logic vs_o;
-
-wire [PIXEL_WIDTH-1:0] s0_do;
-wire s0_de;
-wire s0_hs;
-wire s0_vs;
 
 //***********************************
 //System clock gen
@@ -180,14 +177,36 @@ end
 // (4.12) unsigned fixed point. 4096 is 1.000 scale
 logic [15:0] scale_step = SCALE_FACTOR * STEP;
 
+wire [($clog2(COE_ROM_DEPTH))-1:0] scaler_h_coe_adr;
+wire [(POINT_COUNT*COE_WIDTH)-1:0] scaler_h_coe_dat;
+
+wire [($clog2(COE_ROM_DEPTH))-1:0] scaler_v_coe_adr;
+wire [(POINT_COUNT*COE_WIDTH)-1:0] scaler_v_coe_dat;
+
+scaler_rom_coe #(
+    .POINT_COUNT(POINT_COUNT),
+    .COE_ROM_DEPTH(COE_ROM_DEPTH),
+    .COE_WIDTH(COE_WIDTH)
+) scaler_rom_coe (
+    .portA_adr(scaler_h_coe_adr),
+    .portA_do (scaler_h_coe_dat),
+
+    .portB_adr(0),
+    .portB_do (),
+
+    .clk (clk)
+);
+
 scaler_h #(
-//    .TABLE_INPUT_WIDTH (COE_WIDTH),
+    .STEP_CORD_I(4096),
+    .POINT_COUNT(POINT_COUNT),
+    .COE_ROM_DEPTH(COE_ROM_DEPTH),
     .COE_WIDTH(COE_WIDTH),
-    .STEP_CORD_I (STEP),
-    .DATA_WIDTH (PIXEL_WIDTH)
+    .DATA_WIDTH(PIXEL_WIDTH)
 ) scaler_h (
-//    .step_cord_i(STEP),
     .step_cord_o(scale_step),
+    .coe_adr(scaler_h_coe_adr),
+    .coe_dat(scaler_h_coe_dat),
 
     .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
     .de_i(de_i),

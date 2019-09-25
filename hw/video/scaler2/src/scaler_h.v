@@ -5,16 +5,21 @@
 //------------------------------------------------------------------------
 `timescale 1ns / 1ps
 
-`include "user_pkg.v"
+//`include "user_pkg.v"
 
 module scaler_h #(
     parameter STEP_CORD_I = 4096,
+    parameter POINT_COUNT = 4,
+    parameter COE_ROM_DEPTH = 32,
     parameter COE_WIDTH = 10,
     parameter DATA_WIDTH = 8
 )(
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
 //    input [15:0] step_cord_i,
     input [15:0] step_cord_o,
+
+    output [($clog2(COE_ROM_DEPTH))-1:0] coe_adr,
+    input [(POINT_COUNT*COE_WIDTH)-1:0] coe_dat,
 
     input [DATA_WIDTH-1:0] di_i,
     input de_i,
@@ -39,14 +44,14 @@ localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2)); //0.5
 reg [23:0] cnt_cord_i = 0; // input coordinate counter
 reg [23:0] cnt_cord_o = 0; // output coordinate counter
 
-wire [COE_WIDTH-1:0] coe [0:3];
-reg [DATA_WIDTH-1:0] pix [0:3];
-reg [MUL_WIDTH-1:0] mult [0:3];
+wire [COE_WIDTH-1:0] coe [0:POINT_COUNT-1];
+reg [DATA_WIDTH-1:0] pix [0:POINT_COUNT-1];
+reg [MUL_WIDTH-1:0] mult [0:POINT_COUNT-1];
 //(* mult_style = "block" *)
 
 reg signed [MUL_WIDTH+2-1:0] sum;
 
-reg [DATA_WIDTH-1:0] sr_di_i [0:3];
+reg [DATA_WIDTH-1:0] sr_di_i [0:POINT_COUNT-1];
 initial
 begin
    sr_di_i[0] = 0;
@@ -129,21 +134,26 @@ always @(posedge clk) begin
     end
 end
 
-wire [4:0] coe_idx;
-assign coe_idx = cnt_cord_o[7 +: 5];
+//wire [4:0] coe_adr;
+assign coe_adr = cnt_cord_o[7 +: 5];
 
-scaler_rom_coe # (
-    .COE_WIDTH (COE_WIDTH)
-) rom_coe (
-    .addr(coe_idx),
+//scaler_rom_coe # (
+//    .COE_WIDTH (COE_WIDTH)
+//) rom_coe (
+//    .addr(coe_adr),
+//
+//    .rom0_do(coe[0]),
+//    .rom1_do(coe[1]),
+//    .rom2_do(coe[2]),
+//    .rom3_do(coe[3]),
+//
+//    .clk(clk)
+//);
 
-    .rom0_do(coe[0]),
-    .rom1_do(coe[1]),
-    .rom2_do(coe[2]),
-    .rom3_do(coe[3]),
-
-    .clk(clk)
-);
+assign coe[0] = coe_dat[COE_WIDTH*0 +: COE_WIDTH];
+assign coe[1] = coe_dat[COE_WIDTH*1 +: COE_WIDTH];
+assign coe[2] = coe_dat[COE_WIDTH*2 +: COE_WIDTH];
+assign coe[3] = coe_dat[COE_WIDTH*3 +: COE_WIDTH];
 
 reg de_o_ = 0;
 always @(posedge clk) begin

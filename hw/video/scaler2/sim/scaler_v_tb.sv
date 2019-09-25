@@ -12,6 +12,9 @@ module scaler_v_tb # (
     parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v4_vs.bmp",
     parameter WRITE_IMG_FILE = "scaler_v_tb",
 
+    parameter POINT_COUNT = 4,
+    parameter COE_ROM_DEPTH = 32,
+
     parameter STEP = 4096,
     parameter real SCALE_FACTOR = 0.5,
     parameter SCALE_LINE_SIZE = 50-1,
@@ -185,16 +188,35 @@ end
 // (4.12) unsigned fixed point. 4096 is 1.000 scale
 logic [15:0] scale_step = SCALE_FACTOR * STEP;
 
+scaler_rom_coe #(
+    .POINT_COUNT(POINT_COUNT),
+    .COE_ROM_DEPTH(COE_ROM_DEPTH),
+    .COE_WIDTH(COE_WIDTH)
+) scaler_rom_coe (
+    .portA_adr(0),
+    .portA_do (),
+
+    .portB_adr(scaler_h_coe_adr),
+    .portB_do (scaler_h_coe_dat),
+
+    .clk (clk)
+);
+
 scaler_v #(
     .SPARSE_OUTPUT(0), // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
-    .COE_WIDTH(COE_WIDTH),
     .LINE_SIZE_MAX(LINE_SIZE_MAX),
-    .LINE_STEP (STEP),
-    .DATA_WIDTH (PIXEL_WIDTH)
+    .STEP_CORD_I(4096),
+    .POINT_COUNT(POINT_COUNT),
+    .COE_ROM_DEPTH(COE_ROM_DEPTH),
+    .COE_WIDTH(COE_WIDTH),
+    .DATA_WIDTH(PIXEL_WIDTH)
 ) scaler_v (
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
-    .scale_step(scale_step),
+    .step_cord_o(scale_step),
     .scale_line_size(SCALE_LINE_SIZE),
+
+    .coe_adr(scaler_v_coe_adr),
+    .coe_dat(scaler_v_coe_dat),
 
     .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
     .de_i(de_i),

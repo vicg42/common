@@ -8,13 +8,13 @@
 `include "bmp_io.sv"
 
 module scaler_tb # (
-    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
-//    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_vs_5.bmp",
+//    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",
+    parameter READ_IMG_FILE = "_25_25_8bit_deltapulse_v5_vs_5.bmp",
     parameter WRITE_IMG_FILE = "scaler_tb",
 
     parameter STEP = 4096,
     parameter real SCALE_FACTOR = 1.29,
-    parameter SCALE_LINE_SIZE = 50-1,
+//    parameter SCALE_LINE_SIZE = 50-1,
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
 
     parameter DE_I_PERIOD = 4, //0 - no empty cycles
@@ -53,21 +53,11 @@ logic vs_i;
 localparam FRAME_COUNT = 2;
 int fr;
 
-logic [PIXEL_WIDTH-1:0] scaler_h_do_o;
-logic scaler_h_de_o;
-logic scaler_h_hs_o;
-logic scaler_h_vs_o;
-logic [15:0] scaler_h_pix_count_o;
-
 logic [PIXEL_WIDTH-1:0] do_o;
 logic de_o;
 logic hs_o;
 logic vs_o;
 
-wire [PIXEL_WIDTH-1:0] s0_do;
-wire s0_de;
-wire s0_hs;
-wire s0_vs;
 
 //***********************************
 //System clock gen
@@ -186,56 +176,20 @@ end
 // (4.12) unsigned fixed point. 4096 is 1.000 scale
 logic [15:0] scale_step = SCALE_FACTOR * STEP;
 
-scaler_h #(
-//    .TABLE_INPUT_WIDTH (10),
+scaler #(
+    .LINE_SIZE_MAX(LINE_SIZE_MAX),
+    .STEP_CORD_I(4096),
+    .POINT_COUNT(4),
+    .COE_ROM_DEPTH(32),
     .COE_WIDTH(COE_WIDTH),
-    .STEP_CORD_I (STEP),
-    .DATA_WIDTH (PIXEL_WIDTH)
-) scaler_h (
-//    .step_cord_i(STEP),
+    .DATA_WIDTH(PIXEL_WIDTH)
+) scaler (
     .step_cord_o(scale_step),
 
     .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
     .de_i(de_i),
     .hs_i(hs_i),
     .vs_i(vs_i),
-
-    .pix_count_o(scaler_h_pix_count_o),
-    .do_o(scaler_h_do_o),
-    .de_o(scaler_h_de_o),
-    .hs_o(scaler_h_hs_o),
-    .vs_o(scaler_h_vs_o),
-
-    .clk(clk),
-    .rst(rst)
-);
-
-logic [15:0] dbg_scaler_h_cnt_o = 0;
-always @(posedge clk) begin
-    if (scaler_h_hs_o) begin
-        dbg_scaler_h_cnt_o <= 0;
-    end else if (scaler_h_de_o) begin
-        dbg_scaler_h_cnt_o <= dbg_scaler_h_cnt_o + 1;
-    end
-end
-
-scaler_v #(
-    .SPARSE_OUTPUT(0), // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
-//    .TABLE_INPUT_WIDTH(10),
-    .LINE_SIZE_MAX(LINE_SIZE_MAX),
-    .STEP_CORD_I (STEP),
-    .COE_WIDTH(COE_WIDTH),
-    .DATA_WIDTH (PIXEL_WIDTH)
-) scaler_v (
-    // (4.12) unsigned fixed point. 4096 is 1.000 scale
-//    .step_cord_i(STEP),
-    .step_cord_o(scale_step),
-    .scale_line_size(scaler_h_pix_count_o),
-
-    .di_i(scaler_h_do_o),
-    .de_i(scaler_h_de_o),
-    .hs_i(scaler_h_hs_o),
-    .vs_i(scaler_h_vs_o),
 
     .do_o(do_o),
     .de_o(de_o),
