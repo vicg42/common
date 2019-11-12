@@ -26,7 +26,9 @@ module scaler_h_tb # (
     parameter LINE_SIZE_MAX = 4096,
     parameter COE_WIDTH = 10,
     parameter PIXEL_WIDTH = 8
-)();
+)(
+output [PIXEL_WIDTH-1:0] r_gain
+);
 
 BMP_IO image_real;
 BMP_IO image_new;
@@ -67,6 +69,7 @@ localparam CLK_PERIOD = 8; //8 - 126MHz; 16 - 62.5MHz
 reg clk = 1'b1;
 always #(CLK_PERIOD/2) clk = ~clk;
 
+
 initial begin : sim_main
 
     pixel = 0;
@@ -81,6 +84,7 @@ initial begin : sim_main
     image_new_h =0;
     image_new_size =0;
     idx = 0;
+
 
     di_i = 0;
     de_i = 0;
@@ -245,6 +249,26 @@ always @(posedge clk) begin
     end
 end
 
+
+localparam GAIN = 6.1064;//1.0;//
+localparam GAIN_SCALE = 1024;//(Q3.9) unsigned fixed point. 1024 is 1.000 scale
+logic [15:0] rgb_gain = GAIN * GAIN_SCALE;
+logic [PIXEL_WIDTH-1:0] pix = 253;
+
+localparam GAIN_COEF_WIDTH = 10;
+localparam OVERFLOW_BIT = GAIN_COEF_WIDTH + PIXEL_WIDTH;
+localparam MAX_OUTPUT = (1 << (GAIN_COEF_WIDTH + PIXEL_WIDTH)) - 1;
+localparam [31:0] ROUND_ADDER = (1 << (GAIN_COEF_WIDTH - 1)); //0.5
+wire [31:0] r_mult;
+wire [31:0] r_result;
+assign r_mult = rgb_gain * {8'd0, pix};//, 2'd0
+assign r_result = r_mult + ROUND_ADDER;
+
+assign r_gain = (|r_result[31:OVERFLOW_BIT]) ? MAX_OUTPUT : r_result[GAIN_COEF_WIDTH +: PIXEL_WIDTH];
+
+//always @(posedge clk) begin
+//
+//end
 
 
 endmodule
