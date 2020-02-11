@@ -170,7 +170,7 @@ filter_median_5x5 #(
     .bypass(1'b0),
 
     //input resolution X * Y
-    .di_i(di_i),
+    .di_i(di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]),
     .de_i(de_i),
     .hs_i(hs_i),
     .vs_i(vs_i),

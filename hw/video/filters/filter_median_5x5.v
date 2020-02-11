@@ -473,7 +473,7 @@ end
 genvar k;
 generate
     for (k=0; k<KERNEL_SIZE; k=k+1) begin
-        assign xo[k*8 +: PIXEL_WIDTH] = s14[k];
+        assign xo[(k*PIXEL_WIDTH) +: PIXEL_WIDTH] = s14[k];
     end
 endgenerate
 
