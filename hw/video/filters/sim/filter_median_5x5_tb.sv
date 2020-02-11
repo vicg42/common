@@ -7,7 +7,7 @@
 `include "bmp_io.sv"
 
 module filter_median_5x5_tb #(
-    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp", //..
+    parameter READ_IMG_FILE = "img_600x600_8bit_noise.bmp", //"_bayer_lighthouse.bmp", //..
     parameter WRITE_IMG_FILE = "filter_median_5x5_tb",
 
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
@@ -191,7 +191,7 @@ monitor # (
     .DATA_WIDTH (PIXEL_WIDTH),
     .WRITE_IMG_FILE(WRITE_IMG_FILE)
 ) monitor (
-    .di_i(bypass_o),
+    .di_i(do_o),
     .de_i(de_o),
     .hs_i(hs_o),
     .vs_i(vs_o),
