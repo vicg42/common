@@ -46,31 +46,31 @@ module filter_debayer_hq1 #(
     input rst
 );
 // -------------------------------------------------------------------------
-wire [DATA_WIDTH-1:0] p1;
-wire [DATA_WIDTH-1:0] p2;
-wire [DATA_WIDTH-1:0] p3;
-wire [DATA_WIDTH-1:0] p4;
-wire [DATA_WIDTH-1:0] p5;
-wire [DATA_WIDTH-1:0] p6;
-wire [DATA_WIDTH-1:0] p7;
-wire [DATA_WIDTH-1:0] p8;
-wire [DATA_WIDTH-1:0] p9;
-wire [DATA_WIDTH-1:0] pA;
-wire [DATA_WIDTH-1:0] pB;
-wire [DATA_WIDTH-1:0] pC;
-wire [DATA_WIDTH-1:0] pD;
-wire [DATA_WIDTH-1:0] pE;
-wire [DATA_WIDTH-1:0] pF;
-wire [DATA_WIDTH-1:0] pG;
-wire [DATA_WIDTH-1:0] pH;
-wire [DATA_WIDTH-1:0] pI;
-wire [DATA_WIDTH-1:0] pJ;
-wire [DATA_WIDTH-1:0] pK;
-wire [DATA_WIDTH-1:0] pL;
-wire [DATA_WIDTH-1:0] pM;
-wire [DATA_WIDTH-1:0] pN;
-wire [DATA_WIDTH-1:0] pO;
-wire [DATA_WIDTH-1:0] pP;
+wire [DATA_WIDTH-1:0] x00;
+wire [DATA_WIDTH-1:0] x01;
+wire [DATA_WIDTH-1:0] x02;
+wire [DATA_WIDTH-1:0] x03;
+wire [DATA_WIDTH-1:0] x04;
+wire [DATA_WIDTH-1:0] x05;
+wire [DATA_WIDTH-1:0] x06;
+wire [DATA_WIDTH-1:0] x07;
+wire [DATA_WIDTH-1:0] x08;
+wire [DATA_WIDTH-1:0] x09;
+wire [DATA_WIDTH-1:0] x10;
+wire [DATA_WIDTH-1:0] x11;
+wire [DATA_WIDTH-1:0] x12;
+wire [DATA_WIDTH-1:0] x13;
+wire [DATA_WIDTH-1:0] x14;
+wire [DATA_WIDTH-1:0] x15;
+wire [DATA_WIDTH-1:0] x16;
+wire [DATA_WIDTH-1:0] x17;
+wire [DATA_WIDTH-1:0] x18;
+wire [DATA_WIDTH-1:0] x19;
+wire [DATA_WIDTH-1:0] x20;
+wire [DATA_WIDTH-1:0] x21;
+wire [DATA_WIDTH-1:0] x22;
+wire [DATA_WIDTH-1:0] x23;
+wire [DATA_WIDTH-1:0] x24;
 
 wire de;
 wire hs;
@@ -92,31 +92,31 @@ filter_core_5x5 #(
     .hs_i(hs_i),
     .vs_i(vs_i),
 
-    .x1 (p1),
-    .x2 (p2),
-    .x3 (p3),
-    .x4 (p4),
-    .x5 (p5),
-    .x6 (p6),
-    .x7 (p7),
-    .x8 (p8),
-    .x9 (p9), //can be use like bypass
-    .xA (pA),
-    .xB (pB),
-    .xC (pC),
-    .xD (pD),
-    .xE (pE),
-    .xF (pF),
-    .xG (pG),
-    .xH (pH),
-    .xI (pI),
-    .xJ (pJ),
-    .xK (pK),
-    .xL (pL),
-    .xM (pM),
-    .xN (pN),
-    .xO (pO),
-    .xP (pP),
+    .x00(x00),
+    .x01(x01),
+    .x02(x02),
+    .x03(x03),
+    .x04(x04),
+    .x05(x05),
+    .x06(x06),
+    .x07(x07),
+    .x08(x08), //can be use like bypass
+    .x09(x09),
+    .x10(x10),
+    .x11(x11),
+    .x12(x12),
+    .x13(x13),
+    .x14(x14),
+    .x15(x15),
+    .x16(x16),
+    .x17(x17),
+    .x18(x18),
+    .x19(x19),
+    .x20(x20),
+    .x21(x21),
+    .x22(x22),
+    .x23(x23),
+    .x24(x24),
 
     .de_o(de),
     .hs_o(hs),
@@ -147,309 +147,332 @@ reg                   test_out_syn = 0;
 reg [1:0] sel = 0;
 
 
-//line[0]: x1 x2 x3 x4 x5
-//line[1]: x6 x7 x8 x9 xA
-//line[2]: xB xC xD xE xF
-//line[3]: xG xH xI xJ xK
-//line[4]: xL xM xN xO xP
+//line[0]: x00 x01 x02 x03 x04
+//line[1]: x05 x06 x07 x08 x09
+//line[2]: x10 x11 x12 x13 x14
+//line[3]: x15 x16 x17 x18 x19
+//line[4]: x20 x21 x22 x23 x24
 always @(posedge clk) begin
-//    if (de) begin
+    //----------------------------
+    //pipeline 0
+    //----------------------------
+    //X 0 X
+    //0 0 0
+    //0 0 0
+    sum_p13 <= {1'b0, x00} + {1'b0, x02};
 
-//TODO: implement filter
+    //0 0 X 0 0
+    //0 0 X 0 0
+    //X X X X X
+    //0 0 X 0 0
+    //0 0 X 0 0
+    u38DIN_BCDEF_ = (
+                    (float) (din[y+0][x+2] * (-1))
+                    + (float) (din[y+1][x+2] * ( 2))
 
-//        //----------------------------
-//        //pipeline 0
-//        //----------------------------
-//        //X 0 X
-//        //0 0 0
-//        //0 0 0
-//        sum_p13 <= {1'b0, p1} + {1'b0, p3};
-//
-//        //0 0 0
-//        //0 0 0
-//        //X 0 X
-//        sum_p79 <= {1'b0, p7} + {1'b0, p9};
-//
-//        //0 X 0
-//        //0 0 0
-//        //0 X 0
-//        sum_p28 <= {1'b0, p2} + {1'b0, p8};
-//
-//        //0 0 0
-//        //X 0 X
-//        //0 0 0
-//        sum_p46 <= {1'b0, p4} + {1'b0, p6};
-//
-//        //0 0 0
-//        //0 X 0
-//        //0 0 0
-//        sr_p5[0] <= p5;
-//
-//        sr_de[0] <= de;
-//        sr_hs[0] <= hs;
-//        sr_vs[0] <= vs;
-//        sr_do[0] <= p9;
-//
-//
-//        //----------------------------
-//        //pipeline 1
-//        //----------------------------
-//        //X 0 X
-//        //0 0 0
-//        //X 0 X
-//        sum_p1379 <= {1'b0, sum_p13} + {1'b0, sum_p79};
-//
-//        //0 X 0
-//        //X 0 X
-//        //0 X 0
-//        sum_p2846 <= {1'b0, sum_p28} + {1'b0, sum_p46};
-//
-//        //0 X 0
-//        //0 0 0
-//        //0 X 0
-//        sr_sum_p28 <= sum_p28;
-//
-//        //0 0 0
-//        //X 0 X
-//        //0 0 0
-//        sr_sum_p46 <= sum_p46;
-//
-//        //0 0 0
-//        //0 X 0
-//        //0 0 0
-//        sr_p5[1] <= sr_p5[0];
-//
-//        sr_de[1] <= sr_de[0];
-//        sr_hs[1] <= sr_hs[0];
-//        sr_vs[1] <= sr_vs[0];
-//        sr_do[1] <= sr_do[0];
-//
-//
-//        //----------------------------
-//        //pipeline 2
-//        //----------------------------
-//        if (bypass) begin
-//            //R
-//            do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_do[1];
-//            //G
-//            do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_do[1];
-//            //B
-//            do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_do[1];
-//
-//        end else begin
-//            case (sel)
-//                2'b00 : begin
-//                            //----------------------------- [B G B]G B
-//                            //bayer pattern {BGGR}:         [G R G]R G
-//                            //----------------------------- [B G B]G B
-//                            //                               G R G R G
-//                            if (mode == 2'd0) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_p5[1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
-//
-//                            //----------------------------- [R G R]G R
-//                            //bayer pattern {RGGB}:         [G B G]B G
-//                            //----------------------------- [R G R]G R
-//                            //                               G B G B G
-//                            end else if (mode == 2'd1) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_p5[1];
-//
-//                            //----------------------------- [G B G]B G
-//                            //bayer pattern {GBRG}:         [R G R]G R
-//                            //----------------------------- [G B G]B G
-//                            //                               R G R G R
-//                            end else if (mode == 2'd2) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
-//
-//                            //----------------------------- [G R G]R G
-//                            //bayer pattern {GRBG}:         [B G B]G B
-//                            //----------------------------- [G R G]R G
-//                            //                               B G B G B
-//                            end else begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
-//                            end
-//                        end
-//
-//                2'b01 : begin
-//                            //----------------------------- B[G B G]B
-//                            //bayer pattern {BGGR}:         G[R G R]G
-//                            //----------------------------- B[G B G]B
-//                            //                              G R G R G
-//                            if (mode == 2'd0) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
-//
-//                            //----------------------------- R[G R G]R
-//                            //bayer pattern {RGGB}:         G[B G B]G
-//                            //----------------------------- R[G R G]R
-//                            //                              G B G B G
-//                            end else if (mode == 2'd1) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
-//
-//                            //----------------------------- G[B G B]G
-//                            //bayer pattern {GBRG}:         R[G R G]R
-//                            //----------------------------- G[B G B]G
-//                            //                              R G R G R
-//                            end else if (mode == 2'd2) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_p5[1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
-//
-//                            //----------------------------- G[R G R]G
-//                            //bayer pattern {GRBG}:         B[G B G]B
-//                            //----------------------------- G[R G R]G
-//                            //                              B G B G B
-//                            end else begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_p5[1];
-//                            end
-//                        end
-//
-//                2'b10 : begin
-//                            //-----------------------------  B G B G B
-//                            //bayer pattern {BGGR}:         [G R G]R G
-//                            //----------------------------- [B G B]G B
-//                            //                              [G R G]R G
-//                            if (mode == 2'd0) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
-//
-//                            //-----------------------------  R G R G R
-//                            //bayer pattern {RGGB}:         [G B G]B G
-//                            //----------------------------- [R G R]G R
-//                            //                              [G B G]B G
-//                            end else if (mode == 2'd1) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
-//
-//                            //-----------------------------  G B G B G
-//                            //bayer pattern {GBRG}:         [R G R]G R
-//                            //----------------------------- [G B G]B G
-//                            //                              [R G R]G R
-//                            end else if (mode == 2'd2) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_p5[1];
-//
-//                            //-----------------------------  G R G R G
-//                            //bayer pattern {GRBG}:         [B G B]G B
-//                            //----------------------------- [G R G]R G
-//                            //                              [B G B]G B
-//                            end else begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_p5[1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
-//                            end
-//                        end
-//
-//                2'b11 : begin
-//                            //----------------------------- B G B G B
-//                            //bayer pattern {BGGR}:         G[R G R]G
-//                            //----------------------------- B[G B G]B
-//                            //                              G[R G R]G
-//                            if (mode == 2'd0) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_p5[1];
-//
-//                            //----------------------------- R G R G R
-//                            //bayer pattern {RGGB}:         G[B G B]G
-//                            //----------------------------- R[G R G]R
-//                            //                              G[B G B]G
-//                            end else if (mode == 2'd1) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_p5[1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
-//
-//                            //----------------------------- G B G B G
-//                            //bayer pattern {GBRG}:         R[G R G]R
-//                            //----------------------------- G[B G B]G
-//                            //                              R[G R G]R
-//                            end else if (mode == 2'd2) begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
-//
-//                            //----------------------------- G R G R G
-//                            //bayer pattern {GRBG}:         B[G B G]B
-//                            //----------------------------- G[R G R]G
-//                            //                              B[G B G]B
-//                            end else begin
-//                                //R
-//                                do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
-//                                //G
-//                                do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
-//                                //B
-//                                do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
-//                            end
-//                        end
-//            endcase
-//        end
+                    + (float) (din[y+2][x+2] * ( 4))
+
+                    + (float) (din[y+3][x+2] * ( 2))
+                    + (float) (din[y+4][x+2] * (-1))
+
+                    + (float) (din[y+2][x+0] * (-1))
+                    + (float) (din[y+2][x+1] * ( 2))
+
+                    + (float) (din[y+2][x+3] * ( 2))
+                    + (float) (din[y+2][x+4] * (-1))
+                ) / 8;
+    if (u38DIN_BCDEF_ > 255) {
+        u38DIN_BCDEF = 255;
+    } else if (u38DIN_BCDEF_ < 0) {
+        u38DIN_BCDEF = 0;
+    } else {
+        u38DIN_BCDEF = (UINT8) u38DIN_BCDEF_;
+    }
+
+       //0 0 0
+       //0 0 0
+       //X 0 X
+       sum_p79 <= {1'b0, x06} + {1'b0, x08};
+
+       //0 X 0
+       //0 0 0
+       //0 X 0
+       sum_p28 <= {1'b0, x01} + {1'b0, x07};
+
+       //0 0 0
+       //X 0 X
+       //0 0 0
+       sum_p46 <= {1'b0, x03} + {1'b0, x05};
+
+       //0 0 0
+       //0 X 0
+       //0 0 0
+       sr_p5[0] <= x04;
+
+       sr_de[0] <= de;
+       sr_hs[0] <= hs;
+       sr_vs[0] <= vs;
+       sr_do[0] <= x08;
+
+
+       //----------------------------
+       //pipeline 1
+       //----------------------------
+       //X 0 X
+       //0 0 0
+       //X 0 X
+       sum_p1379 <= {1'b0, sum_p13} + {1'b0, sum_p79};
+
+       //0 X 0
+       //X 0 X
+       //0 X 0
+       sum_p2846 <= {1'b0, sum_p28} + {1'b0, sum_p46};
+
+       //0 X 0
+       //0 0 0
+       //0 X 0
+       sr_sum_p28 <= sum_p28;
+
+       //0 0 0
+       //X 0 X
+       //0 0 0
+       sr_sum_p46 <= sum_p46;
+
+       //0 0 0
+       //0 X 0
+       //0 0 0
+       sr_p5[1] <= sr_p5[0];
+
+       sr_de[1] <= sr_de[0];
+       sr_hs[1] <= sr_hs[0];
+       sr_vs[1] <= sr_vs[0];
+       sr_do[1] <= sr_do[0];
+
+
+       //----------------------------
+       //pipeline 2
+       //----------------------------
+       if (bypass) begin
+           //R
+           do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_do[1];
+           //G
+           do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_do[1];
+           //B
+           do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_do[1];
+
+       end else begin
+           case (sel)
+               2'b00 : begin
+                           //----------------------------- [B G B]G B
+                           //bayer pattern {BGGR}:         [G R G]R G
+                           //----------------------------- [B G B]G B
+                           //                               G R G R G
+                           if (mode == 2'd0) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_p5[1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
+
+                           //----------------------------- [R G R]G R
+                           //bayer pattern {RGGB}:         [G B G]B G
+                           //----------------------------- [R G R]G R
+                           //                               G B G B G
+                           end else if (mode == 2'd1) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_p5[1];
+
+                           //----------------------------- [G B G]B G
+                           //bayer pattern {GBRG}:         [R G R]G R
+                           //----------------------------- [G B G]B G
+                           //                               R G R G R
+                           end else if (mode == 2'd2) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
+
+                           //----------------------------- [G R G]R G
+                           //bayer pattern {GRBG}:         [B G B]G B
+                           //----------------------------- [G R G]R G
+                           //                               B G B G B
+                           end else begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
+                           end
+                       end
+
+               2'b01 : begin
+                           //----------------------------- B[G B G]B
+                           //bayer pattern {BGGR}:         G[R G R]G
+                           //----------------------------- B[G B G]B
+                           //                              G R G R G
+                           if (mode == 2'd0) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
+
+                           //----------------------------- R[G R G]R
+                           //bayer pattern {RGGB}:         G[B G B]G
+                           //----------------------------- R[G R G]R
+                           //                              G B G B G
+                           end else if (mode == 2'd1) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
+
+                           //----------------------------- G[B G B]G
+                           //bayer pattern {GBRG}:         R[G R G]R
+                           //----------------------------- G[B G B]G
+                           //                              R G R G R
+                           end else if (mode == 2'd2) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_p5[1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
+
+                           //----------------------------- G[R G R]G
+                           //bayer pattern {GRBG}:         B[G B G]B
+                           //----------------------------- G[R G R]G
+                           //                              B G B G B
+                           end else begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_p5[1];
+                           end
+                       end
+
+               2'b10 : begin
+                           //-----------------------------  B G B G B
+                           //bayer pattern {BGGR}:         [G R G]R G
+                           //----------------------------- [B G B]G B
+                           //                              [G R G]R G
+                           if (mode == 2'd0) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
+
+                           //-----------------------------  R G R G R
+                           //bayer pattern {RGGB}:         [G B G]B G
+                           //----------------------------- [R G R]G R
+                           //                              [G B G]B G
+                           end else if (mode == 2'd1) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
+
+                           //-----------------------------  G B G B G
+                           //bayer pattern {GBRG}:         [R G R]G R
+                           //----------------------------- [G B G]B G
+                           //                              [R G R]G R
+                           end else if (mode == 2'd2) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_p5[1];
+
+                           //-----------------------------  G R G R G
+                           //bayer pattern {GRBG}:         [B G B]G B
+                           //----------------------------- [G R G]R G
+                           //                              [B G B]G B
+                           end else begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_p5[1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
+                           end
+                       end
+
+               2'b11 : begin
+                           //----------------------------- B G B G B
+                           //bayer pattern {BGGR}:         G[R G R]G
+                           //----------------------------- B[G B G]B
+                           //                              G[R G R]G
+                           if (mode == 2'd0) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_p5[1];
+
+                           //----------------------------- R G R G R
+                           //bayer pattern {RGGB}:         G[B G B]G
+                           //----------------------------- R[G R G]R
+                           //                              G[B G B]G
+                           end else if (mode == 2'd1) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_p5[1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sum_p2846[DATA_WIDTH+1:2];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sum_p1379[DATA_WIDTH+1:2];
+
+                           //----------------------------- G B G B G
+                           //bayer pattern {GBRG}:         R[G R G]R
+                           //----------------------------- G[B G B]G
+                           //                              R[G R G]R
+                           end else if (mode == 2'd2) begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
+
+                           //----------------------------- G R G R G
+                           //bayer pattern {GRBG}:         B[G B G]B
+                           //----------------------------- G[R G R]G
+                           //                              B[G B G]B
+                           end else begin
+                               //R
+                               do_o[DATA_WIDTH*0 +: DATA_WIDTH] <= sr_sum_p46[DATA_WIDTH:1];
+                               //G
+                               do_o[DATA_WIDTH*1 +: DATA_WIDTH] <= sr_p5[1];
+                               //B
+                               do_o[DATA_WIDTH*2 +: DATA_WIDTH] <= sr_sum_p28[DATA_WIDTH:1];
+                           end
+                       end
+           endcase
+       end
         de_o <= 1'b0;//sr_de[1];
         hs_o <= 1'b0;//sr_hs[1];
         vs_o <= 1'b0;//sr_vs[1];
 
         tst_out  <= 0; //sr_p5[1];
 
-//    end
 end
 
 
