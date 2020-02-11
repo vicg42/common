@@ -129,21 +129,21 @@ filter_core_5x5 #(
 
 always @(posedge clk) begin
     //stage0
-    {s00[( 0)], s00[( 1)]} <= Sort2(xi[(8*( 0)) +: PIXEL_WIDTH], xi[(8*( 1)) +: PIXEL_WIDTH]);
-    {s00[( 2)], s00[( 3)]} <= Sort2(xi[(8*( 2)) +: PIXEL_WIDTH], xi[(8*( 3)) +: PIXEL_WIDTH]);
-    {s00[( 4)], s00[( 5)]} <= Sort2(xi[(8*( 4)) +: PIXEL_WIDTH], xi[(8*( 5)) +: PIXEL_WIDTH]);
-    {s00[( 6)], s00[( 7)]} <= Sort2(xi[(8*( 6)) +: PIXEL_WIDTH], xi[(8*( 7)) +: PIXEL_WIDTH]);
-    {s00[( 8)], s00[( 9)]} <= Sort2(xi[(8*( 8)) +: PIXEL_WIDTH], xi[(8*( 9)) +: PIXEL_WIDTH]);
-    {s00[(10)], s00[(11)]} <= Sort2(xi[(8*(10)) +: PIXEL_WIDTH], xi[(8*(11)) +: PIXEL_WIDTH]);
-    {s00[(12)], s00[(13)]} <= Sort2(xi[(8*(12)) +: PIXEL_WIDTH], xi[(8*(13)) +: PIXEL_WIDTH]);
-    {s00[(14)], s00[(15)]} <= Sort2(xi[(8*(14)) +: PIXEL_WIDTH], xi[(8*(15)) +: PIXEL_WIDTH]);
-    {s00[(16)], s00[(17)]} <= Sort2(xi[(8*(16)) +: PIXEL_WIDTH], xi[(8*(17)) +: PIXEL_WIDTH]);
-    {s00[(18)], s00[(19)]} <= Sort2(xi[(8*(18)) +: PIXEL_WIDTH], xi[(8*(19)) +: PIXEL_WIDTH]);
-    {s00[(20)], s00[(21)]} <= Sort2(xi[(8*(20)) +: PIXEL_WIDTH], xi[(8*(21)) +: PIXEL_WIDTH]);
-    {s00[(22)], s00[(23)]} <= Sort2(xi[(8*(22)) +: PIXEL_WIDTH], xi[(8*(23)) +: PIXEL_WIDTH]);
-                s00[(24)] <= xi[(8*(24)) +: PIXEL_WIDTH];
+    {s00[( 0)], s00[( 1)]} <= Sort2(xi[(PIXEL_WIDTH*( 0)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*( 1)) +: PIXEL_WIDTH]);
+    {s00[( 2)], s00[( 3)]} <= Sort2(xi[(PIXEL_WIDTH*( 2)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*( 3)) +: PIXEL_WIDTH]);
+    {s00[( 4)], s00[( 5)]} <= Sort2(xi[(PIXEL_WIDTH*( 4)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*( 5)) +: PIXEL_WIDTH]);
+    {s00[( 6)], s00[( 7)]} <= Sort2(xi[(PIXEL_WIDTH*( 6)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*( 7)) +: PIXEL_WIDTH]);
+    {s00[( 8)], s00[( 9)]} <= Sort2(xi[(PIXEL_WIDTH*( 8)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*( 9)) +: PIXEL_WIDTH]);
+    {s00[(10)], s00[(11)]} <= Sort2(xi[(PIXEL_WIDTH*(10)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*(11)) +: PIXEL_WIDTH]);
+    {s00[(12)], s00[(13)]} <= Sort2(xi[(PIXEL_WIDTH*(12)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*(13)) +: PIXEL_WIDTH]);
+    {s00[(14)], s00[(15)]} <= Sort2(xi[(PIXEL_WIDTH*(14)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*(15)) +: PIXEL_WIDTH]);
+    {s00[(16)], s00[(17)]} <= Sort2(xi[(PIXEL_WIDTH*(16)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*(17)) +: PIXEL_WIDTH]);
+    {s00[(18)], s00[(19)]} <= Sort2(xi[(PIXEL_WIDTH*(18)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*(19)) +: PIXEL_WIDTH]);
+    {s00[(20)], s00[(21)]} <= Sort2(xi[(PIXEL_WIDTH*(20)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*(21)) +: PIXEL_WIDTH]);
+    {s00[(22)], s00[(23)]} <= Sort2(xi[(PIXEL_WIDTH*(22)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*(23)) +: PIXEL_WIDTH]);
+                s00[(24)] <= xi[(PIXEL_WIDTH*(24)) +: PIXEL_WIDTH];
 
-    sr_bypass_data[0] <= xi[(8*(12)) +: PIXEL_WIDTH];
+    sr_bypass_data[0] <= xi[(PIXEL_WIDTH*(12)) +: PIXEL_WIDTH];
     sr_de[0] <= de;
     sr_hs[0] <= hs;
     sr_vs[0] <= vs;
