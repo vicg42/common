@@ -39,11 +39,11 @@ module filter_core_5x5 #(
     output reg [DATA_WIDTH-1:0] x05 = 0,
     output reg [DATA_WIDTH-1:0] x06 = 0,
     output reg [DATA_WIDTH-1:0] x07 = 0,
-    output reg [DATA_WIDTH-1:0] x08 = 0, //can be use like bypass
+    output reg [DATA_WIDTH-1:0] x08 = 0,
     output reg [DATA_WIDTH-1:0] x09 = 0,
     output reg [DATA_WIDTH-1:0] x10 = 0,
     output reg [DATA_WIDTH-1:0] x11 = 0,
-    output reg [DATA_WIDTH-1:0] x12 = 0,
+    output reg [DATA_WIDTH-1:0] x12 = 0, //can be use like bypass
     output reg [DATA_WIDTH-1:0] x13 = 0,
     output reg [DATA_WIDTH-1:0] x14 = 0,
     output reg [DATA_WIDTH-1:0] x15 = 0,
