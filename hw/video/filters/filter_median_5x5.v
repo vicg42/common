@@ -79,36 +79,36 @@ filter_core_5x5 #(
 
     //output resolution (X - 4) * (Y - 4)
     //pixel pattern:
-    //line[0]: x1 x2 x3 x4 x5
-    //line[1]: x6 x7 x8 x9 xA
-    //line[2]: xB xC xD xE xF
-    //line[3]: xG xH xI xJ xK
-    //line[4]: xL xM xN xO xP
-    .x1(xi[(PIXEL_WIDTH*( 0)) +: PIXEL_WIDTH]),
-    .x2(xi[(PIXEL_WIDTH*( 1)) +: PIXEL_WIDTH]),
-    .x3(xi[(PIXEL_WIDTH*( 2)) +: PIXEL_WIDTH]),
-    .x4(xi[(PIXEL_WIDTH*( 3)) +: PIXEL_WIDTH]),
-    .x5(xi[(PIXEL_WIDTH*( 4)) +: PIXEL_WIDTH]),
-    .x6(xi[(PIXEL_WIDTH*( 5)) +: PIXEL_WIDTH]),
-    .x7(xi[(PIXEL_WIDTH*( 6)) +: PIXEL_WIDTH]),
-    .x8(xi[(PIXEL_WIDTH*( 7)) +: PIXEL_WIDTH]),
-    .x9(xi[(PIXEL_WIDTH*( 8)) +: PIXEL_WIDTH]),
-    .xA(xi[(PIXEL_WIDTH*( 9)) +: PIXEL_WIDTH]),
-    .xB(xi[(PIXEL_WIDTH*(10)) +: PIXEL_WIDTH]),
-    .xC(xi[(PIXEL_WIDTH*(11)) +: PIXEL_WIDTH]),
-    .xD(xi[(PIXEL_WIDTH*(12)) +: PIXEL_WIDTH]),
-    .xE(xi[(PIXEL_WIDTH*(13)) +: PIXEL_WIDTH]),
-    .xF(xi[(PIXEL_WIDTH*(14)) +: PIXEL_WIDTH]),
-    .xG(xi[(PIXEL_WIDTH*(15)) +: PIXEL_WIDTH]),
-    .xH(xi[(PIXEL_WIDTH*(16)) +: PIXEL_WIDTH]),
-    .xI(xi[(PIXEL_WIDTH*(17)) +: PIXEL_WIDTH]),
-    .xJ(xi[(PIXEL_WIDTH*(18)) +: PIXEL_WIDTH]),
-    .xK(xi[(PIXEL_WIDTH*(19)) +: PIXEL_WIDTH]),
-    .xL(xi[(PIXEL_WIDTH*(20)) +: PIXEL_WIDTH]),
-    .xM(xi[(PIXEL_WIDTH*(21)) +: PIXEL_WIDTH]),
-    .xN(xi[(PIXEL_WIDTH*(22)) +: PIXEL_WIDTH]),
-    .xO(xi[(PIXEL_WIDTH*(23)) +: PIXEL_WIDTH]),
-    .xP(xi[(PIXEL_WIDTH*(24)) +: PIXEL_WIDTH]),
+    //line[0]: x00 x01 x02 x03 x04
+    //line[1]: x05 x06 x07 x08 x09
+    //line[2]: x10 x11 x12 x13 x14
+    //line[3]: x15 x16 x17 x18 x19
+    //line[4]: x20 x21 x22 x23 x24
+    .x00(xi[(PIXEL_WIDTH*( 0)) +: PIXEL_WIDTH]),
+    .x01(xi[(PIXEL_WIDTH*( 1)) +: PIXEL_WIDTH]),
+    .x02(xi[(PIXEL_WIDTH*( 2)) +: PIXEL_WIDTH]),
+    .x03(xi[(PIXEL_WIDTH*( 3)) +: PIXEL_WIDTH]),
+    .x04(xi[(PIXEL_WIDTH*( 4)) +: PIXEL_WIDTH]),
+    .x05(xi[(PIXEL_WIDTH*( 5)) +: PIXEL_WIDTH]),
+    .x06(xi[(PIXEL_WIDTH*( 6)) +: PIXEL_WIDTH]),
+    .x07(xi[(PIXEL_WIDTH*( 7)) +: PIXEL_WIDTH]),
+    .x08(xi[(PIXEL_WIDTH*( 8)) +: PIXEL_WIDTH]),
+    .x09(xi[(PIXEL_WIDTH*( 9)) +: PIXEL_WIDTH]),
+    .x10(xi[(PIXEL_WIDTH*(10)) +: PIXEL_WIDTH]),
+    .x11(xi[(PIXEL_WIDTH*(11)) +: PIXEL_WIDTH]),
+    .x12(xi[(PIXEL_WIDTH*(12)) +: PIXEL_WIDTH]),
+    .x13(xi[(PIXEL_WIDTH*(13)) +: PIXEL_WIDTH]),
+    .x14(xi[(PIXEL_WIDTH*(14)) +: PIXEL_WIDTH]),
+    .x15(xi[(PIXEL_WIDTH*(15)) +: PIXEL_WIDTH]),
+    .x16(xi[(PIXEL_WIDTH*(16)) +: PIXEL_WIDTH]),
+    .x17(xi[(PIXEL_WIDTH*(17)) +: PIXEL_WIDTH]),
+    .x18(xi[(PIXEL_WIDTH*(18)) +: PIXEL_WIDTH]),
+    .x19(xi[(PIXEL_WIDTH*(19)) +: PIXEL_WIDTH]),
+    .x20(xi[(PIXEL_WIDTH*(20)) +: PIXEL_WIDTH]),
+    .x21(xi[(PIXEL_WIDTH*(21)) +: PIXEL_WIDTH]),
+    .x22(xi[(PIXEL_WIDTH*(22)) +: PIXEL_WIDTH]),
+    .x23(xi[(PIXEL_WIDTH*(23)) +: PIXEL_WIDTH]),
+    .x24(xi[(PIXEL_WIDTH*(24)) +: PIXEL_WIDTH]),
 
     .de_o(de),
     .hs_o(hs),

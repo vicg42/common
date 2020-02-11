@@ -1,9 +1,9 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /filter_median_5x5_tb/w
-add wave -noupdate /filter_median_5x5_tb/h
-add wave -noupdate /filter_median_5x5_tb/x
-add wave -noupdate /filter_median_5x5_tb/y
+add wave -noupdate -radix unsigned /filter_median_5x5_tb/w
+add wave -noupdate -radix unsigned /filter_median_5x5_tb/h
+add wave -noupdate -radix unsigned /filter_median_5x5_tb/x
+add wave -noupdate -radix unsigned /filter_median_5x5_tb/y
 add wave -noupdate -divider input
 add wave -noupdate /filter_median_5x5_tb/filter_median/clk
 add wave -noupdate /filter_median_5x5_tb/filter_median/di_i
@@ -11,9 +11,9 @@ add wave -noupdate /filter_median_5x5_tb/filter_median/de_i
 add wave -noupdate /filter_median_5x5_tb/filter_median/hs_i
 add wave -noupdate /filter_median_5x5_tb/filter_median/vs_i
 add wave -noupdate -divider filter_core
-add wave -noupdate /filter_median_5x5_tb/filter_median/filter_core/de_o
-add wave -noupdate /filter_median_5x5_tb/filter_median/filter_core/hs_o
-add wave -noupdate /filter_median_5x5_tb/filter_median/filter_core/vs_o
+add wave -noupdate /filter_median_5x5_tb/filter_median/filter_core_5x5/de_o
+add wave -noupdate /filter_median_5x5_tb/filter_median/filter_core_5x5/hs_o
+add wave -noupdate /filter_median_5x5_tb/filter_median/filter_core_5x5/vs_o
 add wave -noupdate -divider filter_entity
 add wave -noupdate /filter_median_5x5_tb/filter_median/xi
 add wave -noupdate -divider output
@@ -43,4 +43,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {892596 ns} {4042596 ns}
+WaveRestoreZoom {0 ps} {105 us}

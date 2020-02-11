@@ -26,36 +26,36 @@ module filter_core_5x5 #(
 
     //output resolution (X - 4) * (Y - 4)
     //pixel pattern:
-    //line[0]: x1 x2 x3 x4 x5
-    //line[1]: x6 x7 x8 x9 xA
-    //line[2]: xB xC xD xE xF
-    //line[3]: xG xH xI xJ xK
-    //line[4]: xL xM xN xO xP
-    output reg [DATA_WIDTH-1:0] x1 = 0,
-    output reg [DATA_WIDTH-1:0] x2 = 0,
-    output reg [DATA_WIDTH-1:0] x3 = 0,
-    output reg [DATA_WIDTH-1:0] x4 = 0,
-    output reg [DATA_WIDTH-1:0] x5 = 0,
-    output reg [DATA_WIDTH-1:0] x6 = 0,
-    output reg [DATA_WIDTH-1:0] x7 = 0,
-    output reg [DATA_WIDTH-1:0] x8 = 0,
-    output reg [DATA_WIDTH-1:0] x9 = 0, //can be use like bypass
-    output reg [DATA_WIDTH-1:0] xA = 0,
-    output reg [DATA_WIDTH-1:0] xB = 0,
-    output reg [DATA_WIDTH-1:0] xC = 0,
-    output reg [DATA_WIDTH-1:0] xD = 0,
-    output reg [DATA_WIDTH-1:0] xE = 0,
-    output reg [DATA_WIDTH-1:0] xF = 0,
-    output reg [DATA_WIDTH-1:0] xG = 0,
-    output reg [DATA_WIDTH-1:0] xH = 0,
-    output reg [DATA_WIDTH-1:0] xI = 0,
-    output reg [DATA_WIDTH-1:0] xJ = 0,
-    output reg [DATA_WIDTH-1:0] xK = 0,
-    output reg [DATA_WIDTH-1:0] xL = 0,
-    output reg [DATA_WIDTH-1:0] xM = 0,
-    output reg [DATA_WIDTH-1:0] xN = 0,
-    output reg [DATA_WIDTH-1:0] xO = 0,
-    output reg [DATA_WIDTH-1:0] xP = 0,
+    //line[0]: x00 x01 x02 x03 x04
+    //line[1]: x05 x06 x07 x08 x09
+    //line[2]: x10 x11 x12 x13 x14
+    //line[3]: x15 x16 x17 x18 x19
+    //line[4]: x20 x21 x22 x23 x24
+    output reg [DATA_WIDTH-1:0] x00 = 0,
+    output reg [DATA_WIDTH-1:0] x01 = 0,
+    output reg [DATA_WIDTH-1:0] x02 = 0,
+    output reg [DATA_WIDTH-1:0] x03 = 0,
+    output reg [DATA_WIDTH-1:0] x04 = 0,
+    output reg [DATA_WIDTH-1:0] x05 = 0,
+    output reg [DATA_WIDTH-1:0] x06 = 0,
+    output reg [DATA_WIDTH-1:0] x07 = 0,
+    output reg [DATA_WIDTH-1:0] x08 = 0, //can be use like bypass
+    output reg [DATA_WIDTH-1:0] x09 = 0,
+    output reg [DATA_WIDTH-1:0] x10 = 0,
+    output reg [DATA_WIDTH-1:0] x11 = 0,
+    output reg [DATA_WIDTH-1:0] x12 = 0,
+    output reg [DATA_WIDTH-1:0] x13 = 0,
+    output reg [DATA_WIDTH-1:0] x14 = 0,
+    output reg [DATA_WIDTH-1:0] x15 = 0,
+    output reg [DATA_WIDTH-1:0] x16 = 0,
+    output reg [DATA_WIDTH-1:0] x17 = 0,
+    output reg [DATA_WIDTH-1:0] x18 = 0,
+    output reg [DATA_WIDTH-1:0] x19 = 0,
+    output reg [DATA_WIDTH-1:0] x20 = 0,
+    output reg [DATA_WIDTH-1:0] x21 = 0,
+    output reg [DATA_WIDTH-1:0] x22 = 0,
+    output reg [DATA_WIDTH-1:0] x23 = 0,
+    output reg [DATA_WIDTH-1:0] x24 = 0,
 
     output reg de_o = 0,
     output reg hs_o = 0,
@@ -144,41 +144,41 @@ always @(posedge clk) begin
         sr_di_i[1] <= sr_di_i[0];
         sr_di_i[2] <= sr_di_i[1];
         sr_di_i[3] <= sr_di_i[2];
-        xP <= sr_di_i[3];
-        xO <= xP;
-        xN <= xO;
-        xM <= xN;
-        xL <= xM;
+        x24 <= sr_di_i[3];
+        x23 <= x24;
+        x22 <= x23;
+        x21 <= x22;
+        x20 <= x21;
 
         sr_buf3_do[0] <= buf3_do;
         sr_buf3_do[1] <= sr_buf3_do[0];
         sr_buf3_do[2] <= sr_buf3_do[1];
-        xK <= sr_buf3_do[2];
-        xJ <= xK;
-        xI <= xJ;
-        xH <= xI;
-        xG <= xH;
+        x19 <= sr_buf3_do[2];
+        x18 <= x19;
+        x17 <= x18;
+        x16 <= x17;
+        x15 <= x16;
 
         sr_buf2_do[0] <= buf2_do;
         sr_buf2_do[1] <= sr_buf2_do[0];
-        xF <= sr_buf2_do[1];
-        xE <= xF;
-        xD <= xE;
-        xC <= xD;
-        xB <= xC;
+        x14 <= sr_buf2_do[1];
+        x13 <= x14;
+        x12 <= x13;
+        x11 <= x12;
+        x10 <= x11;
 
         sr_buf1_do[0] <= buf1_do;
-        xA <= sr_buf1_do[0];
-        x9 <= xA;
-        x8 <= x9;
-        x7 <= x8;
-        x6 <= x7;
+        x09 <= sr_buf1_do[0];
+        x08 <= x09;
+        x07 <= x08;
+        x06 <= x07;
+        x05 <= x06;
 
-        x5 <= buf0_do;
-        x4 <= x5;
-        x3 <= x4;
-        x2 <= x3;
-        x1 <= x2;
+        x04 <= buf0_do;
+        x03 <= x04;
+        x02 <= x03;
+        x01 <= x02;
+        x00 <= x01;
     end
 end
 
