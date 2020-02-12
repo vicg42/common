@@ -1,0 +1,1 @@
+vsim -do ./filter_core_7x7_tb.do

@@ -7,9 +7,9 @@
 
 `include "bmp_io.sv"
 
-module filter_core_5x5_tb # (
+module filter_core_7x7_tb # (
     parameter READ_IMG_FILE = "24x24_8bit_test1.bmp",
-    parameter WRITE_IMG_FILE = "filter_core_5x5_tb",
+    parameter WRITE_IMG_FILE = "filter_core_7x7_tb",
 
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
@@ -160,7 +160,7 @@ initial begin : sim_main
 end : sim_main
 
 
-filter_core_5x5 #(
+filter_core_7x7 #(
     .DE_I_PERIOD(DE_I_PERIOD),
     .LINE_SIZE_MAX (LINE_SIZE_MAX),
     .DATA_WIDTH (PIXEL_WIDTH)
@@ -172,13 +172,15 @@ filter_core_5x5 #(
     .hs_i(hs_i),
     .vs_i(vs_i),
 
-    //output resolution (X - 4) * (Y - 4)
+    //output resolution (X - 6) * (Y - 6)
     //pixel pattern:
-    //line[0]: x00 x01 x02 x03 x04
-    //line[1]: x05 x06 x07 x08 x09
-    //line[2]: x10 x11 x12 x13 x14
-    //line[3]: x15 x16 x17 x18 x19
-    //line[4]: x20 x21 x22 x23 x24
+    //line[0]: x00 x01 x02 x03 x04 x05 x06
+    //line[1]: x07 x08 x09 x10 x11 x12 x13
+    //line[2]: x14 x15 x16 x17 x18 x19 x20
+    //line[3]: x21 x22 x23 x24 x25 x26 x27
+    //line[4]: x28 x29 x30 x31 x32 x33 x34
+    //line[5]: x35 x36 x37 x38 x39 x40 x41
+    //line[6]: x42 x43 x44 x45 x46 x47 x48
     .x00(),
     .x01(),
     .x02(),
@@ -191,7 +193,7 @@ filter_core_5x5 #(
     .x09(),
     .x10(),
     .x11(),
-    .x12(), //can be use like bypass
+    .x12(),
     .x13(),
     .x14(),
     .x15(),
@@ -203,7 +205,31 @@ filter_core_5x5 #(
     .x21(),
     .x22(),
     .x23(),
-    .x24(),
+    .x24(), //can be use like bypass
+    .x25(),
+    .x26(),
+    .x27(),
+    .x28(),
+    .x29(),
+    .x30(),
+    .x31(),
+    .x32(),
+    .x33(),
+    .x34(),
+    .x35(),
+    .x36(),
+    .x37(),
+    .x38(),
+    .x39(),
+    .x40(),
+    .x41(),
+    .x42(),
+    .x43(),
+    .x44(),
+    .x45(),
+    .x46(),
+    .x47(),
+    .x48(),
 
     .de_o(de_o),
     .hs_o(hs_o),
@@ -213,5 +239,17 @@ filter_core_5x5 #(
     .rst(rst)
 );
 
+//
+//
+//monitor # (
+//    .DATA_WIDTH (PIXEL_WIDTH),
+//    .WRITE_IMG_FILE(WRITE_IMG_FILE)
+//) monitor (
+//    .di_i(do_o),
+//    .de_i(de_o),
+//    .hs_i(hs_o),
+//    .vs_i(vs_o),
+//    .clk (clk)
+//);
 
 endmodule
