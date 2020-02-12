@@ -8,7 +8,7 @@
 `include "bmp_io.sv"
 
 module filter_core_7x7_tb # (
-    parameter READ_IMG_FILE = "24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "24x24_8bit_test1.bmp", //"img_600x600_8bit.bmp", //
     parameter WRITE_IMG_FILE = "filter_core_7x7_tb",
 
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
@@ -146,7 +146,7 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #350; //delay between line
+            #1350; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin

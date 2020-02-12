@@ -102,20 +102,18 @@ localparam PIPELINE = (DE_I_PERIOD == 0) ? 16 : (DE_I_PERIOD*16);
 (* RAM_STYLE = "BLOCK" *) reg [DATA_WIDTH-1:0] buf3 [LINE_SIZE_MAX-1:0];
 (* RAM_STYLE = "BLOCK" *) reg [DATA_WIDTH-1:0] buf4 [LINE_SIZE_MAX-1:0];
 (* RAM_STYLE = "BLOCK" *) reg [DATA_WIDTH-1:0] buf5 [LINE_SIZE_MAX-1:0];
-(* RAM_STYLE = "BLOCK" *) reg [DATA_WIDTH-1:0] buf6 [LINE_SIZE_MAX-1:0];
 reg [DATA_WIDTH-1:0] buf0_do;
 reg [DATA_WIDTH-1:0] buf1_do;
 reg [DATA_WIDTH-1:0] buf2_do;
 reg [DATA_WIDTH-1:0] buf3_do;
 reg [DATA_WIDTH-1:0] buf4_do;
 reg [DATA_WIDTH-1:0] buf5_do;
-reg [DATA_WIDTH-1:0] buf6_do;
 
 reg [$clog2(LINE_SIZE_MAX)-1:0] buf_wptr = 0;
 wire buf_wptr_clr;
 wire buf_wptr_en;
 
-reg [DATA_WIDTH-1:0] sr_di_i [0:5];
+reg [DATA_WIDTH-1:0] sr_di_i [0:6];
 reg [DATA_WIDTH-1:0] sr_buf1_do [0:0];
 reg [DATA_WIDTH-1:0] sr_buf2_do [0:1];
 reg [DATA_WIDTH-1:0] sr_buf3_do [0:2];
@@ -138,16 +136,9 @@ assign sr_hs_i_opt = (hs_i & (~sr_hs_i[7]));
 assign buf_wptr_clr = (!sr_hs_i[4] && sr_hs_i[3] & sr_de_i[PIPELINE-1]);
 assign buf_wptr_en = de_i | (buf_wptr_en_opt & sr_de_i[PIPELINE-1]);
 
-always @(posedge clk) begin : buf_line6
-    if (buf_wptr_en) begin
-        buf6[buf_wptr] <= di_i;
-        buf6_do <= buf6[buf_wptr];
-    end
-end
-
 always @(posedge clk) begin : buf_line5
     if (buf_wptr_en) begin
-        buf5[buf_wptr] <= buf6_do;
+        buf5[buf_wptr] <= di_i;
         buf5_do <= buf5[buf_wptr];
     end
 end
