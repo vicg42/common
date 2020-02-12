@@ -11,9 +11,7 @@ vlog ../bmp_io.sv -sv
 vlog ../filter_core_7x7.v
 vlog ./filter_core_7x7_tb.sv -sv +incdir+../
 
-
 vsim -t 1ps -novopt -lib work filter_core_7x7_tb
-
 
 do filter_core_7x7_tb_wave.do
 
