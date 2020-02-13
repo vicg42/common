@@ -92,7 +92,7 @@ module filter_core_7x7 #(
 );
 
 // -------------------------------------------------------------------------
-localparam PIPELINE = (DE_I_PERIOD == 0) ? 16 : (DE_I_PERIOD*16);
+localparam PIPELINE = (DE_I_PERIOD == 0) ? 24 : (DE_I_PERIOD*16);
 
 //For Altera: (* ramstyle = "MLAB" *)
 //For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
@@ -121,19 +121,19 @@ reg [DATA_WIDTH-1:0] sr_buf4_do [0:3];
 reg [DATA_WIDTH-1:0] sr_buf5_do [0:4];
 
 reg [0:(PIPELINE+1)] sr_de_i = 0;
-reg [0:7] sr_hs_i = 0;
+reg [0:12] sr_hs_i = 0;
 reg [0:(PIPELINE)] sr_vs_i = 0;
 
-reg [0:3] line_out_en;
+reg [0:5] line_out_en;
 
 wire vs_opt;
 wire buf_wptr_en_opt;
 wire sr_hs_i_opt;
 assign vs_opt = vs_i | sr_vs_i[PIPELINE-1];
-assign buf_wptr_en_opt = (hs_i & (~sr_hs_i[4]));
-assign sr_hs_i_opt = (hs_i & (~sr_hs_i[7]));
+assign buf_wptr_en_opt = (hs_i & (~sr_hs_i[8]));
+assign sr_hs_i_opt = (hs_i & (~sr_hs_i[12]));
 
-assign buf_wptr_clr = (!sr_hs_i[4] && sr_hs_i[3] & sr_de_i[PIPELINE-1]);
+assign buf_wptr_clr = (!sr_hs_i[9] && sr_hs_i[8] & sr_de_i[PIPELINE-1]);
 assign buf_wptr_en = de_i | (buf_wptr_en_opt & sr_de_i[PIPELINE-1]);
 
 always @(posedge clk) begin : buf_line5
@@ -269,7 +269,7 @@ always @(posedge clk) begin
     sr_de_i <= {de_i, sr_de_i[0:(PIPELINE-1)]};
     sr_vs_i <= {vs_i, sr_vs_i[0:(PIPELINE-1)]};
     if (de_i || (sr_hs_i_opt && sr_de_i[PIPELINE-1])) begin
-        sr_hs_i <= {hs_i, sr_hs_i[0:6]};
+        sr_hs_i <= {hs_i, sr_hs_i[0:11]};
     end
 end
 
@@ -277,14 +277,14 @@ always @(posedge clk) begin
     if (!vs_opt) begin
         line_out_en <= 0;
     end else if (buf_wptr_clr) begin
-        line_out_en <= {1'b1, line_out_en[0:2]};
+        line_out_en <= {1'b1, line_out_en[0:4]};
     end
 end
 
 always @(posedge clk) begin
     if (!bypass) begin
-        de_o <= (&line_out_en) & !sr_hs_i[3] & !sr_hs_i[7] & buf_wptr_en;
-        hs_o <= ~((&line_out_en) & !sr_hs_i[3] & !sr_hs_i[7]);
+        de_o <= (&line_out_en) & !sr_hs_i[5] & !sr_hs_i[11] & buf_wptr_en;
+        hs_o <= ~((&line_out_en) & !sr_hs_i[5] & !sr_hs_i[11]);
         vs_o <= sr_vs_i[(PIPELINE-1)];
     end else begin
         de_o <= de_i;

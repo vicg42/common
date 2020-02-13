@@ -10,14 +10,25 @@ add wave -noupdate /filter_core_7x7_tb/filter_core/di_i
 add wave -noupdate /filter_core_7x7_tb/filter_core/de_i
 add wave -noupdate /filter_core_7x7_tb/filter_core/hs_i
 add wave -noupdate /filter_core_7x7_tb/filter_core/vs_i
+add wave -noupdate -divider output
+add wave -noupdate /filter_core_7x7_tb/filter_core/de_o
+add wave -noupdate /filter_core_7x7_tb/filter_core/hs_o
+add wave -noupdate /filter_core_7x7_tb/filter_core/vs_o
 add wave -noupdate -divider entity
+add wave -noupdate /filter_core_7x7_tb/filter_core/line_out_en
+add wave -noupdate -radix unsigned /filter_core_7x7_tb/filter_core/buf_wptr
+add wave -noupdate /filter_core_7x7_tb/filter_core/buf_wptr_clr
+add wave -noupdate /filter_core_7x7_tb/filter_core/buf_wptr_en
+add wave -noupdate /filter_core_7x7_tb/filter_core/buf_wptr_en_opt
+add wave -noupdate /filter_core_7x7_tb/filter_core/vs_opt
+add wave -noupdate /filter_core_7x7_tb/filter_core/sr_de_i
+add wave -noupdate /filter_core_7x7_tb/filter_core/sr_hs_i
 add wave -noupdate /filter_core_7x7_tb/filter_core/buf0
 add wave -noupdate /filter_core_7x7_tb/filter_core/buf1
 add wave -noupdate /filter_core_7x7_tb/filter_core/buf2
 add wave -noupdate /filter_core_7x7_tb/filter_core/buf3
 add wave -noupdate /filter_core_7x7_tb/filter_core/buf4
 add wave -noupdate /filter_core_7x7_tb/filter_core/buf5
-add wave -noupdate /filter_core_7x7_tb/filter_core/buf6
 add wave -noupdate /filter_core_7x7_tb/filter_core/x00
 add wave -noupdate /filter_core_7x7_tb/filter_core/x01
 add wave -noupdate /filter_core_7x7_tb/filter_core/x02
@@ -67,13 +78,9 @@ add wave -noupdate /filter_core_7x7_tb/filter_core/x45
 add wave -noupdate /filter_core_7x7_tb/filter_core/x46
 add wave -noupdate /filter_core_7x7_tb/filter_core/x47
 add wave -noupdate /filter_core_7x7_tb/filter_core/x48
-add wave -noupdate -divider output
-add wave -noupdate /filter_core_7x7_tb/filter_core/de_o
-add wave -noupdate /filter_core_7x7_tb/filter_core/hs_o
-add wave -noupdate /filter_core_7x7_tb/filter_core/vs_o
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
-quietly wave cursor active 0
+WaveRestoreCursors {{Cursor 1} {19728000 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -88,4 +95,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {11550 ns}
+WaveRestoreZoom {0 ps} {15943040 ps}

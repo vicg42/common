@@ -10,7 +10,16 @@ add wave -noupdate /filter_core_5x5_tb/filter_core/di_i
 add wave -noupdate /filter_core_5x5_tb/filter_core/de_i
 add wave -noupdate /filter_core_5x5_tb/filter_core/hs_i
 add wave -noupdate /filter_core_5x5_tb/filter_core/vs_i
+add wave -noupdate -divider output
+add wave -noupdate /filter_core_5x5_tb/filter_core/de_o
+add wave -noupdate /filter_core_5x5_tb/filter_core/hs_o
+add wave -noupdate /filter_core_5x5_tb/filter_core/vs_o
 add wave -noupdate -divider entity
+add wave -noupdate /filter_core_5x5_tb/filter_core/vs_opt
+add wave -noupdate /filter_core_5x5_tb/filter_core/buf_wptr
+add wave -noupdate /filter_core_5x5_tb/filter_core/buf_wptr_clr
+add wave -noupdate /filter_core_5x5_tb/filter_core/buf_wptr_en_opt
+add wave -noupdate /filter_core_5x5_tb/filter_core/line_out_en
 add wave -noupdate /filter_core_5x5_tb/filter_core/buf0
 add wave -noupdate /filter_core_5x5_tb/filter_core/buf1
 add wave -noupdate /filter_core_5x5_tb/filter_core/buf2
@@ -40,10 +49,6 @@ add wave -noupdate /filter_core_5x5_tb/filter_core/x21
 add wave -noupdate /filter_core_5x5_tb/filter_core/x22
 add wave -noupdate /filter_core_5x5_tb/filter_core/x23
 add wave -noupdate /filter_core_5x5_tb/filter_core/x24
-add wave -noupdate -divider output
-add wave -noupdate /filter_core_5x5_tb/filter_core/de_o
-add wave -noupdate /filter_core_5x5_tb/filter_core/hs_o
-add wave -noupdate /filter_core_5x5_tb/filter_core/vs_o
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
@@ -61,4 +66,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {15750 ns}
+WaveRestoreZoom {3155953 ps} {3598954 ps}

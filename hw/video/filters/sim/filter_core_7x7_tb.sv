@@ -102,6 +102,8 @@ initial begin : sim_main
 //    vs_i = 1;
     #500;
     for (fr = 0; fr < FRAME_COUNT; fr++) begin
+        // @(posedge clk);
+        // vs_i = 1'b1;
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
