@@ -2,25 +2,12 @@
 // author    : Golovachenko Victor
 //------------------------------------------------------------------------
 
-module filter_median_7x7 #(
-    parameter LINE_SIZE_MAX = 1024,
-    parameter PIXEL_WIDTH = 12
+module filter_median_7x7_entity #(
+    parameter KERNEL_SIZE = 49,
+    parameter PIXEL_WIDTH = 8
 )(
-    input bypass,
-
-    //input resolution X * Y
-    input [PIXEL_WIDTH-1:0] di_i,
-    input                   de_i,
-    input                   hs_i,
-    input                   vs_i,
-
-    //output resolution (X - 4) * (Y - 4)
-    output [PIXEL_WIDTH-1:0] do_o, //
-    output                   de_o, //
-    output                   hs_o, //
-    output                   vs_o, //
-
-    output [PIXEL_WIDTH-1:0] bypass_o, //
+    input [(PIXEL_WIDTH*KERNEL_SIZE)-1:0] xi,
+    output [(PIXEL_WIDTH*KERNEL_SIZE)-1:0] xo,
 
     input clk,
     input rst
@@ -35,11 +22,6 @@ function [PIXEL_WIDTH*2-1:0] Sort2;
         Sort2 = {x1, x2};
 endfunction
 
-
-localparam KERNEL_SIZE = 49;
-
-wire [(PIXEL_WIDTH*KERNEL_SIZE)-1:0] xi;
-wire [(PIXEL_WIDTH*KERNEL_SIZE)-1:0] xo;
 
 reg [PIXEL_WIDTH-1:0] s00 [(KERNEL_SIZE)-1:0];
 reg [PIXEL_WIDTH-1:0] s01 [(KERNEL_SIZE)-1:0];
@@ -63,92 +45,6 @@ reg [PIXEL_WIDTH-1:0] s18 [(KERNEL_SIZE)-1:0];
 reg [PIXEL_WIDTH-1:0] s19 [(KERNEL_SIZE)-1:0];
 reg [PIXEL_WIDTH-1:0] s20 [(KERNEL_SIZE)-1:0];
 
-wire de;
-wire hs;
-wire vs;
-reg [0:20] sr_de = 0;
-reg [0:20] sr_hs = 0;
-reg [0:20] sr_vs = 0;
-reg [PIXEL_WIDTH-1:0] sr_bypass_data [0:20];
-
-filter_core_7x7 #(
-    .DE_I_PERIOD(0),
-    .LINE_SIZE_MAX (LINE_SIZE_MAX),
-    .DATA_WIDTH (PIXEL_WIDTH)
-) filter_core_7x7 (
-    .bypass(1'b0),
-
-    .di_i(di_i),
-    .de_i(de_i),
-    .hs_i(hs_i),
-    .vs_i(vs_i),
-
-    //output resolution (X - 6) * (Y - 6)
-    //pixel pattern:
-    //line[0]: x00 x01 x02 x03 x04 x05 x06
-    //line[1]: x07 x08 x09 x10 x11 x12 x13
-    //line[2]: x14 x15 x16 x17 x18 x19 x20
-    //line[3]: x21 x22 x23 x24 x25 x26 x27
-    //line[4]: x28 x29 x30 x31 x32 x33 x34
-    //line[5]: x35 x36 x37 x38 x39 x40 x41
-    //line[6]: x42 x43 x44 x45 x46 x47 x48
-    .x00(xi[(PIXEL_WIDTH*( 0)) +: PIXEL_WIDTH]),
-    .x01(xi[(PIXEL_WIDTH*( 1)) +: PIXEL_WIDTH]),
-    .x02(xi[(PIXEL_WIDTH*( 2)) +: PIXEL_WIDTH]),
-    .x03(xi[(PIXEL_WIDTH*( 3)) +: PIXEL_WIDTH]),
-    .x04(xi[(PIXEL_WIDTH*( 4)) +: PIXEL_WIDTH]),
-    .x05(xi[(PIXEL_WIDTH*( 5)) +: PIXEL_WIDTH]),
-    .x06(xi[(PIXEL_WIDTH*( 6)) +: PIXEL_WIDTH]),
-    .x07(xi[(PIXEL_WIDTH*( 7)) +: PIXEL_WIDTH]),
-    .x08(xi[(PIXEL_WIDTH*( 8)) +: PIXEL_WIDTH]),
-    .x09(xi[(PIXEL_WIDTH*( 9)) +: PIXEL_WIDTH]),
-    .x10(xi[(PIXEL_WIDTH*(10)) +: PIXEL_WIDTH]),
-    .x11(xi[(PIXEL_WIDTH*(11)) +: PIXEL_WIDTH]),
-    .x12(xi[(PIXEL_WIDTH*(12)) +: PIXEL_WIDTH]),
-    .x13(xi[(PIXEL_WIDTH*(13)) +: PIXEL_WIDTH]),
-    .x14(xi[(PIXEL_WIDTH*(14)) +: PIXEL_WIDTH]),
-    .x15(xi[(PIXEL_WIDTH*(15)) +: PIXEL_WIDTH]),
-    .x16(xi[(PIXEL_WIDTH*(16)) +: PIXEL_WIDTH]),
-    .x17(xi[(PIXEL_WIDTH*(17)) +: PIXEL_WIDTH]),
-    .x18(xi[(PIXEL_WIDTH*(18)) +: PIXEL_WIDTH]),
-    .x19(xi[(PIXEL_WIDTH*(19)) +: PIXEL_WIDTH]),
-    .x20(xi[(PIXEL_WIDTH*(20)) +: PIXEL_WIDTH]),
-    .x21(xi[(PIXEL_WIDTH*(21)) +: PIXEL_WIDTH]),
-    .x22(xi[(PIXEL_WIDTH*(22)) +: PIXEL_WIDTH]),
-    .x23(xi[(PIXEL_WIDTH*(23)) +: PIXEL_WIDTH]),
-    .x24(xi[(PIXEL_WIDTH*(24)) +: PIXEL_WIDTH]),
-    .x25(xi[(PIXEL_WIDTH*(25)) +: PIXEL_WIDTH]),
-    .x26(xi[(PIXEL_WIDTH*(26)) +: PIXEL_WIDTH]),
-    .x27(xi[(PIXEL_WIDTH*(27)) +: PIXEL_WIDTH]),
-    .x28(xi[(PIXEL_WIDTH*(28)) +: PIXEL_WIDTH]),
-    .x29(xi[(PIXEL_WIDTH*(29)) +: PIXEL_WIDTH]),
-    .x30(xi[(PIXEL_WIDTH*(30)) +: PIXEL_WIDTH]),
-    .x31(xi[(PIXEL_WIDTH*(31)) +: PIXEL_WIDTH]),
-    .x32(xi[(PIXEL_WIDTH*(32)) +: PIXEL_WIDTH]),
-    .x33(xi[(PIXEL_WIDTH*(33)) +: PIXEL_WIDTH]),
-    .x34(xi[(PIXEL_WIDTH*(34)) +: PIXEL_WIDTH]),
-    .x35(xi[(PIXEL_WIDTH*(35)) +: PIXEL_WIDTH]),
-    .x36(xi[(PIXEL_WIDTH*(36)) +: PIXEL_WIDTH]),
-    .x37(xi[(PIXEL_WIDTH*(37)) +: PIXEL_WIDTH]),
-    .x38(xi[(PIXEL_WIDTH*(38)) +: PIXEL_WIDTH]),
-    .x39(xi[(PIXEL_WIDTH*(39)) +: PIXEL_WIDTH]),
-    .x40(xi[(PIXEL_WIDTH*(40)) +: PIXEL_WIDTH]),
-    .x41(xi[(PIXEL_WIDTH*(41)) +: PIXEL_WIDTH]),
-    .x42(xi[(PIXEL_WIDTH*(42)) +: PIXEL_WIDTH]),
-    .x43(xi[(PIXEL_WIDTH*(43)) +: PIXEL_WIDTH]),
-    .x44(xi[(PIXEL_WIDTH*(44)) +: PIXEL_WIDTH]),
-    .x45(xi[(PIXEL_WIDTH*(45)) +: PIXEL_WIDTH]),
-    .x46(xi[(PIXEL_WIDTH*(46)) +: PIXEL_WIDTH]),
-    .x47(xi[(PIXEL_WIDTH*(47)) +: PIXEL_WIDTH]),
-    .x48(xi[(PIXEL_WIDTH*(48)) +: PIXEL_WIDTH]),
-
-    .de_o(de),
-    .hs_o(hs),
-    .vs_o(vs),
-
-    .clk (clk),
-    .rst (rst)
-);
 
 // -------------------------------------------------------------------------
 // pixel buffer, making following pixel pattern:
@@ -161,8 +57,6 @@ filter_core_7x7 #(
 // x35 x36 x37 x38 x39 x40 x41
 // x42 x43 x44 x45 x46 x47 x48
 
-
-
 integer a,a1,b,b1,c,c1,d,d1,e;
 always @(posedge clk) begin
     //stage0
@@ -173,11 +67,6 @@ always @(posedge clk) begin
         {s00[(a1+0)], s00[(a1+1)]} <= Sort2(xi[(PIXEL_WIDTH*(a1+0)) +: PIXEL_WIDTH], xi[(PIXEL_WIDTH*(a1+1)) +: PIXEL_WIDTH]);
     end
     s00[(48)] <= xi[(PIXEL_WIDTH*(48)) +: PIXEL_WIDTH];
-
-    sr_bypass_data[0] <= xi[(PIXEL_WIDTH*(24)) +: PIXEL_WIDTH];
-    sr_de[0] <= de;
-    sr_hs[0] <= hs;
-    sr_vs[0] <= vs;
 
     for (b=0; b<32; b=b+4) begin
         //stage1
@@ -201,15 +90,6 @@ always @(posedge clk) begin
     end
     s01[(48)] <= s00[(48)];
     s02[(48)] <= s01[(48)];
-    sr_bypass_data[1] <= sr_bypass_data[0];
-    sr_de[1] <= sr_de[0];
-    sr_hs[1] <= sr_hs[0];
-    sr_vs[1] <= sr_vs[0];
-    sr_bypass_data[2] <= sr_bypass_data[1];
-    sr_de[2] <= sr_de[1];
-    sr_hs[2] <= sr_hs[1];
-    sr_vs[2] <= sr_vs[1];
-
 
     for (c=0; c<32; c=c+8) begin
         //stage3
@@ -258,21 +138,6 @@ always @(posedge clk) begin
     s03[(48)] <= s02[(48)];
     s04[(48)] <= s03[(48)];
     s05[(48)] <= s04[(48)];
-
-    sr_bypass_data[3] <= sr_bypass_data[2];
-    sr_de[3] <= sr_de[2];
-    sr_hs[3] <= sr_hs[2];
-    sr_vs[3] <= sr_vs[2];
-
-    sr_bypass_data[4] <= sr_bypass_data[3];
-    sr_de[4] <= sr_de[3];
-    sr_hs[4] <= sr_hs[3];
-    sr_vs[4] <= sr_vs[3];
-
-    sr_bypass_data[5] <= sr_bypass_data[4];
-    sr_de[5] <= sr_de[4];
-    sr_hs[5] <= sr_hs[4];
-    sr_vs[5] <= sr_vs[4];
 
     for (d=0; d<32; d=d+16) begin
         //stage6
@@ -374,26 +239,6 @@ always @(posedge clk) begin
     s07[(48)] <= s06[(48)];
     s08[(48)] <= s07[(48)];
     s09[(48)] <= s08[(48)];
-
-    sr_bypass_data[6] <= sr_bypass_data[5];
-    sr_de[6] <= sr_de[5];
-    sr_hs[6] <= sr_hs[5];
-    sr_vs[6] <= sr_vs[5];
-
-    sr_bypass_data[7] <= sr_bypass_data[6];
-    sr_de[7] <= sr_de[6];
-    sr_hs[7] <= sr_hs[6];
-    sr_vs[7] <= sr_vs[6];
-
-    sr_bypass_data[8] <= sr_bypass_data[7];
-    sr_de[8] <= sr_de[7];
-    sr_hs[8] <= sr_hs[7];
-    sr_vs[8] <= sr_vs[7];
-
-    sr_bypass_data[9] <= sr_bypass_data[8];
-    sr_de[9] <= sr_de[8];
-    sr_hs[9] <= sr_hs[8];
-    sr_vs[9] <= sr_vs[8];
 
     for (e=0; e<32; e=e+32) begin
         //stage10
@@ -519,11 +364,6 @@ always @(posedge clk) begin
     s10[(46)] <= s09[(46)];
     s10[(47)] <= s09[(47)];
 
-    sr_bypass_data[10] <= sr_bypass_data[9];
-    sr_de[10] <= sr_de[9];
-    sr_hs[10] <= sr_hs[9];
-    sr_vs[10] <= sr_vs[9];
-
     //stage11
     s11[(32)] <= s10[(32)];
     s11[(33)] <= s10[(33)];
@@ -542,11 +382,6 @@ always @(posedge clk) begin
     s11[(46)] <= s10[(46)];
     s11[(47)] <= s10[(47)];
 
-    sr_bypass_data[11] <= sr_bypass_data[10];
-    sr_de[11] <= sr_de[10];
-    sr_hs[11] <= sr_hs[10];
-    sr_vs[11] <= sr_vs[10];
-
     //stage12
     s12[(32)] <= s11[(32)];
     s12[(33)] <= s11[(33)];
@@ -561,11 +396,6 @@ always @(posedge clk) begin
     s12[(46)] <= s11[(46)];
     s12[(47)] <= s11[(47)];
 
-    sr_bypass_data[12] <= sr_bypass_data[11];
-    sr_de[12] <= sr_de[11];
-    sr_hs[12] <= sr_hs[11];
-    sr_vs[12] <= sr_vs[11];
-
     //stage13
     s13[(32)] <= s12[(32)];
     s13[(33)] <= s12[(33)];
@@ -578,11 +408,6 @@ always @(posedge clk) begin
     {s13[(46)], s13[(48)]} <= Sort2(s12[(46)], s12[(48)]);
     s13[(47)] <= s12[(47)];
 
-    sr_bypass_data[13] <= sr_bypass_data[12];
-    sr_de[13] <= sr_de[12];
-    sr_hs[13] <= sr_hs[12];
-    sr_vs[13] <= sr_vs[12];
-
     //stage14
     s14[(32)] <= s13[(32)];
     {s14[(33)], s14[(34)]} <= Sort2(s13[(33)], s13[(34)]);
@@ -593,11 +418,6 @@ always @(posedge clk) begin
     {s14[(43)], s14[(44)]} <= Sort2(s13[(43)], s13[(44)]);
     {s14[(45)], s14[(46)]} <= Sort2(s13[(45)], s13[(46)]);
     {s14[(47)], s14[(48)]} <= Sort2(s13[(47)], s13[(48)]);
-
-    sr_bypass_data[14] <= sr_bypass_data[13];
-    sr_de[14] <= sr_de[13];
-    sr_hs[14] <= sr_hs[13];
-    sr_vs[14] <= sr_vs[13];
 
     //stage15
     {s15[( 0)], s15[(32)]} <= Sort2(s14[( 0)], s14[(32)]);
@@ -633,11 +453,6 @@ always @(posedge clk) begin
     s15[(30)] <= s14[(30)];
     s15[(31)] <= s14[(31)];
 
-    sr_bypass_data[15] <= sr_bypass_data[14];
-    sr_de[15] <= sr_de[14];
-    sr_hs[15] <= sr_hs[14];
-    sr_vs[15] <= sr_vs[14];
-
     //stage16
     s16[( 0)] <= s15[( 0)];
     s16[( 1)] <= s15[( 1)];
@@ -672,11 +487,6 @@ always @(posedge clk) begin
     {s16[(30)], s16[(46)]} <= Sort2(s15[(30)], s15[(46)]);
     {s16[(31)], s16[(47)]} <= Sort2(s15[(31)], s15[(47)]);
     s16[(48)] <= s15[(48)];
-
-    sr_bypass_data[16] <= sr_bypass_data[15];
-    sr_de[16] <= sr_de[15];
-    sr_hs[16] <= sr_hs[15];
-    sr_vs[16] <= sr_vs[15];
 
     //stage17
     s17[(0)] <= s16[(0)];
@@ -716,11 +526,6 @@ always @(posedge clk) begin
     s17[(46)] <= s16[(46)];
     s17[(47)] <= s16[(47)];
 
-    sr_bypass_data[17] <= sr_bypass_data[16];
-    sr_de[17] <= sr_de[16];
-    sr_hs[17] <= sr_hs[16];
-    sr_vs[17] <= sr_vs[16];
-
     //stage18
     s18[(0)] <= s17[(0)];
     s18[(1)] <= s17[(1)];
@@ -758,10 +563,6 @@ always @(posedge clk) begin
     s18[(46)] <= s17[(46)];
     s18[(47)] <= s17[(47)];
 
-    sr_bypass_data[18] <= sr_bypass_data[17];
-    sr_de[18] <= sr_de[17];
-    sr_hs[18] <= sr_hs[17];
-    sr_vs[18] <= sr_vs[17];
 
     //stage19
     s19[(0)] <= s18[(0)];
@@ -803,11 +604,6 @@ always @(posedge clk) begin
     {s19[(46)], s19[(48)]} <= Sort2(s18[(46)], s18[(48)]);
     s19[(47)] <= s18[(47)];
 
-    sr_bypass_data[19] <= sr_bypass_data[18];
-    sr_de[19] <= sr_de[18];
-    sr_hs[19] <= sr_hs[18];
-    sr_vs[19] <= sr_vs[18];
-
     //stage20
     s20[(0)] <= s19[(0)];
     {s20[( 1)], s20[( 2)]} <= Sort2(s19[( 1)], s19[( 2)]);
@@ -835,10 +631,6 @@ always @(posedge clk) begin
     {s20[(45)], s20[(46)]} <= Sort2(s19[(45)], s19[(46)]);
     {s20[(47)], s20[(48)]} <= Sort2(s19[(47)], s19[(48)]);
 
-    sr_bypass_data[20] <= sr_bypass_data[19];
-    sr_de[20] <= sr_de[19];
-    sr_hs[20] <= sr_hs[19];
-    sr_vs[20] <= sr_vs[19];
 end
 
 genvar k;
@@ -848,12 +640,4 @@ generate
     end
 endgenerate
 
-assign do_o = s20[(24)];
-assign de_o = sr_de[20];
-assign hs_o = sr_hs[20];
-assign vs_o = sr_vs[20];
-assign bypass_o = sr_bypass_data[20];
-
 endmodule
-
-
