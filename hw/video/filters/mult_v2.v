@@ -1,9 +1,9 @@
 //-----------------------------------------------------------------------
 // author    : Golovachenko Victor
 //
-// |r|   | coe[0] coe[1] coe[2] | = r
-// |g| * | coe[3] coe[4] coe[5] | = g
-// |b|   | coe[6] coe[7] coe[8] | = b
+// |r|   | coe[0] coe[1] coe[2] | = r'
+// |g| * | coe[3] coe[4] coe[5] | = g'
+// |b|   | coe[6] coe[7] coe[8] | = b'
 //-----------------------------------------------------------------------
 module mult_v2 #(
     parameter COE_WIDTH = 16, //(Q4.10) signed fixed point. 1024(0x400) is 1.000
@@ -21,10 +21,10 @@ module mult_v2 #(
     input                       hs_i,
     input                       vs_i,
 
-    output [(PIXEL_WIDTH*3)-1:0] do_o,
-    output reg                   de_o = 0,
-    output reg                   hs_o = 0,
-    output reg                   vs_o = 0,
+    output reg [(PIXEL_WIDTH*3)-1:0] do_o = 0,
+    output reg                       de_o = 0,
+    output reg                       hs_o = 0,
+    output reg                       vs_o = 0,
 
     input clk,
     input rst
@@ -46,71 +46,95 @@ reg signed [27:0] r_mg = 0, g_mg = 0, b_mg = 0;
 reg signed [27:0] r_mb = 0, g_mb = 0, b_mb = 0;
 
 reg signed [28:0] r_mrg = 0;
+reg signed [28:0] g_mrg = 0;
+reg signed [28:0] b_mrg = 0;
 reg signed [27:0] sr_r_mb = 0;
+reg signed [27:0] sr_g_mb = 0;
+reg signed [27:0] sr_b_mb = 0;
 
 reg signed [29:0] r_mrgb = 0;
+reg signed [29:0] g_mrgb = 0;
+reg signed [29:0] b_mrgb = 0;
 reg signed [30:0] r_mrgb_round = 0;
+reg signed [30:0] g_mrgb_round = 0;
+reg signed [30:0] b_mrgb_round = 0;
 
-// reg [2:0] sr_de_i = 0;
-// reg [2:0] sr_hs_i = 0;
-// reg [2:0] sr_vs_i = 0;
+reg [3:0] sr_de_i = 0;
+reg [3:0] sr_hs_i = 0;
+reg [3:0] sr_vs_i = 0;
 always @ (posedge clk) begin
     //stage0
     r_mr <= $signed(coe[0]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]});
     r_mg <= $signed(coe[1]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH]});
     r_mb <= $signed(coe[2]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH]});
-
-    // g_mr <= $signed(coe_i[(3*COE_WIDTH) +: 14]) * $signed({ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]});
-    // g_mg <= $signed(coe_i[(4*COE_WIDTH) +: 14]) * $signed({ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH]});
-    // g_mb <= $signed(coe_i[(5*COE_WIDTH) +: 14]) * $signed({ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH]});
-
-    // b_mr <= $signed(coe_i[(6*COE_WIDTH) +: 14]) * $signed({ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]});
-    // b_mg <= $signed(coe_i[(7*COE_WIDTH) +: 14]) * $signed({ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH]});
-    // b_mb <= $signed(coe_i[(8*COE_WIDTH) +: 14]) * $signed({ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH]});
+    g_mr <= $signed(coe[3]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]});
+    g_mg <= $signed(coe[4]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH]});
+    g_mb <= $signed(coe[5]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH]});
+    b_mr <= $signed(coe[6]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]});
+    b_mg <= $signed(coe[7]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH]});
+    b_mb <= $signed(coe[8]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH]});
+    sr_de_i[0] <= de_i;
+    sr_hs_i[0] <= hs_i;
+    sr_vs_i[0] <= vs_i;
 
     //stage1
     r_mrg <= r_mr + r_mg; sr_r_mb <= r_mb;
-
-    // g_mrg <= g_mr + g_mg;
-    // sr_g_mb <= g_mb;
-
-    // b_mrg <= b_mr + b_mg;
-    // sr_b_mb <= b_mb;
+    g_mrg <= g_mr + g_mg; sr_g_mb <= g_mb;
+    b_mrg <= b_mr + b_mg; sr_b_mb <= b_mb;
+    sr_de_i[1] <= sr_de_i[0];
+    sr_hs_i[1] <= sr_hs_i[0];
+    sr_vs_i[1] <= sr_vs_i[0];
 
     //stage2
     r_mrgb <= r_mrg + sr_r_mb;
-    // g_mrgb <= g_mrg + sr_g_mb;
-    // b_mrgb <= b_mrg + sr_b_mb;
+    g_mrgb <= g_mrg + sr_g_mb;
+    b_mrgb <= b_mrg + sr_b_mb;
+    sr_de_i[2] <= sr_de_i[1];
+    sr_hs_i[2] <= sr_hs_i[1];
+    sr_vs_i[2] <= sr_vs_i[1];
 
-    //
+    //stage3
     r_mrgb_round <= r_mrgb + $signed(ROUND_ADDER);
+    g_mrgb_round <= g_mrgb + $signed(ROUND_ADDER);
+    b_mrgb_round <= b_mrgb + $signed(ROUND_ADDER);
+    sr_de_i[3] <= sr_de_i[2];
+    sr_hs_i[3] <= sr_hs_i[2];
+    sr_vs_i[3] <= sr_vs_i[2];
+
+    //stage4
+    if (|r_mrgb_round[31:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
+    else if (|r_mrgb_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b1}};
+    else                                                 do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = r_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+
+    if (|g_mrgb_round[31:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
+    else if (|g_mrgb_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b1}};
+    else                                                 do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = g_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+
+    if (|b_mrgb_round[31:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
+    else if (|b_mrgb_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b1}};
+    else                                                 do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = b_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+
+    de_o <= sr_de_i[3];
+    hs_o <= sr_hs_i[3];
+    vs_o <= sr_vs_i[3];
+
 end
 
-assign do_o[(0*PIXEL_WIDTH) +: PIXEL_WIDTH] = r_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
-assign do_o[(1*PIXEL_WIDTH) +: PIXEL_WIDTH] = 0;
-assign do_o[(2*PIXEL_WIDTH) +: PIXEL_WIDTH] = 0;
 
 `ifdef SIM_DBG
-// wire [COE_WIDTH-1:0] coe [COE_COUNT-1:0];
-// genvar k0;
-// generate
-//     for (k0=0; k0<COE_COUNT; k0=k0+1) begin
-//         assign coe[k0] = coe_i[(k0*COE_WIDTH) +: COE_WIDTH];
-//     end
-// endgenerate
 
-wire [PIXEL_WIDTH-1:0] di [COE_COUNT-1:0];
+wire [PIXEL_WIDTH-1:0] di [3-1:0];
 genvar k1;
 generate
-    for (k1=0; k1<COE_COUNT; k1=k1+1) begin
+    for (k1=0; k1<3; k1=k1+1) begin
         assign di[k1] = di_i[(k1*PIXEL_WIDTH) +: PIXEL_WIDTH];
     end
 endgenerate
 
-wire [PIXEL_WIDTH-1:0] do [COE_COUNT-1:0];
+wire [PIXEL_WIDTH-1:0] do [3-1:0];
 genvar k2;
 generate
-    for (k2=0; k2<COE_COUNT; k2=k2+1) begin
+    for (k2=0; k2<3; k2=k2+1) begin
         assign do[k2] = do_o[(k2*PIXEL_WIDTH) +: PIXEL_WIDTH];
     end
 endgenerate
