@@ -64,19 +64,19 @@ localparam CLK_PERIOD = 8; //8 - 126MHz; 16 - 62.5MHz
 reg clk = 1'b1;
 always #(CLK_PERIOD/2) clk = ~clk;
 
-int k;
+int c0,c1;
 int coe [COE_COUNT-1:0];
 real r_num [COE_COUNT-1:0];
 integer r_num_int;
 real r_num_frac;
 
 initial begin : sim_main
-    for (k=0;k<COE_COUNT;k++) begin
-        coe[k] = 0;
+    for (c0=0;c0<COE_COUNT;c0++) begin
+        coe[c0] = 0;
     end
 
-    for (k=0;k<3;k++) begin
-        di[k] = 0;
+    for (c0=0;c0<3;c0++) begin
+        di[c0] = 0;
     end
 
     pixel = 0;
@@ -122,30 +122,25 @@ initial begin : sim_main
                 // r_num[0] = -1.00;
                 // r_num[1] = -1.00;
                 // r_num[2] = 1.00;
-                //ganerate random real numbers
-                for (k=0;k<COE_COUNT;k++) begin
-                    r_num_int = $random;
-                    r_num_frac = ($urandom%1000)/10000.0;
-                    r_num[k] = $signed(r_num_int[3:0]) + r_num_frac;
-                    coe[k] = r_num[k] * 1024;
-                    $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", k, r_num[k], coe[k][13:0], coe[k][13:0]);
-                end
+                for (c0=0;c0<3;c0++) begin
+                    //ganerate random real numbers
+                    for (c1=0;c1<3;c1++) begin
+                        r_num_int = $random;
+                        r_num_frac = ($urandom%1000)/10000.0;
+                        r_num[(3*c0) + c1] = $signed(r_num_int[3:0]) + r_num_frac;
+                        coe[(3*c0) + c1] = r_num[(3*c0) + c1] * 1024;
+                        $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", (3*c0) + c1
+                                                                        , r_num[(3*c0) + c1]
+                                                                        , coe[(3*c0) + c1][13:0]
+                                                                        , coe[(3*c0) + c1][13:0]);
+                    end
 
-                for (k=0;k<3;k++) begin
-                    di[k] = $urandom_range(255,0);//46;//255;//
-                    $display("x[%05d]:di_i[%02d]: %d(dec); %x(hex)", x, k, di[k], di[k]);
-                    $display("x[%05d]:do[%02d]: %f", x, k, ((di[k]*r_num[(3*k)+0]) +
-                                                          (di[k]*r_num[(3*k)+1]) +
-                                                          (di[k]*r_num[(3*k)+2])) );
+                    di[c0] = $urandom_range(255,0);//46;//255;//
+                    $display("x[%05d]:di_i[%02d]: %d(dec); %x(hex)", x, c0, di[c0], di[c0]);
+                    $display("x[%05d]:do[%02d]: %f", x, c0, ((di[c0]*r_num[(3*c0)+0]) +
+                                                            (di[c0]*r_num[(3*c0)+1]) +
+                                                            (di[c0]*r_num[(3*c0)+2])) );
                 end
-                // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = $urandom_range(255,0);//46;//255;//
-                // di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = $urandom_range(255,0);//46;//255;//
-                // di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = $urandom_range(255,0);//46;//255;//
-                // $display("di_i[%02d]: %d(dec); %x(hex)", x, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH], di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]);
-                // $display("do[%02d]: %f", x, ((di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]*r_num[0]) +
-                //                              (di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]*r_num[1]) +
-                //                              (di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]*r_num[2])) );
-
                 $display("\n");
 
 //                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x;
