@@ -16,6 +16,8 @@ module mult_v2_tb # (
                              //4 - 3 empty cycle per pixel
                              //etc...
     parameter LINE_SIZE_MAX = 4096,
+    parameter COE_WIDTH = 16,
+    parameter COE_COUNT = 3,
     parameter PIXEL_WIDTH = 8
 )();
 
@@ -62,7 +64,18 @@ localparam CLK_PERIOD = 8; //8 - 126MHz; 16 - 62.5MHz
 reg clk = 1'b1;
 always #(CLK_PERIOD/2) clk = ~clk;
 
+
+int rand_init;
+int k;
+int coe [COE_COUNT-1:0];
+real r_num [COE_COUNT-1:0];
+integer r_num_int;
+real r_num_frac;
+
 initial begin : sim_main
+    for (k=0;k<COE_COUNT;k++) begin
+        coe[k] = 0;
+    end
 
     pixel = 0;
     pixel32b = 0;
@@ -105,7 +118,24 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                di_i = 4090+x; //image_real.get_pixel(x, y);
+
+                //ganerate random real numbers
+                for (k=0;k<COE_COUNT;k++) begin
+                    r_num_int = $random;
+                    r_num_frac = ($urandom%1000)/10000.0;
+                    r_num[k] = $signed(r_num_int[3:0]) + r_num_frac;
+                    coe[k] = r_num[k] * 1024;
+                    $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", k, r_num[k], coe[k][13:0], coe[k][13:0]);
+                end
+
+                di_i = $random(rand_init);
+                $display("di_i[%02d]: %d(dec); %x(hex)", x, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH], di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]);
+                $display("do[%02d]: %f", x, ((di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]*r_num[0]) +
+                                             (di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]*r_num[1]) +
+                                             (di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]*r_num[2])) );
+
+                $display("\n");
+
 //                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x;
                 //for color image:
                 //di_i[0  +: 8] - B
@@ -159,13 +189,20 @@ initial begin : sim_main
 
 end : sim_main
 
+wire [(COE_WIDTH*COE_COUNT)-1:0] coe_i;
+genvar k0;
+generate
+    for (k0=0; k0<COE_COUNT; k0=k0+1) begin
+        assign coe_i[(k0*COE_WIDTH) +: COE_WIDTH] = coe[k0][COE_WIDTH-1:0];
+    end
+endgenerate
 
 mult_v2 #(
-    .COE_WIDTH(16), //(Q3.9) unsigned fixed point. 1024(0x400) is 1.000
-    .COE_COUNT(3),
+    .COE_WIDTH(COE_WIDTH), //(Q4.10) signed fixed point. 1024(0x400) is 1.000
+    .COE_COUNT(COE_COUNT),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) mult (
-    .coe_i({16'h000, 16'h000, 16'h400}),
+    .coe_i(coe_i),
 
     .di_i({di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH], di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH], di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]}),
     .de_i(de_i),

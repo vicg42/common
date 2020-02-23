@@ -86,6 +86,10 @@ always @ (posedge clk) begin
     r_mrgb_round <= r_mrgb + $signed(ROUND_ADDER);
 end
 
+assign do_o[(0*PIXEL_WIDTH) +: PIXEL_WIDTH] = r_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+assign do_o[(1*PIXEL_WIDTH) +: PIXEL_WIDTH] = 0;
+assign do_o[(2*PIXEL_WIDTH) +: PIXEL_WIDTH] = 0;
+
 `ifdef SIM_DBG
 // wire [COE_WIDTH-1:0] coe [COE_COUNT-1:0];
 // genvar k0;
