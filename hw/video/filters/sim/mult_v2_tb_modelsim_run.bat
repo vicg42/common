@@ -1,0 +1,1 @@
+vsim -do ./mult_v2_tb.do

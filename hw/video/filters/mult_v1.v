@@ -6,7 +6,7 @@
 // |b |   |coe[2]| = b
 //-----------------------------------------------------------------------
 module mult_v1 #(
-    parameter COE_WIDTH = 16, //(Q3.9) unsigned fixed point. 1024(0x400) is 1.000
+    parameter COE_WIDTH = 16, //(Q3.10) unsigned fixed point. 1024(0x400) is 1.000
     parameter COE_FRACTION_WIDTH = 10,
     parameter COE_COUNT = 3,
     parameter PIXEL_WIDTH = 8

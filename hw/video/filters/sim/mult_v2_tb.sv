@@ -7,16 +7,16 @@
 
 `include "bmp_io.sv"
 
-module mult_v1_tb # (
+module mult_v2_tb # (
     parameter READ_IMG_FILE = "img_600x600_8bit_noise.bmp", //"24x24_8bit_test1.bmp",
-    parameter WRITE_IMG_FILE = "mult_v1_tb",
+    parameter WRITE_IMG_FILE = "mult_v2_tb",
 
     parameter DE_I_PERIOD = 2, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
     parameter LINE_SIZE_MAX = 4096,
-    parameter PIXEL_WIDTH = 12
+    parameter PIXEL_WIDTH = 8
 )();
 
 BMP_IO image_real;
@@ -160,12 +160,12 @@ initial begin : sim_main
 end : sim_main
 
 
-mult_v1 #(
+mult_v2 #(
     .COE_WIDTH(16), //(Q3.9) unsigned fixed point. 1024(0x400) is 1.000
     .COE_COUNT(3),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) mult (
-    .coe_i({16'h400, 16'h400, 16'h800}),
+    .coe_i({16'h000, 16'h000, 16'h400}),
 
     .di_i({di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH], di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH], di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]}),
     .de_i(de_i),
