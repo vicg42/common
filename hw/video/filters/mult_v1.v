@@ -21,14 +21,15 @@ module mult_v1 #(
     input                       hs_i,
     input                       vs_i,
 
-    output reg [(PIXEL_WIDTH*3)-1:0] do_o,
-    output reg                       de_o,
-    output reg                       hs_o,
-    output reg                       vs_o,
+    output [(PIXEL_WIDTH*3)-1:0] do_o,
+    output reg                   de_o,
+    output reg                   hs_o,
+    output reg                   vs_o,
 
     input clk,
     input rst
 );
+
 
 localparam ZERO_FILL = (16 - PIXEL_WIDTH);
 localparam OVERFLOW_BIT = COE_FRACTION_WIDTH + PIXEL_WIDTH;
@@ -38,11 +39,24 @@ reg [31:0] mr_round = 0, mg_round = 0, mb_round = 0;
 reg [1:0] sr_de_i = 0;
 reg [1:0] sr_hs_i = 0;
 reg [1:0] sr_vs_i = 0;
+
+wire [15:0] coe [COE_COUNT-1:0];
+wire [15:0] di [COE_COUNT-1:0];
+reg [PIXEL_WIDTH-1:0] do [COE_COUNT-1:0];
+genvar k;
+generate
+    for (k=0; k<COE_COUNT; k=k+1) begin
+        assign coe[k] = coe_i[(k*COE_WIDTH) +: COE_WIDTH];
+        assign di[k] = {{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*k +: PIXEL_WIDTH]};
+        assign do_o[PIXEL_WIDTH*k +: PIXEL_WIDTH] = do[k];
+    end
+endgenerate
+
 always @ (posedge clk) begin
     //
-    mr <= coe_i[(0*COE_WIDTH) +: 16] * {{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]};
-    mg <= coe_i[(1*COE_WIDTH) +: 16] * {{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH]};
-    mb <= coe_i[(2*COE_WIDTH) +: 16] * {{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH]};
+    mr <= coe[0] * di[0];
+    mg <= coe[1] * di[1];
+    mb <= coe[2] * di[2];
     sr_de_i[0] <= de_i;
     sr_hs_i[0] <= hs_i;
     sr_vs_i[0] <= vs_i;
@@ -55,40 +69,32 @@ always @ (posedge clk) begin
     sr_hs_i[1] <= sr_hs_i[0];
     sr_vs_i[1] <= sr_vs_i[0];
 
-    //
-    do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = (|mr_round[31:OVERFLOW_BIT]) ? {PIXEL_WIDTH{1'b1}} : mr_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
-    do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = (|mg_round[31:OVERFLOW_BIT]) ? {PIXEL_WIDTH{1'b1}} : mg_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
-    do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = (|mb_round[31:OVERFLOW_BIT]) ? {PIXEL_WIDTH{1'b1}} : mb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
     de_o <= sr_de_i[1];
     hs_o <= sr_hs_i[1];
     vs_o <= sr_vs_i[1];
 end
 
-
-`ifdef SIM_DBG
-wire [COE_WIDTH-1:0] coe [COE_COUNT-1:0];
-genvar k0;
-generate
-    for (k0=0; k0<COE_COUNT; k0=k0+1) begin
-        assign coe[k0] = coe_i[(k0*COE_WIDTH) +: COE_WIDTH];
+always @ (posedge clk) begin
+    if ((|mr_round[20:OVERFLOW_BIT])) begin
+        do[0] <= {PIXEL_WIDTH{1'b1}};
+    end else begin
+        do[0] <= mr_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
     end
-endgenerate
+end
 
-wire [PIXEL_WIDTH-1:0] di [COE_COUNT-1:0];
-genvar k1;
-generate
-    for (k1=0; k1<COE_COUNT; k1=k1+1) begin
-        assign di[k1] = di_i[(k1*PIXEL_WIDTH) +: PIXEL_WIDTH];
+always @ (posedge clk) begin
+    if ((|mg_round[20:OVERFLOW_BIT])) begin
+        do[1] <= {PIXEL_WIDTH{1'b1}};
+    end else begin
+        do[1] <= mg_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
     end
-endgenerate
+end
 
-wire [PIXEL_WIDTH-1:0] do [COE_COUNT-1:0];
-genvar k2;
-generate
-    for (k2=0; k2<COE_COUNT; k2=k2+1) begin
-        assign do[k2] = do_o[(k2*PIXEL_WIDTH) +: PIXEL_WIDTH];
+always @ (posedge clk) begin
+    if ((|mb_round[20:OVERFLOW_BIT])) begin
+        do[2] <= {PIXEL_WIDTH{1'b1}};
+    end else begin
+        do[2] <= mb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
     end
-endgenerate
-`endif
-
+end
 endmodule

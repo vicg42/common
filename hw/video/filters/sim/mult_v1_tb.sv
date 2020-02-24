@@ -16,7 +16,9 @@ module mult_v1_tb # (
                              //4 - 3 empty cycle per pixel
                              //etc...
     parameter LINE_SIZE_MAX = 4096,
-    parameter PIXEL_WIDTH = 12
+    parameter COE_WIDTH = 16,
+    parameter COE_COUNT = 3,
+    parameter PIXEL_WIDTH = 8
 )();
 
 BMP_IO image_real;
@@ -36,7 +38,7 @@ int image_new_h;
 int image_new_size;
 int ndata [4096*2048];
 
-int   di_i;
+int   di [2:0];
 logic de_i;
 logic hs_i;
 logic vs_i;
@@ -62,7 +64,22 @@ localparam CLK_PERIOD = 8; //8 - 126MHz; 16 - 62.5MHz
 reg clk = 1'b1;
 always #(CLK_PERIOD/2) clk = ~clk;
 
+int c0,c1;
+int coe [COE_COUNT-1:0];
+real r_num [COE_COUNT-1:0];
+integer r_num_int;
+real r_num_frac;
+
+
 initial begin : sim_main
+
+    for (c0=0;c0<COE_COUNT;c0++) begin
+        coe[c0] = 0;
+    end
+
+    for (c0=0;c0<3;c0++) begin
+        di[c0] = 0;
+    end
 
     pixel = 0;
     pixel32b = 0;
@@ -77,7 +94,6 @@ initial begin : sim_main
     image_new_size =0;
     idx = 0;
 
-    di_i = 0;
     de_i = 0;
     hs_i = 1'b1;
     vs_i = 0;
@@ -91,7 +107,6 @@ initial begin : sim_main
 
     @(posedge clk);
     fr = 0;
-    di_i = 0;
     de_i = 0;
     hs_i = 1'b1;
     vs_i = 0;
@@ -105,8 +120,27 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                di_i = 4090+x; //image_real.get_pixel(x, y);
-//                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x;
+                // r_num[0] = 6.00;
+                // r_num[1] = 0.00;
+                // r_num[2] = 0.00;
+                // //ganerate random real numbers
+                for (c0=0;c0<COE_COUNT;c0++) begin
+                    r_num_int = $urandom;
+                    r_num_frac = ($urandom%1000)/10000.0;
+                    r_num[c0] = r_num_int[2:0] + r_num_frac;
+                    coe[c0] = r_num[c0] * 1024;
+                    // $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", c0
+                    //                                                 , r_num[c0]
+                    //                                                 , coe[c0][13:0]
+                    //                                                 , coe[c0][13:0]);
+                end
+                di[0] = $urandom_range(255,0);//46;//255;//
+                di[1] = 0;
+                di[2] = 0;
+                $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", 0, r_num[0], coe[0][15:0], coe[0][15:0]);
+                $display("x[%05d]:di_i[%02d]: %d(dec); %x(hex)", x, 0, di[0], di[0]);
+                $display("x[%05d]:do[%02d]: %f", x, c0, (di[0]*r_num[0]) );
+                $display("\n");
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -159,15 +193,30 @@ initial begin : sim_main
 
 end : sim_main
 
+logic [(COE_WIDTH*COE_COUNT)-1:0] coe_i;
+genvar k0;
+generate
+    for (k0=0; k0<COE_COUNT; k0=k0+1) begin
+        assign coe_i[(k0*COE_WIDTH) +: COE_WIDTH] = coe[k0][COE_WIDTH-1:0];
+    end
+endgenerate
+
+logic [(PIXEL_WIDTH*3)-1:0] di_i;
+genvar k1;
+generate
+    for (k1=0; k1<3; k1++) begin
+        assign di_i[(k1*PIXEL_WIDTH) +: PIXEL_WIDTH] = di[k1][PIXEL_WIDTH-1:0];
+    end
+endgenerate
 
 mult_v1 #(
-    .COE_WIDTH(16), //(Q3.9) unsigned fixed point. 1024(0x400) is 1.000
-    .COE_COUNT(3),
+    .COE_WIDTH(COE_WIDTH), //(Q3.10) unsigned fixed point. 1024(0x400) is 1.000
+    .COE_COUNT(COE_COUNT),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) mult (
-    .coe_i({16'h400, 16'h400, 16'h800}),
+    .coe_i(coe_i),
 
-    .di_i({di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH], di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH], di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]}),
+    .di_i(di_i),
     .de_i(de_i),
     .hs_i(hs_i),
     .vs_i(vs_i),

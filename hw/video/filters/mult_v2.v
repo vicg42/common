@@ -102,15 +102,15 @@ always @ (posedge clk) begin
     sr_vs_i[3] <= sr_vs_i[2];
 
     //stage4
-    if (|r_mrgb_round[31:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
+    if (|r_mrgb_round[30:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
     else if (|r_mrgb_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b1}};
     else                                                 do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = r_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 
-    if (|g_mrgb_round[31:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
+    if (|g_mrgb_round[30:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
     else if (|g_mrgb_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b1}};
     else                                                 do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = g_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 
-    if (|b_mrgb_round[31:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
+    if (|b_mrgb_round[30:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
     else if (|b_mrgb_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b1}};
     else                                                 do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = b_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 
