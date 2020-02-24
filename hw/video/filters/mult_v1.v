@@ -30,23 +30,22 @@ module mult_v1 #(
     input rst
 );
 
-
-localparam ZERO_FILL = (16 - PIXEL_WIDTH);
+localparam ZERO_FILL = (13 - PIXEL_WIDTH);
 localparam OVERFLOW_BIT = COE_FRACTION_WIDTH + PIXEL_WIDTH;
-localparam [31:0] ROUND_ADDER = (1 << (COE_FRACTION_WIDTH - 1)); //0.5
-reg [31:0] mr = 0, mg = 0, mb = 0;
-reg [31:0] mr_round = 0, mg_round = 0, mb_round = 0;
+localparam [23:0] ROUND_ADDER = (1 << (COE_FRACTION_WIDTH - 1)); //0.5
+reg [23:0] mr = 0, mg = 0, mb = 0;
+reg [24:0] mr_round = 0, mg_round = 0, mb_round = 0;
 reg [1:0] sr_de_i = 0;
 reg [1:0] sr_hs_i = 0;
 reg [1:0] sr_vs_i = 0;
 
-wire [15:0] coe [COE_COUNT-1:0];
-wire [15:0] di [COE_COUNT-1:0];
+wire [12:0] coe [COE_COUNT-1:0];
+wire [12:0] di [COE_COUNT-1:0];
 reg [PIXEL_WIDTH-1:0] do [COE_COUNT-1:0];
 genvar k;
 generate
     for (k=0; k<COE_COUNT; k=k+1) begin
-        assign coe[k] = coe_i[(k*COE_WIDTH) +: COE_WIDTH];
+        assign coe[k] = coe_i[(k*COE_WIDTH) +: 13];
         assign di[k] = {{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*k +: PIXEL_WIDTH]};
         assign do_o[PIXEL_WIDTH*k +: PIXEL_WIDTH] = do[k];
     end
@@ -69,6 +68,7 @@ always @ (posedge clk) begin
     sr_hs_i[1] <= sr_hs_i[0];
     sr_vs_i[1] <= sr_vs_i[0];
 
+    //
     de_o <= sr_de_i[1];
     hs_o <= sr_hs_i[1];
     vs_o <= sr_vs_i[1];
@@ -97,4 +97,5 @@ always @ (posedge clk) begin
         do[2] <= mb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
     end
 end
+
 endmodule
