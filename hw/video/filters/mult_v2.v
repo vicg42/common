@@ -11,6 +11,7 @@ module mult_v2 #(
     parameter COE_COUNT = 9,
     parameter PIXEL_WIDTH = 8
 )(
+    input bypass,
     input [(COE_WIDTH*COE_COUNT)-1:0] coe_i,
 
     //R [PIXEL_WIDTH*0 +: PIXEL_WIDTH]
@@ -21,22 +22,14 @@ module mult_v2 #(
     input                       hs_i,
     input                       vs_i,
 
-    output reg [(PIXEL_WIDTH*3)-1:0] do_o = 0,
-    output reg                       de_o = 0,
-    output reg                       hs_o = 0,
-    output reg                       vs_o = 0,
+    output [(PIXEL_WIDTH*3)-1:0] do_o,
+    output reg                   de_o = 0,
+    output reg                   hs_o = 0,
+    output reg                   vs_o = 0,
 
     input clk,
     input rst
 );
-
-wire [13:0] coe [COE_COUNT-1:0];
-genvar k0;
-generate
-    for (k0=0; k0<COE_COUNT; k0=k0+1) begin
-        assign coe[k0] = coe_i[(k0*COE_WIDTH) +: 14];
-    end
-endgenerate
 
 localparam ZERO_FILL = (14 - PIXEL_WIDTH);
 localparam OVERFLOW_BIT = COE_FRACTION_WIDTH + PIXEL_WIDTH;
@@ -62,20 +55,41 @@ reg signed [30:0] b_mrgb_round = 0;
 reg [3:0] sr_de_i = 0;
 reg [3:0] sr_hs_i = 0;
 reg [3:0] sr_vs_i = 0;
+reg [(PIXEL_WIDTH*3)-1:0] sr_di_i [3:0];
+
+wire [13:0] coe [COE_COUNT-1:0];
+genvar k;
+generate
+    for (k=0; k<COE_COUNT; k=k+1) begin
+        assign coe[k] = coe_i[(k*COE_WIDTH) +: 14];
+    end
+endgenerate
+
+wire [13:0] di [3-1:0];
+reg [PIXEL_WIDTH-1:0] do [3-1:0];
+genvar k1;
+generate
+    for (k1=0; k1<3; k1=k1+1) begin
+        assign di[k1] = {{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*k1 +: PIXEL_WIDTH]};
+        assign do_o[PIXEL_WIDTH*k1 +: PIXEL_WIDTH] = (bypass) ? do[k1] : sr_di_i[3][PIXEL_WIDTH*k1 +: PIXEL_WIDTH];;
+    end
+endgenerate
+
 always @ (posedge clk) begin
     //stage0
-    r_mr <= $signed(coe[0]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]});
-    r_mg <= $signed(coe[1]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH]});
-    r_mb <= $signed(coe[2]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH]});
-    g_mr <= $signed(coe[3]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]});
-    g_mg <= $signed(coe[4]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH]});
-    g_mb <= $signed(coe[5]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH]});
-    b_mr <= $signed(coe[6]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH]});
-    b_mg <= $signed(coe[7]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*1 +: PIXEL_WIDTH]});
-    b_mb <= $signed(coe[8]) * $signed({{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*2 +: PIXEL_WIDTH]});
+    r_mr <= $signed(coe[0]) * $signed(di[0]);
+    r_mg <= $signed(coe[1]) * $signed(di[1]);
+    r_mb <= $signed(coe[2]) * $signed(di[2]);
+    g_mr <= $signed(coe[3]) * $signed(di[0]);
+    g_mg <= $signed(coe[4]) * $signed(di[1]);
+    g_mb <= $signed(coe[5]) * $signed(di[2]);
+    b_mr <= $signed(coe[6]) * $signed(di[0]);
+    b_mg <= $signed(coe[7]) * $signed(di[1]);
+    b_mb <= $signed(coe[8]) * $signed(di[2]);
     sr_de_i[0] <= de_i;
     sr_hs_i[0] <= hs_i;
     sr_vs_i[0] <= vs_i;
+    sr_di_i[0] <= di_i;
 
     //stage1
     r_mrg <= r_mr + r_mg; sr_r_mb <= r_mb;
@@ -84,6 +98,7 @@ always @ (posedge clk) begin
     sr_de_i[1] <= sr_de_i[0];
     sr_hs_i[1] <= sr_hs_i[0];
     sr_vs_i[1] <= sr_vs_i[0];
+    sr_di_i[1] <= sr_di_i[0];
 
     //stage2
     r_mrgb <= r_mrg + sr_r_mb;
@@ -92,6 +107,7 @@ always @ (posedge clk) begin
     sr_de_i[2] <= sr_de_i[1];
     sr_hs_i[2] <= sr_hs_i[1];
     sr_vs_i[2] <= sr_vs_i[1];
+    sr_di_i[2] <= sr_di_i[1];
 
     //stage3
     r_mrgb_round <= r_mrgb + $signed(ROUND_ADDER);
@@ -100,44 +116,31 @@ always @ (posedge clk) begin
     sr_de_i[3] <= sr_de_i[2];
     sr_hs_i[3] <= sr_hs_i[2];
     sr_vs_i[3] <= sr_vs_i[2];
+    sr_di_i[3] <= sr_di_i[2];
 
     //stage4
-    if (|r_mrgb_round[30:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
-    else if (|r_mrgb_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b1}};
-    else                                                 do_o[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = r_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
-
-    if (|g_mrgb_round[30:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
-    else if (|g_mrgb_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b1}};
-    else                                                 do_o[PIXEL_WIDTH*1 +: PIXEL_WIDTH] = g_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
-
-    if (|b_mrgb_round[30:OVERFLOW_BIT+2])                do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b0}};
-    else if (|b_mrgb_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = {PIXEL_WIDTH{1'b1}};
-    else                                                 do_o[PIXEL_WIDTH*2 +: PIXEL_WIDTH] = b_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
-
     de_o <= sr_de_i[3];
     hs_o <= sr_hs_i[3];
     vs_o <= sr_vs_i[3];
 
 end
 
+always @ (posedge clk) begin
+    if (r_mrgb_round[OVERFLOW_BIT+3])                    do[0] <= {PIXEL_WIDTH{1'b0}};
+    else if (|r_mrgb_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do[0] <= {PIXEL_WIDTH{1'b1}};
+    else                                                 do[0] <= r_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+end
 
-`ifdef SIM_DBG
+always @ (posedge clk) begin
+    if (g_mrgb_round[OVERFLOW_BIT+3])                    do[1] <= {PIXEL_WIDTH{1'b0}};
+    else if (|g_mrgb_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do[1] <= {PIXEL_WIDTH{1'b1}};
+    else                                                 do[1] <= g_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+end
 
-wire [PIXEL_WIDTH-1:0] di [3-1:0];
-genvar k1;
-generate
-    for (k1=0; k1<3; k1=k1+1) begin
-        assign di[k1] = di_i[(k1*PIXEL_WIDTH) +: PIXEL_WIDTH];
-    end
-endgenerate
-
-wire [PIXEL_WIDTH-1:0] do [3-1:0];
-genvar k2;
-generate
-    for (k2=0; k2<3; k2=k2+1) begin
-        assign do[k2] = do_o[(k2*PIXEL_WIDTH) +: PIXEL_WIDTH];
-    end
-endgenerate
-`endif
+always @ (posedge clk) begin
+    if (b_mrgb_round[OVERFLOW_BIT+3])                    do[2] <= {PIXEL_WIDTH{1'b0}};
+    else if (|b_mrgb_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do[2] <= {PIXEL_WIDTH{1'b1}};
+    else                                                 do[2] <= b_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+end
 
 endmodule
