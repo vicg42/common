@@ -27,6 +27,16 @@ module mult_v2 #(
     output reg                   hs_o = 0,
     output reg                   vs_o = 0,
 
+    output [15:0] coe0_o,
+    output [15:0] coe1_o,
+    output [15:0] coe2_o,
+    output [15:0] coe3_o,
+    output [15:0] coe4_o,
+    output [15:0] coe5_o,
+    output [15:0] coe6_o,
+    output [15:0] coe7_o,
+    output [15:0] coe8_o,
+
     input clk,
     input rst
 );
@@ -55,23 +65,33 @@ reg signed [30:0] b_mrgb_round = 0;
 reg [3:0] sr_de_i = 0;
 reg [3:0] sr_hs_i = 0;
 reg [3:0] sr_vs_i = 0;
-reg [(PIXEL_WIDTH*3)-1:0] sr_di_i [3:0];
+reg [(PIXEL_WIDTH*3)-1:0] sr_di_i [4:0];
 
 wire [13:0] coe [COE_COUNT-1:0];
 genvar k;
 generate
-    for (k=0; k<COE_COUNT; k=k+1) begin
+    for (k=0; k<COE_COUNT; k=k+1) begin : ch
         assign coe[k] = coe_i[(k*COE_WIDTH) +: 14];
     end
 endgenerate
 
+assign coe0_o = {2'd0, coe[0]};
+assign coe1_o = {2'd0, coe[1]};
+assign coe2_o = {2'd0, coe[2]};
+assign coe3_o = {2'd0, coe[3]};
+assign coe4_o = {2'd0, coe[4]};
+assign coe5_o = {2'd0, coe[5]};
+assign coe6_o = {2'd0, coe[6]};
+assign coe7_o = {2'd0, coe[7]};
+assign coe8_o = {2'd0, coe[8]};
+
 wire [13:0] di [3-1:0];
-reg [PIXEL_WIDTH-1:0] do [3-1:0];
+reg [PIXEL_WIDTH-1:0] do_ [3-1:0];
 genvar k1;
 generate
-    for (k1=0; k1<3; k1=k1+1) begin
+    for (k1=0; k1<3; k1=k1+1) begin : chd
         assign di[k1] = {{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*k1 +: PIXEL_WIDTH]};
-        assign do_o[PIXEL_WIDTH*k1 +: PIXEL_WIDTH] = (bypass) ? do[k1] : sr_di_i[3][PIXEL_WIDTH*k1 +: PIXEL_WIDTH];;
+        assign do_o[PIXEL_WIDTH*k1 +: PIXEL_WIDTH] = (bypass) ? do_[k1] : sr_di_i[4][PIXEL_WIDTH*k1 +: PIXEL_WIDTH];
     end
 endgenerate
 
@@ -122,25 +142,26 @@ always @ (posedge clk) begin
     de_o <= sr_de_i[3];
     hs_o <= sr_hs_i[3];
     vs_o <= sr_vs_i[3];
+    sr_di_i[4] <= sr_di_i[3];
 
 end
 
 always @ (posedge clk) begin
-    if (r_mrgb_round[OVERFLOW_BIT+3])                    do[0] <= {PIXEL_WIDTH{1'b0}};
-    else if (|r_mrgb_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do[0] <= {PIXEL_WIDTH{1'b1}};
-    else                                                 do[0] <= r_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+    if (r_mrgb_round[OVERFLOW_BIT+3])                    do_[0] <= {PIXEL_WIDTH{1'b0}};
+    else if (|r_mrgb_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do_[0] <= {PIXEL_WIDTH{1'b1}};
+    else                                                 do_[0] <= r_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 end
 
 always @ (posedge clk) begin
-    if (g_mrgb_round[OVERFLOW_BIT+3])                    do[1] <= {PIXEL_WIDTH{1'b0}};
-    else if (|g_mrgb_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do[1] <= {PIXEL_WIDTH{1'b1}};
-    else                                                 do[1] <= g_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+    if (g_mrgb_round[OVERFLOW_BIT+3])                    do_[1] <= {PIXEL_WIDTH{1'b0}};
+    else if (|g_mrgb_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do_[1] <= {PIXEL_WIDTH{1'b1}};
+    else                                                 do_[1] <= g_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 end
 
 always @ (posedge clk) begin
-    if (b_mrgb_round[OVERFLOW_BIT+3])                    do[2] <= {PIXEL_WIDTH{1'b0}};
-    else if (|b_mrgb_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do[2] <= {PIXEL_WIDTH{1'b1}};
-    else                                                 do[2] <= b_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+    if (b_mrgb_round[OVERFLOW_BIT+3])                    do_[2] <= {PIXEL_WIDTH{1'b0}};
+    else if (|b_mrgb_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do_[2] <= {PIXEL_WIDTH{1'b1}};
+    else                                                 do_[2] <= b_mrgb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 end
 
 endmodule

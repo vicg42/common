@@ -119,40 +119,39 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                // r_num[0] = 3.00;
-                // r_num[1] = -1.00;
-                // r_num[2] = 1.00;
-
-                // r_num[3] = 0.00;
-                // r_num[4] = 0.00;
-                // r_num[5] = 0.00;
-                // r_num[6] = 0.00;
-                // r_num[7] = 0.00;
-                // r_num[8] = 0.00;
+                r_num[0] = 1.25;
+                r_num[1] = 1.25;
+                r_num[2] = 1.25;
+                r_num[3] = 0.00;
+                r_num[4] = 1.00;
+                r_num[5] = 0.00;
+                r_num[6] = 0.00;
+                r_num[7] = 0.00;
+                r_num[8] = 1.00;
                 // //ganerate random real numbers
-                for (c0=0;c0<1;c0++) begin
-                    r_num_int = $random;
-                    r_num_frac = ($urandom%1000)/10000.0;
-                    r_num[c0] = $signed(r_num_int[3:0]) + r_num_frac;
+                for (c0=0;c0<COE_COUNT;c0++) begin
+                    // r_num_int = $random;
+                    // r_num_frac = ($urandom%1000)/10000.0;
+                    // r_num[c0] = $signed(r_num_int[3:0]) + r_num_frac;
                     coe[c0] = r_num[c0] * 1024;
                     // $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", c0
                     //                                                 , r_num[c0]
                     //                                                 , coe[c0][13:0]
                     //                                                 , coe[c0][13:0]);
                 end
-                for (c0=1;c0<COE_COUNT;c0++) begin
-                    r_num_int = $random;
-                    r_num_frac = ($urandom%1000)/10000.0;
-                    r_num[c0] = 0.0;//$signed(r_num_int[3:0]) + r_num_frac;
-                    coe[c0] = r_num[c0] * 1024;
-                    // $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", c0
-                    //                                                 , r_num[c0]
-                    //                                                 , coe[c0][13:0]
-                    //                                                 , coe[c0][13:0]);
-                end
-                di[0] = $urandom_range(255,0);//46;//255;//
-                di[1] = 0;
-                di[2] = 0;
+                // for (c0=1;c0<COE_COUNT;c0++) begin
+                //     r_num_int = $random;
+                //     r_num_frac = ($urandom%1000)/10000.0;
+                //     r_num[c0] = 0.0;//$signed(r_num_int[3:0]) + r_num_frac;
+                //     coe[c0] = r_num[c0] * 1024;
+                //     // $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", c0
+                //     //                                                 , r_num[c0]
+                //     //                                                 , coe[c0][13:0]
+                //     //                                                 , coe[c0][13:0]);
+                // end
+                di[0] = 16;//$urandom_range(255,0);//46;//255;//
+                di[1] = 16;
+                di[2] = 16;
                 $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", 0, r_num[0], coe[0][13:0], coe[0][13:0]);
                 $display("x[%05d]:di_i[%02d]: %d(dec); %x(hex)", x, 0, di[0], di[0]);
                 $display("x[%05d]:do[%02d]: %f", x, c0, ((di[0]*r_num[0]) +

@@ -41,13 +41,13 @@ reg [1:0] sr_vs_i = 0;
 
 wire [12:0] coe [COE_COUNT-1:0];
 wire [12:0] di [COE_COUNT-1:0];
-reg [PIXEL_WIDTH-1:0] do [COE_COUNT-1:0];
+reg [PIXEL_WIDTH-1:0] do_ [COE_COUNT-1:0];
 genvar k;
 generate
-    for (k=0; k<COE_COUNT; k=k+1) begin
+    for (k=0; k<COE_COUNT; k=k+1) begin : ch
         assign coe[k] = coe_i[(k*COE_WIDTH) +: 13];
         assign di[k] = {{ZERO_FILL{1'b0}}, di_i[PIXEL_WIDTH*k +: PIXEL_WIDTH]};
-        assign do_o[PIXEL_WIDTH*k +: PIXEL_WIDTH] = do[k];
+        assign do_o[PIXEL_WIDTH*k +: PIXEL_WIDTH] = do_[k];
     end
 endgenerate
 
@@ -75,18 +75,18 @@ always @ (posedge clk) begin
 end
 
 always @ (posedge clk) begin
-    if (|mr_round[20:OVERFLOW_BIT]) do[0] <= {PIXEL_WIDTH{1'b1}};
-    else                            do[0] <= mr_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+    if (|mr_round[20:OVERFLOW_BIT]) do_[0] <= {PIXEL_WIDTH{1'b1}};
+    else                            do_[0] <= mr_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 end
 
 always @ (posedge clk) begin
-    if (|mg_round[20:OVERFLOW_BIT]) do[1] <= {PIXEL_WIDTH{1'b1}};
-    else                            do[1] <= mg_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+    if (|mg_round[20:OVERFLOW_BIT]) do_[1] <= {PIXEL_WIDTH{1'b1}};
+    else                            do_[1] <= mg_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 end
 
 always @ (posedge clk) begin
-    if (|mb_round[20:OVERFLOW_BIT]) do[2] <= {PIXEL_WIDTH{1'b1}};
-    else                            do[2] <= mb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+    if (|mb_round[20:OVERFLOW_BIT]) do_[2] <= {PIXEL_WIDTH{1'b1}};
+    else                            do_[2] <= mb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 end
 
 
