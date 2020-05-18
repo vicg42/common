@@ -23,7 +23,7 @@ int coe;
 initial begin : sim_main
 
     y = 128;
-    coe = -28;
+    coe = 1;
 
     #2000
 
@@ -35,7 +35,7 @@ end : sim_main
 // assign coe_i[COE_WIDTH-1:0] = coe[COE_WIDTH-1:0];
 
 brightness #(
-    .COE_WIDTH(COE_WIDTH),
+    // .COE_WIDTH(COE_WIDTH),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) brightness_m (
     .coe_i(coe[15:0]),

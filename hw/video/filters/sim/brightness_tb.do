@@ -6,7 +6,7 @@ file delete -force -- work
 vlib work
 
 vlog ../bmp_io.sv -sv
-vlog ../brightness.v +define+SIM_DBG
+vlog ../brightness.v
 vlog ./brightness_tb.sv -sv +incdir+../
 
 vsim -t 1ps -novopt -lib work brightness_tb
