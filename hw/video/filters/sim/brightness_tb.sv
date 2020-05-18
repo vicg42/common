@@ -23,7 +23,7 @@ int coe;
 initial begin : sim_main
 
     y = 128;
-    coe = 1;
+    coe = 129;
 
     #2000
 

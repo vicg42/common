@@ -46,7 +46,13 @@ always @ (posedge clk) begin
     sr_vs_i <= vs_i;
 
     //stage1
-    y_o  <= sum[(PIXEL_WIDTH+4)] ? 0 : sum[(PIXEL_WIDTH)-1:0];
+    if (sum[(PIXEL_WIDTH+4)]) begin
+        y_o <= 0;
+    end else if (sum[(PIXEL_WIDTH)]) begin
+        y_o <= {PIXEL_WIDTH{1'b1}};
+    end else begin
+        y_o <= sum[(PIXEL_WIDTH)-1:0];
+    end
     cb_o <= sr_de_i;
     cr_o <= sr_de_i;
     hs_o <= sr_hs_i;
