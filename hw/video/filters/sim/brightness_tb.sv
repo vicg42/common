@@ -54,8 +54,7 @@ brightness #(
     .hs_o(),
     .vs_o(),
 
-    .clk(clk),
-    .rst()
+    .clk(clk)
 );
 
 endmodule

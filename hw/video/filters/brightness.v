@@ -22,8 +22,7 @@ module brightness #(
     output reg                     hs_o = 0,
     output reg                     vs_o = 0,
 
-    input clk,
-    input rst
+    input clk
 );
 
 reg [(PIXEL_WIDTH+4):0] sum = 0;
