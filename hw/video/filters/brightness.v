@@ -1,9 +1,9 @@
 //-----------------------------------------------------------------------
 // author    : Golovachenko Victor
 //
-// r' = contrast_coe*(r - 128) + 128 + brightness
-// g' = contrast_coe*(g - 128) + 128 + brightness
-// b' = contrast_coe*(b - 128) + 128 + brightness
+// r' = contrast*(r - 128) + 128 + brightness
+// g' = contrast*(g - 128) + 128 + brightness
+// b' = contrast*(b - 128) + 128 + brightness
 //-----------------------------------------------------------------------
 module brightness #(
     parameter COE_WIDTH = 16,
