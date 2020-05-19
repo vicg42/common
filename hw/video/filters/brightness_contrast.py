@@ -92,9 +92,16 @@ r_t1 = np.zeros((frame_h, frame_w), dtype = np.float)
 g_t1 = np.zeros((frame_h, frame_w), dtype = np.float)
 b_t1 = np.zeros((frame_h, frame_w), dtype = np.float)
 
-r_o = np.zeros((frame_h, frame_w), dtype = np.uint8)
-g_o = np.zeros((frame_h, frame_w), dtype = np.uint8)
-b_o = np.zeros((frame_h, frame_w), dtype = np.uint8)
+r_o = np.zeros((frame_h, frame_w), dtype = np.int16)
+g_o = np.zeros((frame_h, frame_w), dtype = np.int16)
+b_o = np.zeros((frame_h, frame_w), dtype = np.int16)
+
+rgb_max = np.zeros((frame_h, frame_w), dtype = np.uint8)
+rgb_min = np.zeros((frame_h, frame_w), dtype = np.uint8)
+s_t1 = np.zeros((frame_h, frame_w), dtype = np.float)
+s_t0 = np.zeros((frame_h, frame_w), dtype = np.float)
+s_t01 = np.zeros((frame_h, frame_w), dtype = np.float)
+
 for h in range(0,frame_h):
     for w in range(0,frame_w):
         r_t0[h,w] = contrast*(r[h,w] - 128) + 128 + brightness
@@ -122,8 +129,8 @@ for h in range(0,frame_h):
         else:
             b_cb[h,w] = int(round(b_t0[h,w]))
 
-        # y[h,w] = (0.2126*r_cb[h,w]) + (0.7152*g_cb[h,w]) + (0.0722*b_cb[h,w])
-        y[h,w] = (0.299*r_cb[h,w]) + (0.587*g_cb[h,w]) + (0.114*b_cb[h,w])
+        y[h,w] = (0.2126*r_cb[h,w]) + (0.7152*g_cb[h,w]) + (0.0722*b_cb[h,w])
+        # y[h,w] = (0.299*r_cb[h,w]) + (0.587*g_cb[h,w]) + (0.114*b_cb[h,w])
         r_t1[h,w] = y[h,w] + ((r_cb[h,w] - y[h,w]) * saturation)
         g_t1[h,w] = y[h,w] + ((g_cb[h,w] - y[h,w]) * saturation)
         b_t1[h,w] = y[h,w] + ((b_cb[h,w] - y[h,w]) * saturation)
@@ -143,17 +150,38 @@ for h in range(0,frame_h):
 
         if g_t1[h,w] > 255 :
             g_o[h,w] = 255
-        elif g_t1[h,w] < 0 :
+        elif g_t1[h,w] <= 0 :
             g_o[h,w] = 0
         else:
             g_o[h,w] = int(round(g_t1[h,w]))
 
         if b_t1[h,w] > 255 :
             b_o[h,w] = 255
-        if b_t1[h,w] < 0 :
+        elif b_t1[h,w] < 0 :
             b_o[h,w] = 0
         else:
             b_o[h,w] = int(round(b_t1[h,w]))
+
+        # rgb_max[h,w] = max([r_cb[h,w], g_cb[h,w], b_cb[h,w]])
+        # rgb_min[h,w] = min([r_cb[h,w], g_cb[h,w], b_cb[h,w]])
+
+        # if (float(rgb_max[h,w]) != y[h,w]):
+        #     s_t1[h,w] = (255 - y[h,w]) / (rgb_max[h,w] - y[h,w])
+        # else :
+        #     s_t1[h,w] = 0
+
+        # if (s_t1[h,w] < 0):
+        #     s_t1[h,w] = 0
+
+        # if (float(rgb_min[h,w]) != y[h,w]):
+        #     s_t0[h,w] = y[h,w] / (y[h,w] - rgb_min[h,w])
+        # else :
+        #     s_t1[h,w] = 0
+
+        # if (s_t0[h,w] < 0):
+        #     s_t0[h,w] = 0
+
+        # s_t01[h,w] = min([s_t0[h,w], s_t1[h,w]])
 
         # v_o[h,w] = coe*(v[h,w] - 128) + 128 + brightness
 
@@ -165,6 +193,8 @@ for h in range(0,frame_h):
 print ("\nresult: %s" % (usrfile_O))
 print ("R,G,B(min): %d, %d, %d" % (np.amin(r_o),np.amin(g_o),np.amin(b_o)))
 print ("R,G,B(max): %d, %d, %d" % (np.amax(r_o),np.amax(g_o),np.amax(b_o)))
+# print ("s_t01(max): %f" % (np.amax(s_t01)))
+# print ("s_t01(min): %f" % (np.amin(s_t01)))
 
 imgRGB_out = cv2.merge((b_o, g_o, r_o))
 cv2.imwrite(usrfile_O, imgRGB_out)
