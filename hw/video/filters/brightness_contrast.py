@@ -11,13 +11,14 @@ usrfile_I = ""
 usrfile_O = ""
 brightness = 0
 contrast = 1
+saturation = 1.0
 
 cpath = os.getcwd()
 
 try:
     options, remainder = getopt.gnu_getopt(
         sys.argv[1:],
-        "hi:o:c:b:",
+        "hi:o:c:b:s:",
         ["help",
         "input=",
         "output=",
@@ -33,6 +34,7 @@ def help() :
     print('\t-o  --output  path to output file')
     print('\t-c            contrast value')
     print('\t-b            brightness value')
+    print('\t-s            saturation value')
     print("usage:")
     print("\t python ./%s -i <path to input file>" % (os.path.basename(__file__)))
     sys.exit()
@@ -42,6 +44,8 @@ for opt, arg in options:
         contrast = int(arg)
     elif opt in ('-b'):
         brightness = int(arg)
+    elif opt in ('-s'):
+        saturation = float(arg)
     elif opt in ('-i', '--input'):
         usrfile_I = arg
     elif opt in ('-o', '--output'):
@@ -64,40 +68,49 @@ print ("frame: %d x %d" % (frame_w, frame_h))
 print ("R,G,B(min): %d, %d, %d" % (np.amin(r),np.amin(g),np.amin(b)))
 print ("R,G,B(max): %d, %d, %d" % (np.amax(r),np.amax(g),np.amax(b)))
 
+coe = (259*(contrast+255)) / (255*(259-contrast))
+
 print ("\nuser ctrl:")
 print ("brigtness: " + str(brightness))
-print ("contrast(value): " + str(contrast))
+print ("contrast(value): %d; coe: %f" % (contrast, coe))
+print ("saturation(value): " + str(saturation))
 
 # imgYUV_in = cv2.cvtColor(imgRGB_in, cv2.COLOR_BGR2YUV)
 # v, cr, cb = cv2.split(imgYUV_in)
 # v_o = np.zeros((frame_h, frame_w), dtype = np.int16)
 
-coe = (259*(contrast+255)) / (255*(259-contrast))
-print ("contrast(coe): " + str(coe))
-
-r_o = np.zeros((frame_h, frame_w), dtype = np.int16)
-g_o = np.zeros((frame_h, frame_w), dtype = np.int16)
-b_o = np.zeros((frame_h, frame_w), dtype = np.int16)
+r_t0 = np.zeros((frame_h, frame_w), dtype = np.float)
+g_t0 = np.zeros((frame_h, frame_w), dtype = np.float)
+b_t0 = np.zeros((frame_h, frame_w), dtype = np.float)
+r_o = np.zeros((frame_h, frame_w), dtype = np.uint8)
+g_o = np.zeros((frame_h, frame_w), dtype = np.uint8)
+b_o = np.zeros((frame_h, frame_w), dtype = np.uint8)
 for h in range(0,frame_h):
     for w in range(0,frame_w):
-        r_o[h,w] = coe*(r[h,w] - 128) + 128 + brightness
-        g_o[h,w] = coe*(g[h,w] - 128) + 128 + brightness
-        b_o[h,w] = coe*(b[h,w] - 128) + 128 + brightness
+        r_t0[h,w] = coe*(r[h,w] - 128) + 128 + brightness
+        g_t0[h,w] = coe*(g[h,w] - 128) + 128 + brightness
+        b_t0[h,w] = coe*(b[h,w] - 128) + 128 + brightness
 
-        if r_o[h,w] > 255 :
+        if r_t0[h,w] > 255 :
             r_o[h,w] = 255
-        if r_o[h,w] < 0 :
+        elif r_t0[h,w] < 0 :
             r_o[h,w] = 0
+        else:
+            r_o[h,w] = int(round(r_t0[h,w]))
 
-        if g_o[h,w] > 255 :
+        if g_t0[h,w] > 255 :
             g_o[h,w] = 255
-        if g_o[h,w] < 0 :
+        elif g_t0[h,w] < 0 :
             g_o[h,w] = 0
+        else:
+            g_o[h,w] = int(round(g_t0[h,w]))
 
-        if b_o[h,w] > 255 :
+        if b_t0[h,w] > 255 :
             b_o[h,w] = 255
-        if b_o[h,w] < 0 :
+        if b_t0[h,w] < 0 :
             b_o[h,w] = 0
+        else:
+            b_o[h,w] = int(round(b_t0[h,w]))
 
         # v_o[h,w] = coe*(v[h,w] - 128) + 128 + brightness
 
