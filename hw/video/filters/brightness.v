@@ -7,7 +7,7 @@
 //-----------------------------------------------------------------------
 module brightness #(
     parameter COE_WIDTH = 16,
-    parameter COE_FRACTION_WIDTH = 6,
+    parameter COE_FRACTION_WIDTH = 10,
     parameter PIXEL_WIDTH = 8
 )(
     input [15:0] contrast_i, //(Q3.6) unsigned fixed point. 64(0x40) is 1.000
@@ -29,17 +29,13 @@ module brightness #(
     input clk
 );
 
-localparam ZERO_FILL = (9 - PIXEL_WIDTH);
+localparam ZERO_FILL = (COE_WIDTH - PIXEL_WIDTH);
 localparam OVERFLOW_BIT = COE_FRACTION_WIDTH + PIXEL_WIDTH;
-localparam [23:0] ROUND_ADDER = (1 << (COE_FRACTION_WIDTH - 1)); //0.5
-reg [15:0] mr = 0, mg = 0, mb = 0;
-reg [15:0] sr_mr = 0, sr_mg = 0, sr_mb = 0;
-// reg [24:0] mr_round = 0, mg_round = 0, mb_round = 0;
 reg [2:0] sr_de_i = 0;
 reg [2:0] sr_hs_i = 0;
 reg [2:0] sr_vs_i = 0;
 
-wire [8:0] di [2:0];
+wire [COE_WIDTH-1:0] di [2:0];
 reg [PIXEL_WIDTH-1:0] do_ [3-1:0];
 genvar k;
 generate
@@ -48,50 +44,38 @@ generate
         assign do_o[PIXEL_WIDTH*k +: PIXEL_WIDTH] = do_[k];
     end
 endgenerate
-wire [8:0] contrast;
-assign contrast = contrast_i[0 +: 9];
-wire [8:0] brightness;
-assign brightness = {{ZERO_FILL{1'b0}}, brightness_i[0 +: PIXEL_WIDTH]};
+wire [COE_WIDTH-1:0] contrast;
+assign contrast = contrast_i[0 +: COE_WIDTH];
+wire [COE_WIDTH-1:0] brightness;
+assign brightness = {{ZERO_FILL{1'b0}}, brightness_i[0 +: COE_WIDTH]};
 
-reg [15:0] br_sum = 0;
-reg [15:0] sr_br_sum = 0;
-reg [15:0] mcoe_x128 = 0;
-reg [15:0] mcoe_x128_2 = 0;
+reg [(COE_WIDTH*2)-1:0] br_sum = 0;
+reg [(COE_WIDTH*2)-1:0] sr_br_sum = 0;
 
-reg [15:0] r_m = 0;
-reg [15:0] g_m = 0;
-reg [15:0] b_m = 0;
+reg [(COE_WIDTH*2)-1:0] mcoe_x128 = 0;
+reg [(COE_WIDTH*2)-1:0] r_m = 0;
 
-reg signed [16:0] r_m_sum = 0;
-reg signed [16:0] g_m_sum = 0;
-reg signed [16:0] b_m_sum = 0;
+reg signed [(COE_WIDTH*2):0] r_m_sum = 0;
 
-reg signed [17:0] r_m_sum2 = 0;
+reg signed [(COE_WIDTH*2)+1:0] r_m_sum2 = 0;
+localparam [(COE_WIDTH*2)+1:0] ROUND_ADDER = (1 << (COE_FRACTION_WIDTH - 1)); //0.5
 
-reg signed [18:0] r_m_sum_round = 0;
-reg signed [18:0] g_m_sum_round = 0;
-reg signed [18:0] b_m_sum_round = 0;
-
-reg signed [17:0] res_r = 0;
-reg signed [17:0] res_g = 0;
-reg signed [17:0] res_b = 0;
-
-reg signed [16:0] sum0_const = 0;
+reg signed [(COE_WIDTH*2)+2:0] r_m_sum_round = 0;
 
 always @ (posedge clk) begin
     //stage0
-    br_sum[15:0] <= {10'd128, {COE_FRACTION_WIDTH{1'b0}}} + {brightness[8:0], {COE_FRACTION_WIDTH{1'b0}}};
+    br_sum <= {128, {COE_FRACTION_WIDTH{1'b0}}} + {brightness, {COE_FRACTION_WIDTH{1'b0}}};
 
-    mcoe_x128[15:0] <= 8'd128 * contrast[8:0]; //{contrast[8:0], 7'd0};
+    mcoe_x128 <= 128 * contrast; //{contrast[8:0], 7'd0};
 
-    r_m[15:0] <= contrast * di[0];
+    r_m <= contrast * di[0];
 
     sr_de_i[0] <= de_i;
     sr_hs_i[0] <= hs_i;
     sr_vs_i[0] <= vs_i;
 
     //stage1
-    r_m_sum[16:0] <= $signed({1'b0, r_m[15:0]}) - $signed({1'b0, mcoe_x128});
+    r_m_sum <= $signed({1'b0, r_m}) - $signed({1'b0, mcoe_x128});
     sr_br_sum <= br_sum;
 
     sr_de_i[1] <= sr_de_i[0];
@@ -99,7 +83,7 @@ always @ (posedge clk) begin
     sr_vs_i[1] <= sr_vs_i[0];
 
     //stage2
-    r_m_sum2[17:0] <= r_m_sum[16:0] + $signed({1'b0,sr_br_sum[15:0]});
+    r_m_sum2 <= r_m_sum + $signed({1'b0,sr_br_sum});
 
     //stage3
     r_m_sum_round <= r_m_sum2 + $signed(ROUND_ADDER);

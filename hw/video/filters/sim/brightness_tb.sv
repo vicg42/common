@@ -24,15 +24,15 @@ real coe_real;
 int c0;
 initial begin : sim_main
 
-    for (c0=(255); c0>225; c0--) begin
+    for (c0=0; c0<30; c0++) begin
         @(posedge clk);
-        // // $urandom_range( int unsigned maxval, int unsigned minval = 0 );
-        y = c0;//$urandom_range(255, 128);
-        coe_real = 0.9; //max
+        // $urandom_range( int unsigned maxval, int unsigned minval = 0 );
+        y = $urandom_range(255, 128); //140 - c0;//
+        coe_real = 0.7;
         coe = coe_real * 64;
-        $display("x[%03d]: y=%d; coe=%f; result=%f", c0, y, coe_real, (y*coe_real) );
+        $display("x[%03d]: y=%d; coe=%f; result=%f", c0, y, coe_real, (coe_real*(y - 128) + 128) );
         #50;
-     end
+    end
 
     $stop;
 
@@ -42,7 +42,7 @@ end : sim_main
 // assign coe_i[COE_WIDTH-1:0] = coe[COE_WIDTH-1:0];
 
 brightness #(
-    .COE_WIDTH(16),
+    .COE_WIDTH(9),
     .COE_FRACTION_WIDTH(6),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) brightness_m (
