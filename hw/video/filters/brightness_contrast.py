@@ -116,3 +116,61 @@ cv2.imwrite(usrfile_O, imgRGB_out)
 # imgYUV_out = cv2.merge((v, cr, cb))
 # imgRGBYUV_out = cv2.cvtColor(imgYUV_out, cv2.COLOR_YUV2BGR)
 # cv2.imwrite("ttt2.png", imgRGBYUV_out)
+
+
+# def nothing(x):
+#     pass
+
+# cv2.namedWindow('image_bilateral',cv2.WINDOW_AUTOSIZE)
+
+# cv2.namedWindow('Image_CTRL',cv2.WINDOW_AUTOSIZE)
+# cv2.createTrackbar('brightness','Image_CTRL',0,255,nothing)
+# cv2.createTrackbar('contrast','Image_CTRL',0,255,nothing)
+# # cv2.createTrackbar('saturation','Image_CTRL',2,100,nothing)
+
+# b_t, g_t, r_t = cv2.split(imgRGB_in)
+# frame_h, frame_w = b_t.shape
+# r_o = np.zeros((frame_h, frame_w), dtype = np.int16)
+# g_o = np.zeros((frame_h, frame_w), dtype = np.int16)
+# b_o = np.zeros((frame_h, frame_w), dtype = np.int16)
+# imgRGB_out = np.zeros((frame_h, frame_w), dtype = np.uint8)
+# while(1):
+#     cv2.imshow('image_processing',imgRGB_out)
+#     k = cv2.waitKey(1) & 0xFF
+#     if k == 27:
+#         break
+
+#     brightness = cv2.getTrackbarPos('brightness','Image_CTRL')
+#     contrast = cv2.getTrackbarPos('contrast','Image_CTRL')
+#     coe = (259*(contrast+255)) / (255*(259-contrast))
+#     print ("contrast(coe): " + str(coe))
+
+#     b, g, r = cv2.split(imgRGB_in)
+#     print ("frame: %d x %d" % (frame_w, frame_h))
+#     print ("R,G,B(min): %d, %d, %d" % (np.amin(r),np.amin(g),np.amin(b)))
+#     print ("R,G,B(max): %d, %d, %d" % (np.amax(r),np.amax(g),np.amax(b)))
+
+#     for h in range(0,frame_h):
+#         for w in range(0,frame_w):
+#             r_o[h,w] = coe*(r[h,w] - 128) + 128 + brightness
+#             g_o[h,w] = coe*(g[h,w] - 128) + 128 + brightness
+#             b_o[h,w] = coe*(b[h,w] - 128) + 128 + brightness
+
+#             if r_o[h,w] > 255 :
+#                 r_o[h,w] = 255
+#             if r_o[h,w] < 0 :
+#                 r_o[h,w] = 0
+
+#             if g_o[h,w] > 255 :
+#                 g_o[h,w] = 255
+#             if g_o[h,w] < 0 :
+#                 g_o[h,w] = 0
+
+#             if b_o[h,w] > 255 :
+#                 b_o[h,w] = 255
+#             if b_o[h,w] < 0 :
+#                 b_o[h,w] = 0
+
+#     print ("R,G,B(min): %d, %d, %d" % (np.amin(r_o),np.amin(g_o),np.amin(b_o)))
+#     print ("R,G,B(max): %d, %d, %d" % (np.amax(r_o),np.amax(g_o),np.amax(b_o)))
+#     imgRGB_out = cv2.merge((b_o, g_o, r_o))
