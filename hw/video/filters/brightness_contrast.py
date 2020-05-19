@@ -60,19 +60,20 @@ imgRGB_in = cv2.imread(usrfile_I, cv2.IMREAD_COLOR)
 
 b, g, r = cv2.split(imgRGB_in)
 frame_h, frame_w = r.shape
-print ("frame: " + str(frame_w) + " x " + str(frame_h))
-print ("R(min): " + str(np.amin(r)))
-print ("G(min): " + str(np.amin(g)))
-print ("B(min): " + str(np.amin(b)))
-print ("R(max): " + str(np.amax(r)))
-print ("G(max): " + str(np.amax(g)))
-print ("B(max): " + str(np.amax(b)))
+print ("frame: %d x %d" % (frame_w, frame_h))
+print ("R,G,B(min): %d, %d, %d" % (np.amin(r),np.amin(g),np.amin(b)))
+print ("R,G,B(max): %d, %d, %d" % (np.amax(r),np.amax(g),np.amax(b)))
+
+print ("\nuser ctrl:")
 print ("brigtness: " + str(brightness))
 print ("contrast(value): " + str(contrast))
 
+# imgYUV_in = cv2.cvtColor(imgRGB_in, cv2.COLOR_BGR2YUV)
+# v, cr, cb = cv2.split(imgYUV_in)
+# v_o = np.zeros((frame_h, frame_w), dtype = np.int16)
+
 coe = (259*(contrast+255)) / (255*(259-contrast))
 print ("contrast(coe): " + str(coe))
-print ("result: " + usrfile_O)
 
 r_o = np.zeros((frame_h, frame_w), dtype = np.int16)
 g_o = np.zeros((frame_h, frame_w), dtype = np.int16)
@@ -98,10 +99,20 @@ for h in range(0,frame_h):
         if b_o[h,w] < 0 :
             b_o[h,w] = 0
 
-print ("R1(max): " + str(np.amax(r_o)))
-print ("G1(max): " + str(np.amax(g_o)))
-print ("B1(max): " + str(np.amax(b_o)))
+        # v_o[h,w] = coe*(v[h,w] - 128) + 128 + brightness
+
+        # if v_o[h,w] > 255 :
+        #     v_o[h,w] = 255
+        # if v_o[h,w] < 0 :
+        #     v_o[h,w] = 0
+
+print ("\nresult: %s" % (usrfile_O))
+print ("R,G,B(min): %d, %d, %d" % (np.amin(r_o),np.amin(g_o),np.amin(b_o)))
+print ("R,G,B(max): %d, %d, %d" % (np.amax(r_o),np.amax(g_o),np.amax(b_o)))
 
 imgRGB_out = cv2.merge((b_o, g_o, r_o))
-
 cv2.imwrite(usrfile_O, imgRGB_out)
+
+# imgYUV_out = cv2.merge((v, cr, cb))
+# imgRGBYUV_out = cv2.cvtColor(imgYUV_out, cv2.COLOR_YUV2BGR)
+# cv2.imwrite("ttt2.png", imgRGBYUV_out)
