@@ -10,7 +10,7 @@ import os
 usrfile_I = ""
 usrfile_O = ""
 brightness = 0
-contrast = 1
+contrast_val = 1
 saturation = 1.0
 
 cpath = os.getcwd()
@@ -41,7 +41,7 @@ def help() :
 
 for opt, arg in options:
     if opt in ('-c'):
-        contrast = int(arg)
+        contrast_val = int(arg)
     elif opt in ('-b'):
         brightness = int(arg)
     elif opt in ('-s'):
@@ -68,11 +68,11 @@ print ("frame: %d x %d" % (frame_w, frame_h))
 print ("R,G,B(min): %d, %d, %d" % (np.amin(r),np.amin(g),np.amin(b)))
 print ("R,G,B(max): %d, %d, %d" % (np.amax(r),np.amax(g),np.amax(b)))
 
-coe = (259*(contrast+255)) / (255*(259-contrast))
+contrast = (259*(contrast_val+255)) / (255*(259-contrast_val))
 
 print ("\nuser ctrl:")
 print ("brigtness: " + str(brightness))
-print ("contrast(value): %d; coe: %f" % (contrast, coe))
+print ("contrast_val(value): %d; contrast: %f" % (contrast_val, contrast))
 print ("saturation(value): " + str(saturation))
 
 # imgYUV_in = cv2.cvtColor(imgRGB_in, cv2.COLOR_BGR2YUV)
@@ -82,35 +82,78 @@ print ("saturation(value): " + str(saturation))
 r_t0 = np.zeros((frame_h, frame_w), dtype = np.float)
 g_t0 = np.zeros((frame_h, frame_w), dtype = np.float)
 b_t0 = np.zeros((frame_h, frame_w), dtype = np.float)
+
+r_cb = np.zeros((frame_h, frame_w), dtype = np.uint8)
+g_cb = np.zeros((frame_h, frame_w), dtype = np.uint8)
+b_cb = np.zeros((frame_h, frame_w), dtype = np.uint8)
+
+y = np.zeros((frame_h, frame_w), dtype = np.float)
+r_t1 = np.zeros((frame_h, frame_w), dtype = np.float)
+g_t1 = np.zeros((frame_h, frame_w), dtype = np.float)
+b_t1 = np.zeros((frame_h, frame_w), dtype = np.float)
+
 r_o = np.zeros((frame_h, frame_w), dtype = np.uint8)
 g_o = np.zeros((frame_h, frame_w), dtype = np.uint8)
 b_o = np.zeros((frame_h, frame_w), dtype = np.uint8)
 for h in range(0,frame_h):
     for w in range(0,frame_w):
-        r_t0[h,w] = coe*(r[h,w] - 128) + 128 + brightness
-        g_t0[h,w] = coe*(g[h,w] - 128) + 128 + brightness
-        b_t0[h,w] = coe*(b[h,w] - 128) + 128 + brightness
+        r_t0[h,w] = contrast*(r[h,w] - 128) + 128 + brightness
+        g_t0[h,w] = contrast*(g[h,w] - 128) + 128 + brightness
+        b_t0[h,w] = contrast*(b[h,w] - 128) + 128 + brightness
 
         if r_t0[h,w] > 255 :
-            r_o[h,w] = 255
+            r_cb[h,w] = 255
         elif r_t0[h,w] < 0 :
-            r_o[h,w] = 0
+            r_cb[h,w] = 0
         else:
-            r_o[h,w] = int(round(r_t0[h,w]))
+            r_cb[h,w] = int(round(r_t0[h,w]))
 
         if g_t0[h,w] > 255 :
-            g_o[h,w] = 255
+            g_cb[h,w] = 255
         elif g_t0[h,w] < 0 :
-            g_o[h,w] = 0
+            g_cb[h,w] = 0
         else:
-            g_o[h,w] = int(round(g_t0[h,w]))
+            g_cb[h,w] = int(round(g_t0[h,w]))
 
         if b_t0[h,w] > 255 :
-            b_o[h,w] = 255
+            b_cb[h,w] = 255
         if b_t0[h,w] < 0 :
+            b_cb[h,w] = 0
+        else:
+            b_cb[h,w] = int(round(b_t0[h,w]))
+
+        # y[h,w] = (0.2126*r_cb[h,w]) + (0.7152*g_cb[h,w]) + (0.0722*b_cb[h,w])
+        y[h,w] = (0.299*r_cb[h,w]) + (0.587*g_cb[h,w]) + (0.114*b_cb[h,w])
+        r_t1[h,w] = y[h,w] + ((r_cb[h,w] - y[h,w]) * saturation)
+        g_t1[h,w] = y[h,w] + ((g_cb[h,w] - y[h,w]) * saturation)
+        b_t1[h,w] = y[h,w] + ((b_cb[h,w] - y[h,w]) * saturation)
+
+        # y[h,w] = (0.2126*r_t0[h,w]) + (0.7152*g_t0[h,w]) + (0.0722*b_t0[h,w])
+        # y[h,w] = (0.299*r_t0[h,w]) + (0.587*g_t0[h,w]) + (0.114*b_t0[h,w])
+        # r_t1[h,w] = y[h,w] + ((r_t0[h,w] - y[h,w]) * saturation)
+        # g_t1[h,w] = y[h,w] + ((g_t0[h,w] - y[h,w]) * saturation)
+        # b_t1[h,w] = y[h,w] + ((b_t0[h,w] - y[h,w]) * saturation)
+
+        if r_t1[h,w] > 255 :
+            r_o[h,w] = 255
+        elif r_t1[h,w] < 0 :
+            r_o[h,w] = 0
+        else:
+            r_o[h,w] = int(round(r_t1[h,w]))
+
+        if g_t1[h,w] > 255 :
+            g_o[h,w] = 255
+        elif g_t1[h,w] < 0 :
+            g_o[h,w] = 0
+        else:
+            g_o[h,w] = int(round(g_t1[h,w]))
+
+        if b_t1[h,w] > 255 :
+            b_o[h,w] = 255
+        if b_t1[h,w] < 0 :
             b_o[h,w] = 0
         else:
-            b_o[h,w] = int(round(b_t0[h,w]))
+            b_o[h,w] = int(round(b_t1[h,w]))
 
         # v_o[h,w] = coe*(v[h,w] - 128) + 128 + brightness
 
