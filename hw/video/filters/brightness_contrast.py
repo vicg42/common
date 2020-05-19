@@ -129,8 +129,8 @@ for h in range(0,frame_h):
         else:
             b_cb[h,w] = int(round(b_t0[h,w]))
 
-        y[h,w] = (0.2126*r_cb[h,w]) + (0.7152*g_cb[h,w]) + (0.0722*b_cb[h,w])
-        # y[h,w] = (0.299*r_cb[h,w]) + (0.587*g_cb[h,w]) + (0.114*b_cb[h,w])
+        #y[h,w] = (0.2126*r_cb[h,w]) + (0.7152*g_cb[h,w]) + (0.0722*b_cb[h,w])
+        y[h,w] = (0.299*r_cb[h,w]) + (0.587*g_cb[h,w]) + (0.114*b_cb[h,w])
         r_t1[h,w] = y[h,w] + ((r_cb[h,w] - y[h,w]) * saturation)
         g_t1[h,w] = y[h,w] + ((g_cb[h,w] - y[h,w]) * saturation)
         b_t1[h,w] = y[h,w] + ((b_cb[h,w] - y[h,w]) * saturation)
