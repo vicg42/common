@@ -19,13 +19,20 @@ always #(CLK_PERIOD/2) clk = ~clk;
 
 int y;
 int coe;
+real coe_real;
 
+int c0;
 initial begin : sim_main
 
-    y = 128;
-    coe = 129;
-
-    #2000
+    for (c0=(255); c0>225; c0--) begin
+        @(posedge clk);
+        // // $urandom_range( int unsigned maxval, int unsigned minval = 0 );
+        y = c0;//$urandom_range(255, 128);
+        coe_real = 0.9; //max
+        coe = coe_real * 64;
+        $display("x[%03d]: y=%d; coe=%f; result=%f", c0, y, coe_real, (y*coe_real) );
+        #50;
+     end
 
     $stop;
 
@@ -35,21 +42,19 @@ end : sim_main
 // assign coe_i[COE_WIDTH-1:0] = coe[COE_WIDTH-1:0];
 
 brightness #(
-    // .COE_WIDTH(COE_WIDTH),
+    .COE_WIDTH(16),
+    .COE_FRACTION_WIDTH(6),
     .PIXEL_WIDTH (PIXEL_WIDTH)
 ) brightness_m (
-    .coe_i(coe[15:0]),
+    .contrast_i(coe[15:0]),
+    .brightness_i(16'd0),
 
-    .y_i  (y[PIXEL_WIDTH-1:0]),
-    .cb_i (0),
-    .cr_i (0),
+    .di_i  ({y[PIXEL_WIDTH-1:0],y[PIXEL_WIDTH-1:0],y[PIXEL_WIDTH-1:0]}),
     .de_i (1'b0),
     .hs_i (1'b0),
     .vs_i (1'b0),
 
-    .y_o (),
-    .cb_o(),
-    .cr_o(),
+    .do_o (),
     .de_o(),
     .hs_o(),
     .vs_o(),
