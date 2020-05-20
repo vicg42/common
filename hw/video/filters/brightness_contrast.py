@@ -1,6 +1,12 @@
 #
 # author: Golovachenko Viktor
 #
+# CONTRAST ADJUSTMENT
+# https://www.dfstudios.co.uk/articles/programming/image-programming-algorithms/image-processing-algorithms-part-5-contrast-adjustment/
+#
+# SATURATION ADJUSTMENT
+# http://www.uni-vologda.ac.ru/~c3c/articles/Sverdlov_S_Z_Saturation_Ajustment.pdf
+#
 import cv2
 import numpy as np
 import getopt
