@@ -28,6 +28,9 @@ module saturation #(
     output reg                   hs_o = 0,
     output reg                   vs_o = 0,
 
+    input [15:0] dbg_i,
+    output reg [15:0] dbg_o = 0,
+
     input clk
 );
 
@@ -83,6 +86,8 @@ wire [COE_WIDTH-1:0] ycoe0;
 wire [COE_WIDTH-1:0] ycoe1;
 wire [COE_WIDTH-1:0] ycoe2;
 
+reg [15:0] sr_dbg_i [0:8];
+
 genvar k;
 generate
     for (k=0; k<3; k=k+1) begin : ch
@@ -108,6 +113,7 @@ always @ (posedge clk) begin
     sr_de_i[0] <= de_i;
     sr_hs_i[0] <= hs_i;
     sr_vs_i[0] <= vs_i;
+    sr_dbg_i[0] <= dbg_i;
 
     //stage1
     yrg_m <= {1'b0, yr_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH)-1:0]} + {1'b0, yg_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH)-1:0]};
@@ -120,6 +126,7 @@ always @ (posedge clk) begin
     sr_de_i[1] <= sr_de_i[0];
     sr_hs_i[1] <= sr_hs_i[0];
     sr_vs_i[1] <= sr_vs_i[0];
+    sr_dbg_i[1] <= sr_dbg_i[0];
 
     //stage2
     //y = (ycoe0*r) + (ycoe1*g) + (ycoe2*b)
@@ -132,6 +139,7 @@ always @ (posedge clk) begin
     sr_de_i[2] <= sr_de_i[1];
     sr_hs_i[2] <= sr_hs_i[1];
     sr_vs_i[2] <= sr_vs_i[1];
+    sr_dbg_i[2] <= sr_dbg_i[1];
 
     //stage3
     y_round <= {1'b0, y} + ROUND_ADDER;
@@ -143,6 +151,7 @@ always @ (posedge clk) begin
     sr_de_i[3] <= sr_de_i[2];
     sr_hs_i[3] <= sr_hs_i[2];
     sr_vs_i[3] <= sr_vs_i[2];
+    sr_dbg_i[3] <= sr_dbg_i[2];
 
     //stage4
     if (y_round[OVERFLOW_BIT]) yo <= {PIXEL_WIDTH{1'b1}};
@@ -156,6 +165,7 @@ always @ (posedge clk) begin
     sr_de_i[4] <= sr_de_i[3];
     sr_hs_i[4] <= sr_hs_i[3];
     sr_vs_i[4] <= sr_vs_i[3];
+    sr_dbg_i[4] <= sr_dbg_i[3];
 
     //stage5
     r_sum0 <= {2'd0, yo, {COE_FRACTION_WIDTH{1'b0}}} + r_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
@@ -167,6 +177,7 @@ always @ (posedge clk) begin
     sr_de_i[5] <= sr_de_i[4];
     sr_hs_i[5] <= sr_hs_i[4];
     sr_vs_i[5] <= sr_vs_i[4];
+    sr_dbg_i[5] <= sr_dbg_i[4];
 
     //stage6
     //pix' = y + (pix - y)*saturation
@@ -178,6 +189,7 @@ always @ (posedge clk) begin
     sr_de_i[6] <= sr_de_i[5];
     sr_hs_i[6] <= sr_hs_i[5];
     sr_vs_i[6] <= sr_vs_i[5];
+    sr_dbg_i[6] <= sr_dbg_i[5];
 
     //stage7
     r_round <= r_sum1 + $signed(ROUND_ADDER);
@@ -187,22 +199,24 @@ always @ (posedge clk) begin
     sr_de_i[7] <= sr_de_i[6];
     sr_hs_i[7] <= sr_hs_i[6];
     sr_vs_i[7] <= sr_vs_i[6];
+    sr_dbg_i[7] <= sr_dbg_i[6];
 
     //stage8
-    if (r_round[OVERFLOW_BIT+3])                    do_[0] <= {PIXEL_WIDTH{1'b0}};
-    else if (|r_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do_[0] <= {PIXEL_WIDTH{1'b1}};
+    if (r_round[OVERFLOW_BIT+2])                    do_[0] <= {PIXEL_WIDTH{1'b0}};
+    else if (|r_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_[0] <= {PIXEL_WIDTH{1'b1}};
     else                                            do_[0] <= r_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 
-    if (g_round[OVERFLOW_BIT+3])                    do_[1] <= {PIXEL_WIDTH{1'b0}};
-    else if (|g_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do_[1] <= {PIXEL_WIDTH{1'b1}};
+    if (g_round[OVERFLOW_BIT+2])                    do_[1] <= {PIXEL_WIDTH{1'b0}};
+    else if (|g_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_[1] <= {PIXEL_WIDTH{1'b1}};
     else                                            do_[1] <= g_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 
-    if (b_round[OVERFLOW_BIT+3])                    do_[2] <= {PIXEL_WIDTH{1'b0}};
-    else if (|b_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) do_[2] <= {PIXEL_WIDTH{1'b1}};
+    if (b_round[OVERFLOW_BIT+2])                    do_[2] <= {PIXEL_WIDTH{1'b0}};
+    else if (|b_round[OVERFLOW_BIT+1:OVERFLOW_BIT]) do_[2] <= {PIXEL_WIDTH{1'b1}};
     else                                            do_[2] <= b_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
     de_o <= sr_de_i[7];
     hs_o <= sr_hs_i[7];
     vs_o <= sr_vs_i[7];
+    dbg_o <= sr_dbg_i[7];
 
 end
 
