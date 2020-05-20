@@ -22,6 +22,8 @@ int r,g,b;
 real r_out_real,g_out_real,b_out_real;
 
 int saturation;
+int saturation_int;
+real saturation_frac;
 real saturation_real;
 
 real y_real,y_real_t;
@@ -46,30 +48,25 @@ initial begin : sim_main
 
     for (c0=0; c0<3; c0++) begin
         @(posedge clk);
-        saturation_real = 1.0;
+        saturation_int = $urandom_range(2, 0);//$urandom;
+        saturation_frac = ($urandom%1000)/10000.0;
+        saturation_real = saturation_int[1:0] + ((saturation_int[1:0] < 3) ? saturation_frac : 0.0);
+        // saturation_real = 1.0;
         saturation = saturation_real * COE_MULT;
 
         // $urandom_range( int unsigned maxval, int unsigned minval = 0 );
-        r = $urandom_range(255, 128); //140 - c0;//255;//
-        g = $urandom_range(255, 128); //140 - c0;//255;//
-        b = $urandom_range(255, 128); //140 - c0;//255;//
-
-        // //r' = y + (r - y)*saturation
-        // //r' = y + (r*saturation - y*saturation
-        // y_real_t = ((ycoe0_real*r) + (ycoe1_real*g) + (ycoe2_real*b));
-        // y_real = (y_real_t > 255) ? 255.0 : y_real_t;
-        // r_out_real = y_real + (r - y_real)*saturation_real;
-        // $display("(y_real * saturation_real): %1.3f*%1.3f=%1.3f", y_real, saturation_real, (y_real*saturation_real));
-        // $display("(r * saturation_real): %03d*%1.3f=%1.3f", r, saturation_real, (r*saturation_real));
-        // $display("(y_real + r*saturation_real): %1.3f + (%03d*%1.3f)=%1.3f",y_real, r, saturation_real, (y_real + r*saturation_real));
-        // $display("(y_real + r*saturation_real) - (y_real * saturation_real): %1.3f - %1.3f=%1.3f",(y_real + r*saturation_real), (y_real*saturation_real), r_out_real);
+        r = $urandom_range(255, 0); //140 - c0;//255;//
+        g = $urandom_range(255, 0); //140 - c0;//255;//
+        b = $urandom_range(255, 0); //140 - c0;//255;//
 
         y_real_t = ((ycoe0_real*r) + (ycoe1_real*g) + (ycoe2_real*b));
         y_real = (y_real_t > 255) ? 255.0 : y_real_t;
         r_out_real = y_real + (r - y_real)*saturation_real;
         g_out_real = y_real + (g - y_real)*saturation_real;
         b_out_real = y_real + (b - y_real)*saturation_real;
-        $display("x[%03d]: saturation=%1.3f; y=%1.3f", c0, saturation_real ,y_real);
+
+        $display("x[%03d]: saturation=%1.3f", c0, saturation_real);
+        $display("\t Lumma:Y(in)=%1.3f", y_real);
         $display("\t r(in)=%03d; r(out)=%1.3f", r, r_out_real);
         $display("\t g(in)=%03d; g(out)=%1.3f", g, g_out_real);
         $display("\t b(in)=%03d; b(out)=%1.3f", b, b_out_real);
