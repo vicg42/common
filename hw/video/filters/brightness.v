@@ -29,11 +29,12 @@ module brightness #(
     input clk
 );
 
-localparam ZERO_FILL = (COE_WIDTH - PIXEL_WIDTH);
-localparam OVERFLOW_BIT = COE_FRACTION_WIDTH + PIXEL_WIDTH;
 reg [3:0] sr_de_i = 0;
 reg [3:0] sr_hs_i = 0;
 reg [3:0] sr_vs_i = 0;
+
+localparam ZERO_FILL = (COE_WIDTH - PIXEL_WIDTH);
+localparam OVERFLOW_BIT = COE_FRACTION_WIDTH + PIXEL_WIDTH;
 
 wire [COE_WIDTH-1:0] di [2:0];
 reg [PIXEL_WIDTH-1:0] do_ [2:0];
@@ -45,9 +46,9 @@ generate
     end
 endgenerate
 wire [COE_WIDTH-1:0] contrast;
-assign contrast = contrast_i[0 +: COE_WIDTH];
 wire [COE_WIDTH-1:0] brightness;
-assign brightness = {{ZERO_FILL{1'b0}}, brightness_i[0 +: COE_WIDTH]};
+assign contrast = contrast_i[0 +: COE_WIDTH];
+assign brightness = brightness_i[0 +: COE_WIDTH];
 
 reg [(COE_WIDTH*2)-1:0] br_sum = 0;
 reg [(COE_WIDTH*2)-1:0] sr_br_sum = 0;
