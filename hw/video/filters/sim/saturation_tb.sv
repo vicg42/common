@@ -87,9 +87,9 @@ initial begin : sim_main
         saturation = saturation_real * COE_MULT;
 
         // $urandom_range( int unsigned maxval, int unsigned minval = 0 );
-        r = $urandom_range(255, 0); //140 - c0;//255;//
-        g = $urandom_range(255, 0); //140 - c0;//255;//
-        b = $urandom_range(255, 0); //140 - c0;//255;//
+        r = $urandom_range(255, 0);
+        g = $urandom_range(255, 0);
+        b = $urandom_range(255, 0);
 
         y_real_t = ((ycoe0_real*r) + (ycoe1_real*g) + (ycoe2_real*b));
         r_out_real = y_real_t + (r - y_real_t) * saturation_real;
