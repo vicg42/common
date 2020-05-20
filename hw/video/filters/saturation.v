@@ -43,11 +43,11 @@ reg [7:0] sr_de_i = 0;
 reg [7:0] sr_hs_i = 0;
 reg [7:0] sr_vs_i = 0;
 
-reg [COE_WIDTH-1:0] sr0_di [2:0];
-reg [COE_WIDTH-1:0] sr1_di [2:0];
-reg [COE_WIDTH-1:0] sr2_di [2:0];
-reg [COE_WIDTH-1:0] sr3_di [2:0];
-reg [COE_WIDTH-1:0] sr4_di [2:0];
+reg [PIXEL_WIDTH-1:0] sr0_di [2:0];// = { {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}} };
+reg [PIXEL_WIDTH-1:0] sr1_di [2:0];// = { {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}} };
+reg [PIXEL_WIDTH-1:0] sr2_di [2:0];// = { {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}} };
+reg [PIXEL_WIDTH-1:0] sr3_di [2:0];// = { {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}} };
+reg [PIXEL_WIDTH-1:0] sr4_di [2:0];// = { {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}}, {PIXEL_WIDTH{1'b0}} };
 
 reg [(COE_WIDTH*2)-1:0] yr_m = 0;
 reg [(COE_WIDTH*2)-1:0] yg_m = 0;
@@ -56,7 +56,7 @@ reg [(COE_WIDTH*2)-1:0] yb_m = 0;
 reg [(COE_FRACTION_WIDTH + PIXEL_WIDTH):0] yrg_m = 0;
 reg [(COE_FRACTION_WIDTH + PIXEL_WIDTH)+1:0] y = 0;
 reg [(COE_FRACTION_WIDTH + PIXEL_WIDTH)+2:0] y_round = 0;
-reg [PIXEL_WIDTH-1:0] y_o = 0;
+reg [PIXEL_WIDTH-1:0] yo = 0;
 
 reg [(COE_WIDTH*2)-1:0] r_m = 0;
 reg [(COE_WIDTH*2)-1:0] g_m = 0;
@@ -66,9 +66,7 @@ reg [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0] r_sum0 = 0;
 reg [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0] g_sum0 = 0;
 reg [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0] b_sum0 = 0;
 
-reg [(COE_WIDTH*2)-1:0] r_ym = 0;
-reg [(COE_WIDTH*2)-1:0] g_ym = 0;
-reg [(COE_WIDTH*2)-1:0] b_ym = 0;
+reg [(COE_WIDTH*2)-1:0] yo_m = 0;
 
 reg signed [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+2:0] r_sum1 = 0;
 reg signed [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+2:0] g_sum1 = 0;
@@ -99,7 +97,6 @@ assign ycoe2 = ycoe2_i[0 +: COE_WIDTH];
 
 always @ (posedge clk) begin
     //stage0
-    //y = (ycoe0*r) + (ycoe1*g) + (ycoe2*b)
     yr_m <= ycoe0 * di[0];
     yg_m <= ycoe1 * di[1];
     yb_m <= ycoe2 * di[2];
@@ -120,7 +117,7 @@ always @ (posedge clk) begin
     sr_vs_i[1] <= sr_vs_i[0];
 
     //stage2
-    //y = (0.299*r) + (0.587*g) + (0.114*b)
+    //y = (ycoe0*r) + (ycoe1*g) + (ycoe2*b)
     y <= {1'b0, yrg_m} + {2'b00, yb_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH)-1:0]};
 
     {sr2_di[2], sr2_di[1], sr2_di[0]} <= {sr1_di[2], sr1_di[1], sr1_di[0]};
@@ -139,8 +136,8 @@ always @ (posedge clk) begin
     sr_vs_i[3] <= sr_vs_i[2];
 
     //stage4
-    if (y_round[OVERFLOW_BIT]) y_o <= {PIXEL_WIDTH{1'b1}};
-    else                       y_o <= y_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+    if (y_round[OVERFLOW_BIT]) yo <= {PIXEL_WIDTH{1'b1}};
+    else                       yo <= y_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 
     r_m <= saturation * sr3_di[0];
     g_m <= saturation * sr3_di[1];
@@ -153,22 +150,22 @@ always @ (posedge clk) begin
     sr_vs_i[4] <= sr_vs_i[3];
 
     //stage5
-    r_sum0 <= y_o + r_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
-    g_sum0 <= y_o + g_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
-    b_sum0 <= y_o + b_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
+    r_sum0 <= {2'd0, yo, {COE_FRACTION_WIDTH{1'b0}}} + r_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
+    g_sum0 <= {2'd0, yo, {COE_FRACTION_WIDTH{1'b0}}} + g_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
+    b_sum0 <= {2'd0, yo, {COE_FRACTION_WIDTH{1'b0}}} + b_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
 
-    r_ym <= y_o * sr4_di[0];
-    g_ym <= y_o * sr4_di[1];
-    b_ym <= y_o * sr4_di[2];
+    yo_m <= saturation * yo;
 
     sr_de_i[5] <= sr_de_i[4];
     sr_hs_i[5] <= sr_hs_i[4];
     sr_vs_i[5] <= sr_vs_i[4];
 
     //stage6
-    r_sum1 <= $signed({1'b0, r_sum0}) - $signed({1'b0,r_ym[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0]});
-    g_sum1 <= $signed({1'b0, g_sum0}) - $signed({1'b0,g_ym[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0]});
-    b_sum1 <= $signed({1'b0, b_sum0}) - $signed({1'b0,b_ym[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0]});
+    //pix' = y + (pix - y)*saturation
+    //pix' = y + pix*saturation - y*saturation
+    r_sum1 <= $signed({1'b0, r_sum0}) - $signed({1'b0,yo_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0]});
+    g_sum1 <= $signed({1'b0, g_sum0}) - $signed({1'b0,yo_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0]});
+    b_sum1 <= $signed({1'b0, b_sum0}) - $signed({1'b0,yo_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0]});
 
     sr_de_i[6] <= sr_de_i[5];
     sr_hs_i[6] <= sr_hs_i[5];
