@@ -10,11 +10,10 @@
 module saturation #(
     parameter PIXEL_WIDTH = 8
 )(
-    input [15:0] saturation_i, //(Q3.6) unsigned fixed point. 64(0x40) is 1.000
-
-    input [15:0] ycoe0_i, //(Q3.6) unsigned fixed point. 64(0x40) is 1.000
-    input [15:0] ycoe1_i, //(Q3.6) unsigned fixed point. 64(0x40) is 1.000
-    input [15:0] ycoe2_i, //(Q3.6) unsigned fixed point. 64(0x40) is 1.000
+    input [15:0] saturation_i,
+    input [15:0] ycoe0_i,
+    input [15:0] ycoe1_i,
+    input [15:0] ycoe2_i,
 
     //R [PIXEL_WIDTH*0 +: PIXEL_WIDTH]
     //G [PIXEL_WIDTH*1 +: PIXEL_WIDTH]
@@ -32,6 +31,7 @@ module saturation #(
     input clk
 );
 
+//(Q3.6) unsigned fixed point. 64(0x40) is 1.000
 localparam  COE_WIDTH = 9;
 localparam  COE_FRACTION_WIDTH = 6;
 
@@ -56,7 +56,7 @@ reg [(COE_WIDTH*2)-1:0] yb_m = 0;
 reg [(COE_FRACTION_WIDTH + PIXEL_WIDTH):0] yrg_m = 0;
 reg [(COE_FRACTION_WIDTH + PIXEL_WIDTH)+1:0] y = 0;
 reg [(COE_FRACTION_WIDTH + PIXEL_WIDTH)+2:0] y_round = 0;
-reg [PIXEL_WIDTH-2:0] y_o = 0;
+reg [PIXEL_WIDTH-1:0] y_o = 0;
 
 reg [(COE_WIDTH*2)-1:0] r_m = 0;
 reg [(COE_WIDTH*2)-1:0] g_m = 0;
@@ -77,8 +77,6 @@ reg signed [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+2:0] b_sum1 = 0;
 reg signed [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+3:0] r_round = 0;
 reg signed [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+3:0] g_round = 0;
 reg signed [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+3:0] b_round = 0;
-
-
 
 wire [COE_WIDTH-1:0] di [2:0];
 reg [PIXEL_WIDTH-1:0] do_ [2:0];
@@ -113,7 +111,7 @@ always @ (posedge clk) begin
     sr_vs_i[0] <= vs_i;
 
     //stage1
-    yrg_m <= {1'b0, yr_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH)-1:0]} + {1'b0, yr_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH)-1:0]};
+    yrg_m <= {1'b0, yr_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH)-1:0]} + {1'b0, yg_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH)-1:0]};
 
     {sr1_di[2], sr1_di[1], sr1_di[0]} <= {sr0_di[2], sr0_di[1], sr0_di[0]};
 
@@ -123,7 +121,6 @@ always @ (posedge clk) begin
 
     //stage2
     //y = (0.299*r) + (0.587*g) + (0.114*b)
-    //r' = y + (r - y)*saturation
     y <= {1'b0, yrg_m} + {2'b00, yb_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH)-1:0]};
 
     {sr2_di[2], sr2_di[1], sr2_di[0]} <= {sr1_di[2], sr1_di[1], sr1_di[0]};
@@ -142,10 +139,12 @@ always @ (posedge clk) begin
     sr_vs_i[3] <= sr_vs_i[2];
 
     //stage4
-    if (|y_round[OVERFLOW_BIT+2:OVERFLOW_BIT]) y_o <= {PIXEL_WIDTH{1'b1}};
-    else                                       y_o <= y_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
+    if (y_round[OVERFLOW_BIT]) y_o <= {PIXEL_WIDTH{1'b1}};
+    else                       y_o <= y_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 
     r_m <= saturation * sr3_di[0];
+    g_m <= saturation * sr3_di[1];
+    b_m <= saturation * sr3_di[2];
 
     {sr4_di[2], sr4_di[1], sr4_di[0]} <= {sr3_di[2], sr3_di[1], sr3_di[0]};
 
@@ -155,8 +154,12 @@ always @ (posedge clk) begin
 
     //stage5
     r_sum0 <= y_o + r_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
+    g_sum0 <= y_o + g_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
+    b_sum0 <= y_o + b_m[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2):0];
 
     r_ym <= y_o * sr4_di[0];
+    g_ym <= y_o * sr4_di[1];
+    b_ym <= y_o * sr4_di[2];
 
     sr_de_i[5] <= sr_de_i[4];
     sr_hs_i[5] <= sr_hs_i[4];
@@ -164,6 +167,8 @@ always @ (posedge clk) begin
 
     //stage6
     r_sum1 <= $signed({1'b0, r_sum0}) - $signed({1'b0,r_ym[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0]});
+    g_sum1 <= $signed({1'b0, g_sum0}) - $signed({1'b0,g_ym[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0]});
+    b_sum1 <= $signed({1'b0, b_sum0}) - $signed({1'b0,b_ym[(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+1:0]});
 
     sr_de_i[6] <= sr_de_i[5];
     sr_hs_i[6] <= sr_hs_i[5];
@@ -171,6 +176,8 @@ always @ (posedge clk) begin
 
     //stage7
     r_round <= r_sum1 + $signed(ROUND_ADDER);
+    g_round <= g_sum1 + $signed(ROUND_ADDER);
+    b_round <= b_sum1 + $signed(ROUND_ADDER);
 
     sr_de_i[7] <= sr_de_i[6];
     sr_hs_i[7] <= sr_hs_i[6];
