@@ -16,7 +16,7 @@ import os
 usrfile_I = ""
 usrfile_O = ""
 brightness = 0
-contrast_val = 1
+contrast = 1.0
 saturation = 1.0
 
 cpath = os.getcwd()
@@ -38,16 +38,16 @@ def help() :
     print('\t-h  --help')
     print('\t-i  --input   path to input file')
     print('\t-o  --output  path to output file')
-    print('\t-c            contrast value')
-    print('\t-b            brightness value')
-    print('\t-s            saturation value')
+    print('\t-b            brightness value. default 0')
+    print('\t-c            contrast value. default 1.0')
+    print('\t-s            saturation value. default 1.0')
     print("usage:")
     print("\t python ./%s -i <path to input file>" % (os.path.basename(__file__)))
     sys.exit()
 
 for opt, arg in options:
     if opt in ('-c'):
-        contrast_val = int(arg)
+        contrast_val = float(arg)
     elif opt in ('-b'):
         brightness = int(arg)
     elif opt in ('-s'):
@@ -74,11 +74,11 @@ print ("frame: %d x %d" % (frame_w, frame_h))
 print ("R,G,B(min): %d, %d, %d" % (np.amin(r),np.amin(g),np.amin(b)))
 print ("R,G,B(max): %d, %d, %d" % (np.amax(r),np.amax(g),np.amax(b)))
 
-contrast = (259*(contrast_val+255)) / (255*(259-contrast_val))
-
+# contrast = (259*(contrast_val+255)) / (255*(259-contrast_val))
+# print ("contrast_val(value): %d; contrast: %f" % (contrast_val, contrast))
 print ("\nuser ctrl:")
 print ("brigtness: " + str(brightness))
-print ("contrast_val(value): %d; contrast: %f" % (contrast_val, contrast))
+print ("contrast: %f" % (contrast))
 print ("saturation(value): " + str(saturation))
 
 # imgYUV_in = cv2.cvtColor(imgRGB_in, cv2.COLOR_BGR2YUV)
