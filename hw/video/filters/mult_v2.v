@@ -27,15 +27,15 @@ module mult_v2 #(
     output reg                   hs_o = 0,
     output reg                   vs_o = 0,
 
-    output [15:0] coe0_o,
-    output [15:0] coe1_o,
-    output [15:0] coe2_o,
-    output [15:0] coe3_o,
-    output [15:0] coe4_o,
-    output [15:0] coe5_o,
-    output [15:0] coe6_o,
-    output [15:0] coe7_o,
-    output [15:0] coe8_o,
+    // output [15:0] coe0_o,
+    // output [15:0] coe1_o,
+    // output [15:0] coe2_o,
+    // output [15:0] coe3_o,
+    // output [15:0] coe4_o,
+    // output [15:0] coe5_o,
+    // output [15:0] coe6_o,
+    // output [15:0] coe7_o,
+    // output [15:0] coe8_o,
 
     input clk,
     input rst
@@ -75,15 +75,15 @@ generate
     end
 endgenerate
 
-assign coe0_o = {2'd0, coe[0]};
-assign coe1_o = {2'd0, coe[1]};
-assign coe2_o = {2'd0, coe[2]};
-assign coe3_o = {2'd0, coe[3]};
-assign coe4_o = {2'd0, coe[4]};
-assign coe5_o = {2'd0, coe[5]};
-assign coe6_o = {2'd0, coe[6]};
-assign coe7_o = {2'd0, coe[7]};
-assign coe8_o = {2'd0, coe[8]};
+// assign coe0_o = {2'd0, coe[0]};
+// assign coe1_o = {2'd0, coe[1]};
+// assign coe2_o = {2'd0, coe[2]};
+// assign coe3_o = {2'd0, coe[3]};
+// assign coe4_o = {2'd0, coe[4]};
+// assign coe5_o = {2'd0, coe[5]};
+// assign coe6_o = {2'd0, coe[6]};
+// assign coe7_o = {2'd0, coe[7]};
+// assign coe8_o = {2'd0, coe[8]};
 
 wire [13:0] di [3-1:0];
 reg [PIXEL_WIDTH-1:0] do_ [3-1:0];
