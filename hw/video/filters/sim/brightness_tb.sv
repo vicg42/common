@@ -6,7 +6,7 @@
 `timescale 1ns / 1ps
 
 module brightness_tb # (
-    parameter TEST_SAMPLE_COUNT = 8,
+    parameter TEST_SAMPLE_COUNT = 308,
     parameter COE_MULT = 64,
     parameter PIXEL_WIDTH = 8
 )();
@@ -35,6 +35,8 @@ int b_out_int;
 
 reg de_i = 1'b0;
 wire de_o;
+int nsample_i;
+int nsample_o;
 
 int c0;
 initial begin : sim_main
@@ -48,13 +50,17 @@ initial begin : sim_main
 
     for (c0=0; c0<TEST_SAMPLE_COUNT; c0++) begin
         @(posedge clk);
+        nsample_i = c0;
         de_i = 1'b1;
 
-        contrast_int = $urandom_range(2, 0);//$urandom;
+        contrast_int = $urandom_range(2, 0);
         contrast_frac = ($urandom%1000)/10000.0;
         contrast_real = contrast_int[1:0] + ((contrast_int[1:0] < 3) ? contrast_frac : 0.0);
-        // contrast_real = 1.0;
+        // contrast_real = 3.0;
         contrast = contrast_real * COE_MULT;
+
+        brightness = $random()%127; //$random_range(127, 0);
+        // brightness = 127;
 
         // $urandom_range( int unsigned maxval, int unsigned minval = 0 );
         r = $urandom_range(255, 0);
@@ -69,16 +75,14 @@ initial begin : sim_main
         g_out_int = ($rtoi(g_out_real) > 255) ? 255 : ($rtoi(g_out_real) < 0) ? 0 : $rtoi(g_out_real);
         b_out_int = ($rtoi(b_out_real) > 255) ? 255 : ($rtoi(b_out_real) < 0) ? 0 : $rtoi(b_out_real);
 
-        $display("x[%03d]: ", c0, y, contrast_real, (coe_real*(y - 128) + 128) );
-        $display("x[%03d]: brightness=%03d; contrast=(%1.3f, %04d(dec))", c0, brightness, saturation_real, saturation);
+        $display("x[%03d]: brightness=%03d; contrast=(%1.3f, %04d(dec))", c0, brightness, contrast_real, contrast);
         $display("\t r(in)=%03d; calc out r: %1.3f(float), (%03d)(normalize)", r, r_out_real, r_out_int);
         $display("\t g(in)=%03d; calc out g: %1.3f(float), (%03d)(normalize)", g, g_out_real, g_out_int);
         $display("\t b(in)=%03d; calc out b: %1.3f(float), (%03d)(normalize)", b, b_out_real, b_out_int);
         $display("\n");
-
-        #50;
     end
 
+    #5000
     $stop;
 
 end : sim_main
@@ -99,6 +103,9 @@ brightness #(
     .de_o(),
     .hs_o(),
     .vs_o(),
+
+    .dbg_i(nsample_i[15:0]),
+    .dbg_o(),
 
     .clk(clk)
 );
