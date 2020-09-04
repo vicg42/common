@@ -75,17 +75,17 @@ always @ (posedge clk) begin
 end
 
 always @ (posedge clk) begin
-    if (|mr_round[20:OVERFLOW_BIT]) do_[0] <= {PIXEL_WIDTH{1'b1}};
+    if (|mr_round[24:OVERFLOW_BIT]) do_[0] <= {PIXEL_WIDTH{1'b1}};
     else                            do_[0] <= mr_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 end
 
 always @ (posedge clk) begin
-    if (|mg_round[20:OVERFLOW_BIT]) do_[1] <= {PIXEL_WIDTH{1'b1}};
+    if (|mg_round[24:OVERFLOW_BIT]) do_[1] <= {PIXEL_WIDTH{1'b1}};
     else                            do_[1] <= mg_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 end
 
 always @ (posedge clk) begin
-    if (|mb_round[20:OVERFLOW_BIT]) do_[2] <= {PIXEL_WIDTH{1'b1}};
+    if (|mb_round[24:OVERFLOW_BIT]) do_[2] <= {PIXEL_WIDTH{1'b1}};
     else                            do_[2] <= mb_round[COE_FRACTION_WIDTH +: PIXEL_WIDTH];
 end
 

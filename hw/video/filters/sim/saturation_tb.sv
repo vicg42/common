@@ -8,7 +8,7 @@
 module saturation_tb # (
     parameter TEST_SAMPLE_COUNT = 8,
     parameter COE_MULT = 64,
-    parameter PIXEL_WIDTH = 8
+    parameter PIXEL_WIDTH = 10
 )();
 
 //***********************************
@@ -87,9 +87,15 @@ initial begin : sim_main
         saturation = saturation_real * COE_MULT;
 
         // $urandom_range( int unsigned maxval, int unsigned minval = 0 );
-        r = $urandom_range(255, 0);
-        g = $urandom_range(255, 0);
-        b = $urandom_range(255, 0);
+        if (PIXEL_WIDTH == 10) begin
+            r = $urandom_range(1023, 0);
+            g = $urandom_range(1023, 0);
+            b = $urandom_range(1023, 0);
+        end else begin
+            r = $urandom_range(255, 0);
+            g = $urandom_range(255, 0);
+            b = $urandom_range(255, 0);
+        end
 
         y_real_t = ((ycoe0_real*r) + (ycoe1_real*g) + (ycoe2_real*b));
         r_out_real = y_real_t + (r - y_real_t) * saturation_real;
@@ -106,11 +112,19 @@ initial begin : sim_main
         // g2 = ((g2_t / COE_MULT) > 255) ? 255 : (g2_t / COE_MULT) ;
         // b2 = ((b2_t / COE_MULT) > 255) ? 255 : (b2_t / COE_MULT) ;
 
-        y_real = (y_real_t > 255) ? 255.0 : y_real_t;
+        if (PIXEL_WIDTH == 10) begin
+            y_real = (y_real_t > 1023) ? 1023.0 : y_real_t;
 
-        r_out_int = ($rtoi(r_out_real) > 255) ? 255 : ($rtoi(r_out_real) < 0) ? 0 : $rtoi(r_out_real);//int'(r_out_real);//int'(r_out_real);
-        g_out_int = ($rtoi(g_out_real) > 255) ? 255 : ($rtoi(g_out_real) < 0) ? 0 : $rtoi(g_out_real);//int'(g_out_real);//int'(g_out_real);
-        b_out_int = ($rtoi(b_out_real) > 255) ? 255 : ($rtoi(b_out_real) < 0) ? 0 : $rtoi(b_out_real);//int'(b_out_real);//int'(b_out_real);
+            r_out_int = ($rtoi(r_out_real) > 1023) ? 1023 : ($rtoi(r_out_real) < 0) ? 0 : $rtoi(r_out_real);//int'(r_out_real);//int'(r_out_real);
+            g_out_int = ($rtoi(g_out_real) > 1023) ? 1023 : ($rtoi(g_out_real) < 0) ? 0 : $rtoi(g_out_real);//int'(g_out_real);//int'(g_out_real);
+            b_out_int = ($rtoi(b_out_real) > 1023) ? 1023 : ($rtoi(b_out_real) < 0) ? 0 : $rtoi(b_out_real);//int'(b_out_real);//int'(b_out_real);
+        end else begin
+            y_real = (y_real_t > 255) ? 255.0 : y_real_t;
+
+            r_out_int = ($rtoi(r_out_real) > 255) ? 255 : ($rtoi(r_out_real) < 0) ? 0 : $rtoi(r_out_real);//int'(r_out_real);//int'(r_out_real);
+            g_out_int = ($rtoi(g_out_real) > 255) ? 255 : ($rtoi(g_out_real) < 0) ? 0 : $rtoi(g_out_real);//int'(g_out_real);//int'(g_out_real);
+            b_out_int = ($rtoi(b_out_real) > 255) ? 255 : ($rtoi(b_out_real) < 0) ? 0 : $rtoi(b_out_real);//int'(b_out_real);//int'(b_out_real);
+        end
         // r_calc_sample[c0] =
         // g_calc_sample[c0] =
         // b_calc_sample[c0] =

@@ -18,7 +18,7 @@ module mult_v1_tb # (
     parameter LINE_SIZE_MAX = 4096,
     parameter COE_WIDTH = 16,
     parameter COE_COUNT = 3,
-    parameter PIXEL_WIDTH = 8
+    parameter PIXEL_WIDTH = 10
 )();
 
 BMP_IO image_real;
@@ -120,9 +120,9 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                // r_num[0] = 6.00;
-                // r_num[1] = 0.00;
-                // r_num[2] = 0.00;
+                // r_num[0] = 1.10;
+                // r_num[1] = 1.10;
+                // r_num[2] = 1.10;
                 // //ganerate random real numbers
                 for (c0=0;c0<COE_COUNT;c0++) begin
                     r_num_int = $urandom;
@@ -134,7 +134,7 @@ initial begin : sim_main
                     //                                                 , coe[c0][13:0]
                     //                                                 , coe[c0][13:0]);
                 end
-                di[0] = $urandom_range(255,0);//46;//255;//
+                di[0] = $urandom_range(1023,0);//46;//255;//
                 di[1] = 0;
                 di[2] = 0;
                 $display("coe[%02d]: %04.5f; %d(dec); %x(hex)", 0, r_num[0], coe[0][15:0], coe[0][15:0]);

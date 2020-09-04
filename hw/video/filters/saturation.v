@@ -34,8 +34,8 @@ module saturation #(
     input clk
 );
 
-//(Q3.6) unsigned fixed point. 64(0x40) is 1.000
-localparam  COE_WIDTH = 9;
+//(Q5.6) unsigned fixed point. 64(0x40) is 1.000
+localparam  COE_WIDTH = 11;
 localparam  COE_FRACTION_WIDTH = 6;
 
 localparam ZERO_FILL = (COE_WIDTH - PIXEL_WIDTH);
