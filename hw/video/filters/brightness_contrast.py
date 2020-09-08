@@ -47,7 +47,7 @@ def help() :
 
 for opt, arg in options:
     if opt in ('-c'):
-        contrast_val = float(arg)
+        contrast = float(arg)
     elif opt in ('-b'):
         brightness = int(arg)
     elif opt in ('-s'):
