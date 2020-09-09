@@ -30,8 +30,8 @@ module brightness #(
     input clk
 );
 
-//(Q3.6) unsigned fixed point. 64(0x40) is 1.000
-localparam  COE_WIDTH = 9;
+//(Q5.6) unsigned fixed point. 64(0x40) is 1.000
+localparam  COE_WIDTH = 11;
 localparam  COE_FRACTION_WIDTH = 6;
 
 localparam ZERO_FILL = (COE_WIDTH - PIXEL_WIDTH);
@@ -65,7 +65,7 @@ reg signed [(COE_FRACTION_WIDTH + PIXEL_WIDTH + 2)+2:0] b_round = 0;
 wire [COE_WIDTH-1:0] di [0:2];
 reg [PIXEL_WIDTH-1:0] do_ [0:2];
 wire [COE_WIDTH-1:0] contrast;
-wire [PIXEL_WIDTH-1:0] brightness;
+wire [7:0] brightness;
 
 reg [15:0] sr_dbg_i [0:3];
 
@@ -77,14 +77,17 @@ generate
     end
 endgenerate
 assign contrast = contrast_i[0 +: COE_WIDTH];
-assign brightness = brightness_i[0 +: PIXEL_WIDTH];
+assign brightness = brightness_i[0 +: 8];
 
 always @ (posedge clk) begin
     //stage0
+    if (PIXEL_WIDTH == 8) begin
     br_sum <= $signed({1'b0,8'd128, {COE_FRACTION_WIDTH{1'b0}}}) + $signed({brightness, {COE_FRACTION_WIDTH{1'b0}}});
-
-    mcoe_x128 <= {contrast, 7'd0}; //contrast * 128; //
-
+    mcoe_x128 <= {contrast, 7'd0}; //contrast * 128
+    end else begin
+    br_sum <= $signed({1'b0,10'd512, {COE_FRACTION_WIDTH{1'b0}}}) + $signed({brightness,2'd0, {COE_FRACTION_WIDTH{1'b0}}});
+    mcoe_x128 <= {contrast, 9'd0}; //contrast * 512
+    end
     r_m <= contrast * di[0];
     g_m <= contrast * di[1];
     b_m <= contrast * di[2];
