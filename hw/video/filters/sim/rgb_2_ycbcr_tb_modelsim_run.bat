@@ -1,0 +1,1 @@
+vsim -do ./rgb_2_ycbcr_tb.do
