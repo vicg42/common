@@ -1,0 +1,1 @@
+vsim -do ./timing_gen_tb.do
