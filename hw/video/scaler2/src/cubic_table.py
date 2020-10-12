@@ -1,8 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-x_resolution = 1024
-y_resolution = 512
+x_resolution = 256
+y_resolution = 128
 
 # x = np.linspace(0.0, 1.0, num=x_resolution, endpoint=False)
 x = np.linspace(-2.0, 2.0, num=x_resolution*4, endpoint=False)
@@ -36,12 +36,12 @@ for i in range(x_resolution):
     f3.write(bin(-f[i + x_resolution*3])[2:] + '\n')
     # print(f[i + x_resolution*0])
 
-# print(len(f))
 # print(x[0])
 # print(x[1024])
 # print(x[2048])
 # print(x[3072])
 # print(x)
+print(len(f))
 
 plt.plot(x, f)
 plt.grid(True)
