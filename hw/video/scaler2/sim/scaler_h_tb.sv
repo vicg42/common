@@ -78,7 +78,7 @@ end
 
 
 localparam PIXEL_STEP = 4096;
-localparam real H_SCALE = 1.666666666666666;
+localparam real H_SCALE = 2.0;//2.666666666666666;
 logic [15:0] scale_step_h = H_SCALE*PIXEL_STEP;
 
 
