@@ -1,84 +1,77 @@
-module scaler_horisontal #(
-    parameter WIDTH = 12,
+module scaler_h #(
+    parameter PIX_WIDTH = 12,
     parameter TABLE_INPUT_WIDTH = 10
 )(
     input clk,
 
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
-    input [15:0] horisontal_scale_step,
+    input [15:0] scale_step_h,
 
-    input [WIDTH-1:0] d_in,
-    input dv_in,
-    input hs_in,
-    input vs_in,
-    
-    output reg [WIDTH-1:0] d_out = 0,
-    output reg dv_out = 0,
-    output reg hs_out = 0,
-    output reg vs_out = 0
+    input [PIX_WIDTH-1:0] di_i,
+    input de_i,
+    input hs_i,
+    input vs_i,
+
+    output reg [PIX_WIDTH-1:0] do_o = 0,
+    output reg de_o = 0,
+    output reg hs_o = 0,
+    output reg vs_o = 0
 );
 // -------------------------------------------------------------------------
 
-reg [WIDTH-1:0] d_in_d0 = 0;
-reg [WIDTH-1:0] d_in_d1 = 0;
-reg [WIDTH-1:0] d_in_d2 = 0;
-reg [WIDTH-1:0] d_in_d3 = 0;
+reg [PIX_WIDTH-1:0] sr_di_i[3:0];
 
-reg [WIDTH-1:0] m0 = 0;
-reg [WIDTH-1:0] m1 = 0;
-reg [WIDTH-1:0] m2 = 0;
-reg [WIDTH-1:0] m3 = 0;
+reg [PIX_WIDTH-1:0] m0 = 0;
+reg [PIX_WIDTH-1:0] m1 = 0;
+reg [PIX_WIDTH-1:0] m2 = 0;
+reg [PIX_WIDTH-1:0] m3 = 0;
 
 localparam [15:0] PIXEL_STEP = 4096;
 
-reg [23:0] input_cntr = 0;              // input pixels coordinate counter
-reg [23:0] output_cntr = 0;             // output pixels coordinate counter
+reg [23:0] cnt_i = 0;              // input pixels coordinate counter
+reg [23:0] cnt_o = 0;             // output pixels coordinate counter
 
-reg new_pixel = 0;
-reg new_pixel_d = 0;
-reg new_pixel_dd = 0;
+reg new_pix = 0;
+reg [1:0] sr_new_pix = 0;
 reg line_start = 0;
 reg new_line = 0;
-reg new_line_d = 0;
-reg new_line_dd = 0;
-reg frame_start = 0;
-reg new_frame = 0;
-reg new_frame_d = 0;
-reg new_frame_dd = 0;
-
+reg [1:0] sr_new_line = 0;
+reg sof = 0;
+reg new_fr = 0;
+reg [1:0] sr_new_fr = 0;
 
 always @(posedge clk) begin
-    if (dv_in) begin
-        d_in_d0 <= d_in;
-        d_in_d1 <= d_in_d0;
-        d_in_d2 <= d_in_d1;
-        d_in_d3 <= d_in_d2;
-        input_cntr <= input_cntr + PIXEL_STEP;
-        if (hs_in) line_start <= 1;
-        if (vs_in) frame_start <= 1;
+    if (de_i) begin
+        sr_di_i[0] <= di_i;
+        sr_di_i[1] <= sr_di_i[0];
+        sr_di_i[2] <= sr_di_i[1];
+        sr_di_i[3] <= sr_di_i[2];
+        cnt_i <= cnt_i + PIXEL_STEP;
+        if (hs_i) line_start <= 1;
+        if (vs_i) sof <= 1;
     end
-    new_pixel <= 0;
+    new_pix <= 0;
     new_line <= 0;
-    new_frame <= 0;
-    if (input_cntr > output_cntr) begin
-        new_pixel <= 1;
-        m0 <= d_in_d0;
-        m1 <= d_in_d1;
-        m2 <= d_in_d2;
-        m3 <= (input_cntr <= (PIXEL_STEP*2))?1'b0: d_in_d3; // boundary check, needed only for step<1.0 (upsize)
-        output_cntr <= output_cntr + horisontal_scale_step;
+    new_fr <= 0;
+    if (cnt_i > cnt_o) begin
+        new_pix <= 1;
+        m0 <= sr_di_i[0];
+        m1 <= sr_di_i[1];
+        m2 <= sr_di_i[2];
+        m3 <= (cnt_i <= (PIXEL_STEP*2)) ? 1'b0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
+        cnt_o <= cnt_o + scale_step_h;
         if (line_start) begin
             line_start <= 0;
             new_line <= 1;
         end
-        if (frame_start) begin
-            frame_start <= 0;
-            new_frame <= 1;
+        if (sof) begin
+            sof <= 0;
+            new_fr <= 1;
         end
     end
-    if (dv_in && hs_in) begin
-        input_cntr <= 0;
-        output_cntr <= PIXEL_STEP;
+    if (de_i && hs_i) begin
+        cnt_i <= 0;
+        cnt_o <= PIXEL_STEP;
     end
 end
 
@@ -92,16 +85,16 @@ wire [COEFF_WIDTH-1:0] f3;
 localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
 cubic_table cubic_table(
     .clk(clk),
-    .dx(output_cntr[2 +: 10] & TABLE_INPUT_WIDTH_MASK),
+    .dx(cnt_o[2 +: 10] & TABLE_INPUT_WIDTH_MASK),
     .f0(f0),
     .f1(f1),
     .f2(f2),
     .f3(f3)
 );
 
-localparam MUL_WIDTH = COEFF_WIDTH + WIDTH;
-localparam OVERFLOW_BIT = COEFF_WIDTH + WIDTH - 1;
-localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (WIDTH+COEFF_WIDTH)) - 1;
+localparam MUL_WIDTH = COEFF_WIDTH + PIX_WIDTH;
+localparam OVERFLOW_BIT = COEFF_WIDTH + PIX_WIDTH - 1;
+localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (PIX_WIDTH+COEFF_WIDTH)) - 1;
 localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COEFF_WIDTH-2));
 
 (* mult_style = "block" *) reg [MUL_WIDTH-1:0] mul0;
@@ -117,24 +110,24 @@ always @(posedge clk) begin
     mul3 <= f3 * m3;
 
     sum <= mul1 + mul2 - mul0 - mul3 + ROUND_ADDER;
-    if (new_pixel_dd) begin
-        d_out <= sum[COEFF_WIDTH-1 +: WIDTH];
-        if (sum[OVERFLOW_BIT]) d_out <= MAX_OUTPUT;
-        if (sum < 0) d_out <= 0;
-    end 
+    if (sr_new_pix[1]) begin
+        do_o <= sum[COEFF_WIDTH-1 +: PIX_WIDTH];
+        if (sum[OVERFLOW_BIT]) do_o <= MAX_OUTPUT;
+        if (sum < 0) do_o <= 0;
+    end
 
     // Align sync pulses
-    new_pixel_d <= new_pixel;
-    new_pixel_dd <= new_pixel_d;
-    dv_out <= new_pixel_dd;
+    sr_new_pix[0] <= new_pix;
+    sr_new_pix[1] <= sr_new_pix[0];
+    de_o <= sr_new_pix[1];
 
-    new_line_d <= new_line;
-    new_line_dd <= new_line_d;
-    hs_out <= new_line_dd;
+    sr_new_line[0] <= new_line;
+    sr_new_line[1] <= sr_new_line[0];
+    hs_o <= sr_new_line[1];
 
-    new_frame_d <= new_frame;
-    new_frame_dd <= new_frame_d;
-    vs_out <= new_frame_dd;
+    sr_new_fr[0] <= new_fr;
+    sr_new_fr[1] <= sr_new_fr[0];
+    vs_o <= sr_new_fr[1];
 end
 
 endmodule
