@@ -1,7 +1,8 @@
 `timescale 1ns / 1ps
  module scaler_h_tb#(
     parameter H_SCALE = 1.33,//2.666666666666666;
-    parameter PIXEL_STEP = 4096
+    parameter PIXEL_STEP = 4096,
+    parameter PIXEL_WIDTH = 8
 );
 
 reg clk = 1;
@@ -20,15 +21,15 @@ initial begin
 end
 
 
-logic dv_in;
-logic [11:0] d_in;
-logic hs_in;
-logic vs_in;
+logic [PIXEL_WIDTH-1:0] di_i;
+logic de_i;
+logic hs_i;
+logic vs_i;
 
-logic [11:0] d_out;
-logic dv_out;
-logic hs_out;
-logic vs_out;
+logic [PIXEL_WIDTH-1:0] do_o;
+logic de_o;
+logic hs_o;
+logic vs_o;
 
 initial begin
     $dumpfile("icarus/scaler_h_tb.v.fst");
@@ -42,25 +43,25 @@ localparam VIDEO_PIXEL_PERIOD = 4;
 localparam VIDEO_LINE_PERIOD = 24;
 localparam VIDEO_FRAME_PERIOD = 128;
 logic [7:0] pix_cntr = 0;
-logic [10:0] x_cntr = 0;
+logic [PIXEL_WIDTH-1:0] x_cntr = 0;
 logic [10:0] y_cntr = VIDEO_FRAME_PERIOD - 2;
 
 always @(posedge clk) begin
-    dv_in <= 0;
-    hs_in <= 0;
-    vs_in <= 0;
+    de_i <= 0;
+    hs_i <= 0;
+    vs_i <= 0;
     pix_cntr <= pix_cntr + 1'b1;
     if (pix_cntr == (VIDEO_PIXEL_PERIOD - 1)) begin
         pix_cntr <= 0;
-        dv_in <= 1;
+        de_i <= 1;
         x_cntr <= x_cntr + 1'b1;
         if (x_cntr == (VIDEO_LINE_PERIOD - 1)) begin
             x_cntr <= 0;
-            hs_in <= 1;
+            hs_i <= 1;
             y_cntr <= y_cntr + 1'b1;
             if (y_cntr == (VIDEO_FRAME_PERIOD - 1)) begin
                 y_cntr <= 0;
-                vs_in <= 1;
+                vs_i <= 1;
             end
         end
     end
@@ -69,29 +70,29 @@ end
 localparam BLACK = 12'h0;
 localparam WHITE = 12'hFFF;
 always @* begin
-    d_in = x_cntr;//*100; // horisontal gradient
-    // d_in = x_cntr == 50? WHITE: BLACK; // vertical line
-    // d_in = x_cntr[6]? BLACK: WHITE; // vertical stripes
-    // d_in = x_cntr == y_cntr? WHITE: BLACK; // diagonal line
+    di_i = x_cntr;//*100; // horisontal gradient
+    // di_i = x_cntr == 50? WHITE: BLACK; // vertical line
+    // di_i = x_cntr[6]? BLACK: WHITE; // vertical stripes
+    // di_i = x_cntr == y_cntr? WHITE: BLACK; // diagonal line
 end
 
 logic [15:0] scale_step_h = H_SCALE*PIXEL_STEP;
 scaler_h #(
     .PIXEL_STEP(PIXEL_STEP),
-    .PIXEL_WIDTH(12),
+    .PIXEL_WIDTH(PIXEL_WIDTH),
     .TABLE_INPUT_WIDTH(10)
 ) scaler_h_m (
     .scale_step_h(scale_step_h),
 
-    .di_i(d_in ),
-    .de_i(dv_in),
-    .hs_i(hs_in),
-    .vs_i(vs_in),
+    .di_i(di_i),
+    .de_i(de_i),
+    .hs_i(hs_i),
+    .vs_i(vs_i),
 
-    .do_o(d_out ),
-    .de_o(dv_out),
-    .hs_o(hs_out),
-    .vs_o(vs_out),
+    .do_o(do_o),
+    .de_o(de_o),
+    .hs_o(hs_o),
+    .vs_o(vs_o),
 
     .clk(clk)
 );
@@ -99,18 +100,18 @@ scaler_h #(
 
 reg [15:0] dbg_cnt_i = 0;
 always @(posedge clk) begin
-    if (hs_in && dv_in) begin
+    if (hs_i && de_i) begin
         dbg_cnt_i <= 0;
-    end else if (dv_in) begin
+    end else if (de_i) begin
         dbg_cnt_i <= dbg_cnt_i + 1;
     end
 end
 
 reg [15:0] dbg_cnt_o = 0;
 always @(posedge clk) begin
-    if (hs_out && dv_out) begin
+    if (hs_o && de_o) begin
         dbg_cnt_o <= 0;
-    end else if (dv_out) begin
+    end else if (de_o) begin
         dbg_cnt_o <= dbg_cnt_o + 1;
     end
 end
