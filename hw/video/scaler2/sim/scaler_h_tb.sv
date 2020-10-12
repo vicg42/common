@@ -1,5 +1,8 @@
 `timescale 1ns / 1ps
-module scaler_h_tb;
+ module scaler_h_tb#(
+    parameter H_SCALE = 1.33,//2.666666666666666;
+    parameter PIXEL_STEP = 4096
+);
 
 reg clk = 1;
 always #0.5 clk = ~clk;
@@ -70,19 +73,23 @@ localparam BLACK = 12'h0;
 localparam WHITE = 12'hFFF;
 
 always @* begin
-    d_in = x_cntr*100; // horisontal gradient
+    d_in = x_cntr;//*100; // horisontal gradient
     // d_in = x_cntr == 50? WHITE: BLACK; // vertical line
     // d_in = x_cntr[6]? BLACK: WHITE; // vertical stripes
     // d_in = x_cntr == y_cntr? WHITE: BLACK; // diagonal line
 end
 
 
-localparam PIXEL_STEP = 4096;
-localparam real H_SCALE = 2.0;//2.666666666666666;
+// localparam PIXEL_STEP = 4096;
+// localparam real H_SCALE = 2.0;//2.666666666666666;
 logic [15:0] scale_step_h = H_SCALE*PIXEL_STEP;
 
 
-scaler_h scaler_h (
+scaler_h #(
+    .PIXEL_STEP(PIXEL_STEP),
+    .PIXEL_WIDTH(12),
+    .TABLE_INPUT_WIDTH(10)
+) scaler_h_m (
     .scale_step_h(scale_step_h),
 
     .di_i(d_in ),
