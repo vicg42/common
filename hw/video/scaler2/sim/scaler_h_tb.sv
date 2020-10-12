@@ -9,6 +9,7 @@ module scaler_h_tb#(
                              //etc...
     parameter H_SCALE = 2.00,//2.666666666666666;
     parameter PIXEL_STEP = 4096,
+    parameter TABLE_INPUT_WIDTH = 10,
     parameter PIXEL_WIDTH = 8
 );
 
@@ -215,7 +216,7 @@ logic [15:0] scale_step_h = H_SCALE*PIXEL_STEP;
 scaler_h #(
     .PIXEL_STEP(PIXEL_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
-    .TABLE_INPUT_WIDTH(10)
+    .TABLE_INPUT_WIDTH(TABLE_INPUT_WIDTH)
 ) scaler_h_m (
     .scale_step_h(scale_step_h),
 
