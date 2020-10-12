@@ -37,9 +37,6 @@ initial begin
     $display("\007");
 end
 
-//localparam VIDEO_PIXEL_PERIOD = 10;
-//localparam VIDEO_LINE_PERIOD = 128;
-//localparam VIDEO_FRAME_PERIOD = 128;
 
 localparam VIDEO_PIXEL_PERIOD = 4;
 localparam VIDEO_LINE_PERIOD = 24;
@@ -71,7 +68,6 @@ end
 
 localparam BLACK = 12'h0;
 localparam WHITE = 12'hFFF;
-
 always @* begin
     d_in = x_cntr;//*100; // horisontal gradient
     // d_in = x_cntr == 50? WHITE: BLACK; // vertical line
@@ -79,12 +75,7 @@ always @* begin
     // d_in = x_cntr == y_cntr? WHITE: BLACK; // diagonal line
 end
 
-
-// localparam PIXEL_STEP = 4096;
-// localparam real H_SCALE = 2.0;//2.666666666666666;
 logic [15:0] scale_step_h = H_SCALE*PIXEL_STEP;
-
-
 scaler_h #(
     .PIXEL_STEP(PIXEL_STEP),
     .PIXEL_WIDTH(12),
