@@ -105,12 +105,12 @@ localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 reg signed [MULT_WIDTH+2-1:0] sum;
 
 always @(posedge clk) begin
-    mul[0] <= coe[0] * m[0];
-    mul[1] <= coe[1] * m[1];
-    mul[2] <= coe[2] * m[2];
-    mul[3] <= coe[3] * m[3];
+    mult[0] <= coe[0] * m[0];
+    mult[1] <= coe[1] * m[1];
+    mult[2] <= coe[2] * m[2];
+    mult[3] <= coe[3] * m[3];
 
-    sum <= mul[1] + mul[2] - mul[0] - mul[3] + ROUND_ADDER;
+    sum <= mult[1] + mult[2] - mult[0] - mult[3] + ROUND_ADDER;
     if (sr_new_pix[1]) begin
         do_o <= sum[COE_WIDTH-1 +: PIXEL_WIDTH];
         if (sum[OVERFLOW_BIT]) do_o <= MAX_OUTPUT;

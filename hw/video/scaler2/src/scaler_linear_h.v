@@ -3,7 +3,7 @@ module scaler_h #(
     parameter PIXEL_WIDTH = 12,
     parameter COE_WIDTH = 10
 )(
-    // (4.12) unsigned fixed point. PIXEL_STEP is 1.000 scale
+    // unsigned fixed point. PIXEL_STEP is 1.000 scale
     input [15:0] scale_step_h,
 
     input [PIXEL_WIDTH-1:0] di_i,
@@ -35,6 +35,19 @@ reg new_line = 0;
 reg [1:0] sr_new_line = 0;
 reg new_fr = 0;
 reg [1:0] sr_new_fr = 0;
+
+// reg [PIXEL_WIDTH-1:0] di = 0;
+// reg de = 1'b0;
+// reg hs = 1'b0;
+// reg vs = 1'b0;
+// reg sr_hs_i = 1'b0;
+// always @(posedge clk) begin
+//     sr_hs_i <= hs_i;
+//     hs <= sr_hs_i & !hs_i;
+//     vs <= vs_i;
+//     de <= de_i;
+//     di <= di_i;
+// end
 
 always @(posedge clk) begin
     if (de_i) begin
