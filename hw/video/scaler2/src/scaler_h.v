@@ -19,10 +19,7 @@ module scaler_h #(
     input clk
 );
 
-wire [COE_WIDTH-1:0] f0;
-wire [COE_WIDTH-1:0] f1;
-wire [COE_WIDTH-1:0] f2;
-wire [COE_WIDTH-1:0] f3;
+wire [COE_WIDTH-1:0] coe [3:0];
 
 reg [PIXEL_WIDTH-1:0] sr_di_i[3:0];
 
@@ -94,11 +91,11 @@ assign dx = cnt_o[2 +: (PIXEL_STEP/4)];
 cubic_table #(
     .PIXEL_STEP(PIXEL_STEP),
     .COE_WIDTH(COE_WIDTH)
-) cubic_table_m (
-    .f0(f0),
-    .f1(f1),
-    .f2(f2),
-    .f3(f3),
+) coe_table_m (
+    .coe0(coe[0]),
+    .coe1(coe[1]),
+    .coe2(coe[2]),
+    .coe3(coe[3]),
 
     .dx(dx),
     .clk(clk)
@@ -116,10 +113,10 @@ localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2));
 reg signed [MUL_WIDTH+2-1:0] sum;
 
 always @(posedge clk) begin
-    mul0 <= f0 * m0;
-    mul1 <= f1 * m1;
-    mul2 <= f2 * m2;
-    mul3 <= f3 * m3;
+    mul0 <= coe[0] * m0;
+    mul1 <= coe[1] * m1;
+    mul2 <= coe[2] * m2;
+    mul3 <= coe[3] * m3;
 
     sum <= mul1 + mul2 - mul0 - mul3 + ROUND_ADDER;
     if (sr_new_pix[1]) begin
