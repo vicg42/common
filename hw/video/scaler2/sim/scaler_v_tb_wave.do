@@ -7,6 +7,8 @@ add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/di_i
 add wave -noupdate /scaler_v_tb/scaler_v_m/de_i
 add wave -noupdate /scaler_v_tb/scaler_v_m/hs_i
 add wave -noupdate /scaler_v_tb/scaler_v_m/vs_i
+add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/v_scale_step
+add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/v_scale_line_size
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/buf_wcnt
 add wave -noupdate /scaler_v_tb/scaler_v_m/buf_wsel
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/cnt_i
@@ -37,4 +39,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {22679464 ps} {22731191 ps}
+WaveRestoreZoom {0 ps} {530489400 ps}
