@@ -7,7 +7,7 @@ module scaler_v #(
     input clk,
 
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
-    input [15:0] vertical_scale_step,
+    input [15:0] scale_step_v,
     input [15:0] vertical_scale_line_size,
 
     input [PIXEL_WIDTH-1:0] di_i,
@@ -43,7 +43,7 @@ localparam BUF4_NUM = 4;
 
 reg [15:0] buf_wcnt = 0;
 reg [15:0] buf_rcnt = 0;
-reg [9:0] delta_y = 0;
+reg [9:0] dy = 0;
 
 // Store input line process
 always @(posedge clk) begin
@@ -94,7 +94,7 @@ always @(posedge clk) begin
     case (fsm_cs)
         IDLE: begin
             if (cnt_i > cnt_o) begin
-                delta_y <= cnt_o[2 +: 10];
+                dy <= cnt_o[2 +: 10];
                 fsm_cs <= PRM_CYCLE;
             end
         end
@@ -110,7 +110,7 @@ always @(posedge clk) begin
                 dv_out_early <= 1;
                 buf_rcnt <= buf_rcnt + 1'b1;
                 if (buf_rcnt == vertical_scale_line_size) begin
-                    cnt_o <= cnt_o + vertical_scale_step;
+                    cnt_o <= cnt_o + scale_step_v;
                     fsm_cs <= IDLE;
                 end
             end
@@ -127,14 +127,14 @@ end
 localparam COEFF_WIDTH = 10;
 wire [COEFF_WIDTH-1:0] coe [3:0];
 
-localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
+// localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
 cubic_table cubic_table(
     .f0(coe[0]),
     .f1(coe[1]),
     .f2(coe[2]),
     .f3(coe[3]),
 
-    .dx(delta_y & TABLE_INPUT_WIDTH_MASK),
+    .dx(dy),// & TABLE_INPUT_WIDTH_MASK),
     .clk(clk)
 );
 
@@ -154,15 +154,15 @@ always @(posedge clk) begin
 end
 
 
-localparam MUL_WIDTH = COEFF_WIDTH + PIXEL_WIDTH;
+localparam MULT_WIDTH = COEFF_WIDTH + PIXEL_WIDTH;
 localparam OVERFLOW_BIT = COEFF_WIDTH + PIXEL_WIDTH - 1;
-localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH+COEFF_WIDTH)) - 1;
-localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COEFF_WIDTH-2));
+localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COEFF_WIDTH)) - 1;
+localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COEFF_WIDTH - 2));
 
 reg [PIXEL_WIDTH-1:0] m [3:0];
 
-(* mult_style = "block" *) reg [MUL_WIDTH-1:0] mult [3:0];
-reg signed [MUL_WIDTH+2-1:0] sum;
+(* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [3:0];
+reg signed [MULT_WIDTH+2-1:0] sum;
 
 // Calculate output
 always @(posedge clk) begin

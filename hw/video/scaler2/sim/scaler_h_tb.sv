@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 `include "bmp_io.sv"
 
-module scaler_h_tb#(
+module scaler_h_tb #(
     parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel

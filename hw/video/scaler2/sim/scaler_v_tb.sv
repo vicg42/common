@@ -1,5 +1,15 @@
 `timescale 1ns / 1ps
-module scaler_v_tb;
+module scaler_v_tb #(
+    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+    parameter DE_I_PERIOD = 0, //0 - no empty cycles
+                             //2 - 1 empty cycle per pixel
+                             //4 - 3 empty cycle per pixel
+                             //etc...
+    parameter V_SCALE = 1.00,
+    parameter PIXEL_WIDTH = 8,
+    parameter LINE_STEP = 4096,
+    parameter COE_WIDTH = 8
+);
 
 reg clk = 1;
 always #0.5 clk = ~clk;
@@ -74,19 +84,20 @@ localparam WHITE = 12'hFFF;
 
 always @* begin
     // d_in = y_cntr*100; // vertical gradient
-    d_in = x_cntr*10; // horisontal gradient
+    d_in = x_cntr;//*10; // horisontal gradient
 end
 
-localparam LINE_STEP = 4096;
-localparam real VERTICAL_SCALE = 0.5;
-logic [15:0] vertical_scale_step = VERTICAL_SCALE*LINE_STEP;
+// localparam LINE_STEP = 4096;
+// localparam real VERTICAL_SCALE = 0.5;
+logic [15:0] scale_step_v = V_SCALE*LINE_STEP;
 logic [15:0] vertical_scale_line_size = 1100;
 
 scaler_v #(
+    .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUTPUT(1)
 ) scaler_v_m (
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
-    .vertical_scale_step(vertical_scale_step),
+    .scale_step_v(scale_step_v),
     .vertical_scale_line_size(vertical_scale_line_size),
 
     .di_i(d_in ),
