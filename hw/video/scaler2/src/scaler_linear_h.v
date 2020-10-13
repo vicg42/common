@@ -91,14 +91,13 @@ bilinear_table #(
     .clk(clk)
 );
 
-localparam MUL_WIDTH = COE_WIDTH + PIXEL_WIDTH;
+localparam MULT_WIDTH = COE_WIDTH + PIXEL_WIDTH;
 localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
-localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH+COE_WIDTH)) - 1;
-localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2));
+localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
+localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 
-(* mult_style = "block" *) reg [MUL_WIDTH-1:0] mult [1:0];
-// (* mult_style = "block" *) reg [MUL_WIDTH-1:0] mul1;
-reg signed [MUL_WIDTH+2-1:0] sum;
+(* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [1:0];
+reg signed [MULT_WIDTH+2-1:0] sum;
 
 always @(posedge clk) begin
     mult[0] <= coe[0] * m[0];

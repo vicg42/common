@@ -20,13 +20,8 @@ module scaler_h #(
 );
 
 wire [COE_WIDTH-1:0] coe [3:0];
-
 reg [PIXEL_WIDTH-1:0] sr_di_i[3:0];
-
-reg [PIXEL_WIDTH-1:0] m0 = 0;
-reg [PIXEL_WIDTH-1:0] m1 = 0;
-reg [PIXEL_WIDTH-1:0] m2 = 0;
-reg [PIXEL_WIDTH-1:0] m3 = 0;
+reg [PIXEL_WIDTH-1:0] m [3:0];
 
 reg [23:0] cnt_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_o = 0; // output pixels coordinate counter
@@ -65,10 +60,10 @@ always @(posedge clk) begin
 
     if (cnt_i > cnt_o) begin
         new_pix <= 1;
-        m0 <= sr_di_i[0];
-        m1 <= sr_di_i[1];
-        m2 <= sr_di_i[2];
-        m3 <= (cnt_i <= (PIXEL_STEP*2)) ? 1'b0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
+        m[0] <= sr_di_i[0];
+        m[1] <= sr_di_i[1];
+        m[2] <= sr_di_i[2];
+        m[3] <= (cnt_i <= (PIXEL_STEP*2)) ? 1'b0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
         cnt_o <= cnt_o + scale_step_h;
         if (sol) begin
             sol <= 0;
@@ -101,24 +96,21 @@ cubic_table #(
     .clk(clk)
 );
 
-localparam MUL_WIDTH = COE_WIDTH + PIXEL_WIDTH;
+localparam MULT_WIDTH = COE_WIDTH + PIXEL_WIDTH;
 localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
-localparam [MUL_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH+COE_WIDTH)) - 1;
-localparam [MUL_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH-2));
+localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
+localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 
-(* mult_style = "block" *) reg [MUL_WIDTH-1:0] mul0;
-(* mult_style = "block" *) reg [MUL_WIDTH-1:0] mul1;
-(* mult_style = "block" *) reg [MUL_WIDTH-1:0] mul2;
-(* mult_style = "block" *) reg [MUL_WIDTH-1:0] mul3;
-reg signed [MUL_WIDTH+2-1:0] sum;
+(* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [3:0];
+reg signed [MULT_WIDTH+2-1:0] sum;
 
 always @(posedge clk) begin
-    mul0 <= coe[0] * m0;
-    mul1 <= coe[1] * m1;
-    mul2 <= coe[2] * m2;
-    mul3 <= coe[3] * m3;
+    mul[0] <= coe[0] * m[0];
+    mul[1] <= coe[1] * m[1];
+    mul[2] <= coe[2] * m[2];
+    mul[3] <= coe[3] * m[3];
 
-    sum <= mul1 + mul2 - mul0 - mul3 + ROUND_ADDER;
+    sum <= mul[1] + mul[2] - mul[0] - mul[3] + ROUND_ADDER;
     if (sr_new_pix[1]) begin
         do_o <= sum[COE_WIDTH-1 +: PIXEL_WIDTH];
         if (sum[OVERFLOW_BIT]) do_o <= MAX_OUTPUT;
