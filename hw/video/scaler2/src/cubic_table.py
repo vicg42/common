@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 x_chank = 4 #number of coe_table files
-x_resolution = 32 #total number of coeficient
+x_resolution = 64 #total number of coeficient
 y_resolution = 128 #accuracy
 
 x = np.linspace(-2.0, 2.0, num=x_resolution, endpoint=False)
@@ -34,10 +34,10 @@ for y in range(x_chank):
 
 # save init file for verilog array
 coe_table=[]
-coe_table.append(open("bicubic_table_0.txt", "w"))
-coe_table.append(open("bicubic_table_1.txt", "w"))
-coe_table.append(open("bicubic_table_2.txt", "w"))
-coe_table.append(open("bicubic_table_3.txt", "w"))
+coe_table.append(open("cubic_table_0.txt", "w"))
+coe_table.append(open("cubic_table_1.txt", "w"))
+coe_table.append(open("cubic_table_2.txt", "w"))
+coe_table.append(open("cubic_table_3.txt", "w"))
 for i in range(int(x_resolution/x_chank)):
     coe_table[0].write(bin(-coe[i + int(x_resolution/x_chank)*0])[2:] + '\n')
     coe_table[1].write(bin( coe[i + int(x_resolution/x_chank)*1])[2:] + '\n')

@@ -17,10 +17,10 @@ module cubic_table #(
 (* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_2[(PIXEL_STEP/4)-1:0];
 (* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_3[(PIXEL_STEP/4)-1:0];
 
-initial $readmemb("coe_table_0.txt", coe_table_0);
-initial $readmemb("coe_table_1.txt", coe_table_1);
-initial $readmemb("coe_table_2.txt", coe_table_2);
-initial $readmemb("coe_table_3.txt", coe_table_3);
+initial $readmemb("cubic_table_0.txt", coe_table_0);
+initial $readmemb("cubic_table_1.txt", coe_table_1);
+initial $readmemb("cubic_table_2.txt", coe_table_2);
+initial $readmemb("cubic_table_3.txt", coe_table_3);
 
 always @(posedge clk) begin
     coe0 <= coe_table_0[dx];
