@@ -1,4 +1,5 @@
 module scaler_v #(
+    parameter LINE_SIZE_MAX = 1024,
     parameter LINE_STEP = 4096,
     parameter PIXEL_WIDTH = 12,
     parameter SPARSE_OUTPUT = 2, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
@@ -20,19 +21,17 @@ module scaler_v #(
     output reg hs_o = 0,
     output reg vs_o = 0
 );
-// -------------------------------------------------------------------------
-localparam MAX_LINE_SIZE = 1024;
 
 reg [23:0] cnt_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_o = 0; // output pixels coordinate counter
 
 // Store buffers
 reg [PIXEL_WIDTH-1:0] sr_di_i = 0;
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf0[MAX_LINE_SIZE-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf1[MAX_LINE_SIZE-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf2[MAX_LINE_SIZE-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf3[MAX_LINE_SIZE-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf4[MAX_LINE_SIZE-1:0];
+(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf0[LINE_SIZE_MAX-1:0];
+(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf1[LINE_SIZE_MAX-1:0];
+(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf2[LINE_SIZE_MAX-1:0];
+(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf3[LINE_SIZE_MAX-1:0];
+(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf4[LINE_SIZE_MAX-1:0];
 
 reg [2:0] buf_wsel = 0;
 localparam BUF0_NUM = 0;

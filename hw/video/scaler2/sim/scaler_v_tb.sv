@@ -5,6 +5,7 @@ module scaler_v_tb #(
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
+    parameter LINE_SIZE_MAX = 1024,
     parameter V_SCALE = 1.00,
     parameter PIXEL_WIDTH = 8,
     parameter LINE_STEP = 4096,
@@ -91,6 +92,7 @@ end
 logic [15:0] v_scale_line_size = 1100;
 logic [15:0] v_scale_step = V_SCALE*LINE_STEP;
 scaler_v #(
+    .LINE_SIZE_MAX(LINE_SIZE_MAX),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUTPUT(1)
 ) scaler_v_m (
