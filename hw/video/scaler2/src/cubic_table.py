@@ -2,8 +2,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 x_chank = 4 #number of coe_table files
-x_resolution = 64 #total number of coeficient
-y_resolution = 128 #accuracy
+x_resolution = 4096 #total number of coeficient
+y_resolution = 512 #accuracy
 
 x = np.linspace(-2.0, 2.0, num=x_resolution, endpoint=False)
 

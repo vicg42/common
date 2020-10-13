@@ -12,7 +12,7 @@ vlog ../src/cubic_table_v.v
 #vlog ../src/bilinear_table.v
 #vlog ../src/lanczos_table.v
 #vlog ../src/scaler_cubic_h.v
-vlog ../src/scaler_v.v
+vlog ../src/scaler_v.v -sv +define+SIM_FSM
 
 vlog  ./scaler_v_tb.sv -sv
 

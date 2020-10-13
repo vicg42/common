@@ -5,8 +5,12 @@ add wave -noupdate /scaler_v_tb/scaler_v_m/di_i
 add wave -noupdate /scaler_v_tb/scaler_v_m/de_i
 add wave -noupdate /scaler_v_tb/scaler_v_m/hs_i
 add wave -noupdate /scaler_v_tb/scaler_v_m/vs_i
-add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/cnt_o
+add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/buf_wcnt
+add wave -noupdate /scaler_v_tb/scaler_v_m/buf_wsel
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/cnt_i
+add wave -noupdate -color {Slate Blue} -itemcolor Gold /scaler_v_tb/scaler_v_m/fsm_cs
+add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/cnt_sparse
+add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/cnt_o
 add wave -noupdate /scaler_v_tb/scaler_v_m/do_o
 add wave -noupdate /scaler_v_tb/scaler_v_m/de_o
 add wave -noupdate /scaler_v_tb/scaler_v_m/hs_o
@@ -28,4 +32,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {14954310525 ps}
+WaveRestoreZoom {0 ps} {76650 ns}

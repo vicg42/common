@@ -73,28 +73,37 @@ end
 
 
 // Control FSM
-localparam IDLE = 0;
-localparam CALC_F_PARAMS_CYCLE = 1;
-localparam LINE_GENERATE = 2;
-reg [3:0] state = IDLE;
+`ifdef SIM_FSM
+    enum int unsigned {
+        IDLE,
+        PRM_CYCLE,
+        LINE_GEN
+    } fsm_cs = IDLE;
+`else
+    localparam IDLE = 0;
+    localparam PRM_CYCLE = 1;
+    localparam LINE_GEN = 2;
+    reg [1:0] fsm_cs = IDLE;
+`endif
+
 reg [3:0] cnt_sparse = 0;
 reg dv_out_early = 0;
 
 always @(posedge clk) begin
     dv_out_early <= 0;
-    case (state)
+    case (fsm_cs)
         IDLE: begin
             if (cnt_i > cnt_o) begin
                 delta_y <= cnt_o[2 +: 10];
-                state <= CALC_F_PARAMS_CYCLE;
+                fsm_cs <= PRM_CYCLE;
             end
         end
-        CALC_F_PARAMS_CYCLE: begin
-            state <= LINE_GENERATE;
+        PRM_CYCLE: begin
             buf_rcnt <= 0;
             cnt_sparse <= 0;
+            fsm_cs <= LINE_GEN;
         end
-        LINE_GENERATE: begin
+        LINE_GEN: begin
             cnt_sparse <= cnt_sparse + 1'b1;
             if (cnt_sparse == SPARSE_OUTPUT) begin
                 cnt_sparse <= 0;
@@ -102,11 +111,11 @@ always @(posedge clk) begin
                 buf_rcnt <= buf_rcnt + 1'b1;
                 if (buf_rcnt == vertical_scale_line_size) begin
                     cnt_o <= cnt_o + vertical_scale_step;
-                    state <= IDLE;
+                    fsm_cs <= IDLE;
                 end
             end
         end
-        default: state <= IDLE; // fsm recovery
+        default: fsm_cs <= IDLE; // fsm recovery
     endcase
     if (de_i && vs_i) begin
         cnt_o <= LINE_STEP*2;
