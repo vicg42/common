@@ -7,10 +7,10 @@ module scaler_h_tb#(
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
-    parameter H_SCALE = 2.00,//2.666666666666666;
+    parameter H_SCALE = 1.00,//2.666666666666666;
+    parameter PIXEL_WIDTH = 8,
     parameter PIXEL_STEP = 32,
-    parameter TABLE_INPUT_WIDTH = 8,
-    parameter PIXEL_WIDTH = 8
+    parameter COE_WIDTH = 8
 );
 
 reg clk = 1;
@@ -28,7 +28,6 @@ initial begin
     end
 end
 
-
 logic [PIXEL_WIDTH-1:0] di_i;
 logic de_i;
 logic hs_i;
@@ -38,52 +37,6 @@ logic [PIXEL_WIDTH-1:0] do_o;
 logic de_o;
 logic hs_o;
 logic vs_o;
-
-// initial begin
-//     $dumpfile("icarus/scaler_h_tb.v.fst");
-//     $dumpvars;
-//     #10000;
-//     $display("\007");
-// end
-
-
-// localparam VIDEO_PIXEL_PERIOD = 4;
-// localparam VIDEO_LINE_PERIOD = 24;
-// localparam VIDEO_FRAME_PERIOD = 128;
-// logic [7:0] pix_cntr = 0;
-// logic [PIXEL_WIDTH-1:0] x_cntr = 0;
-// logic [10:0] y_cntr = VIDEO_FRAME_PERIOD - 2;
-
-// always @(posedge clk) begin
-//     de_i <= 0;
-//     hs_i <= 0;
-//     vs_i <= 0;
-//     pix_cntr <= pix_cntr + 1'b1;
-//     if (pix_cntr == (VIDEO_PIXEL_PERIOD - 1)) begin
-//         pix_cntr <= 0;
-//         de_i <= 1;
-//         x_cntr <= x_cntr + 1'b1;
-//         if (x_cntr == (VIDEO_LINE_PERIOD - 1)) begin
-//             x_cntr <= 0;
-//             hs_i <= 1;
-//             y_cntr <= y_cntr + 1'b1;
-//             if (y_cntr == (VIDEO_FRAME_PERIOD - 1)) begin
-//                 y_cntr <= 0;
-//                 vs_i <= 1;
-//             end
-//         end
-//     end
-// end
-
-// localparam BLACK = 12'h0;
-// localparam WHITE = 12'hFFF;
-// always @* begin
-//     di_i = x_cntr;//*100; // horisontal gradient
-//     // di_i = x_cntr == 50? WHITE: BLACK; // vertical line
-//     // di_i = x_cntr[6]? BLACK: WHITE; // vertical stripes
-//     // di_i = x_cntr == y_cntr? WHITE: BLACK; // diagonal line
-// end
-
 
 BMP_IO image_real;
 BMP_IO image_new;
@@ -216,7 +169,7 @@ logic [15:0] scale_step_h = H_SCALE*PIXEL_STEP;
 scaler_h #(
     .PIXEL_STEP(PIXEL_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
-    .TABLE_INPUT_WIDTH(TABLE_INPUT_WIDTH)
+    .COE_WIDTH(COE_WIDTH)
 ) scaler_h_m (
     .scale_step_h(scale_step_h),
 
