@@ -91,6 +91,10 @@ always @(posedge clk) begin
     end
 end
 
+localparam MULT_WIDTH = COE_WIDTH + PIXEL_WIDTH;
+localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
+localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
+localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 wire [$clog2(PIXEL_STEP/4)-1:0] dx;
 assign dx = cnt_o[2 +: (PIXEL_STEP/4)];
 bilinear_table #(
@@ -104,14 +108,8 @@ bilinear_table #(
     .clk(clk)
 );
 
-localparam MULT_WIDTH = COE_WIDTH + PIXEL_WIDTH;
-localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
-localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
-localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
-
 (* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [1:0];
 reg signed [MULT_WIDTH+2-1:0] sum;
-
 always @(posedge clk) begin
     mult[0] <= coe[0] * m[0];
     mult[1] <= coe[1] * m[1];

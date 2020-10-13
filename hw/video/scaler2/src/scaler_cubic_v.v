@@ -45,20 +45,13 @@ reg [15:0] buf_wcnt = 0;
 reg [15:0] buf_rcnt = 0;
 reg [9:0] dy = 0;
 
-// Store input line process
 always @(posedge clk) begin
     if (de_i) begin
-        sr_di_i <= di_i;
-        if (buf_wsel == BUF0_NUM) buf0[buf_wcnt] <= sr_di_i;
-        if (buf_wsel == BUF1_NUM) buf1[buf_wcnt] <= sr_di_i;
-        if (buf_wsel == BUF2_NUM) buf2[buf_wcnt] <= sr_di_i;
-        if (buf_wsel == BUF3_NUM) buf3[buf_wcnt] <= sr_di_i;
-        if (buf_wsel == BUF4_NUM) buf4[buf_wcnt] <= sr_di_i;
         buf_wcnt <= buf_wcnt + 1'b1;
         if (hs_i) begin
             cnt_i <= cnt_i + LINE_STEP;
             buf_wcnt <= 0;
-            if (buf_wsel == 4) begin
+            if (buf_wsel == BUF4_NUM) begin
                 buf_wsel <= 0;
             end else begin
                 buf_wsel <= buf_wsel + 1'b1;
@@ -71,6 +64,17 @@ always @(posedge clk) begin
     end
 end
 
+// Store input line
+always @(posedge clk) begin
+    if (de_i) begin
+        sr_di_i <= di_i;
+        if (buf_wsel == BUF0_NUM) buf0[buf_wcnt] <= sr_di_i;
+        if (buf_wsel == BUF1_NUM) buf1[buf_wcnt] <= sr_di_i;
+        if (buf_wsel == BUF2_NUM) buf2[buf_wcnt] <= sr_di_i;
+        if (buf_wsel == BUF3_NUM) buf3[buf_wcnt] <= sr_di_i;
+        if (buf_wsel == BUF4_NUM) buf4[buf_wcnt] <= sr_di_i;
+    end
+end
 
 // Control FSM
 `ifdef SIM_FSM
@@ -122,23 +126,6 @@ always @(posedge clk) begin
     end
 end
 
-
-// Cubic interpolation coeffs calculation
-wire [COE_WIDTH-1:0] coe [3:0];
-cubic_table #(
-    .STEP(LINE_STEP),
-    .COE_WIDTH(COE_WIDTH)
-) cubic_table_m (
-    .f0(coe[0]),
-    .f1(coe[1]),
-    .f2(coe[2]),
-    .f3(coe[3]),
-
-    .dx(dy),
-    .clk(clk)
-);
-
-
 // Memory read
 reg [PIXEL_WIDTH-1:0] buf0_do;
 reg [PIXEL_WIDTH-1:0] buf1_do;
@@ -153,18 +140,7 @@ always @(posedge clk) begin
     buf4_do <= buf4[buf_rcnt];
 end
 
-
-localparam MULT_WIDTH = COE_WIDTH + PIXEL_WIDTH;
-localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
-localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
-localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
-
 reg [PIXEL_WIDTH-1:0] m [3:0];
-
-(* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [3:0];
-reg signed [MULT_WIDTH+2-1:0] sum;
-
-// Calculate output
 always @(posedge clk) begin
     if (buf_wsel == BUF0_NUM) begin
         m[3] <= buf1_do;
@@ -196,8 +172,33 @@ always @(posedge clk) begin
         m[1] <= buf2_do;
         m[0] <= buf3_do;
     end
-    if (cnt_i < (4*LINE_STEP)) m[3] <= 0; // boundary effect elimination
+    if (cnt_i < (4*LINE_STEP)) begin
+        m[3] <= 0; // boundary effect elimination
+    end
+end
 
+localparam MULT_WIDTH = COE_WIDTH + PIXEL_WIDTH;
+localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
+localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
+localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
+
+wire [COE_WIDTH-1:0] coe [3:0];
+cubic_table #(
+    .STEP(LINE_STEP),
+    .COE_WIDTH(COE_WIDTH)
+) cubic_table_m (
+    .coe0(coe[0]),
+    .coe1(coe[1]),
+    .coe2(coe[2]),
+    .coe3(coe[3]),
+
+    .dx(dy),
+    .clk(clk)
+);
+
+(* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [3:0];
+reg signed [MULT_WIDTH+2-1:0] sum;
+always @(posedge clk) begin
     mult[0] <= coe[0] * m[0];
     mult[1] <= coe[1] * m[1];
     mult[2] <= coe[2] * m[2];
