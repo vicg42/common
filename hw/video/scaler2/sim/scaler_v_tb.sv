@@ -8,7 +8,7 @@ module scaler_v_tb #(
     parameter V_SCALE = 1.00,
     parameter PIXEL_WIDTH = 8,
     parameter LINE_STEP = 4096,
-    parameter COE_WIDTH = 8
+    parameter COE_WIDTH = 10
 );
 
 reg clk = 1;

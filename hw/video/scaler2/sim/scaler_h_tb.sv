@@ -9,8 +9,8 @@ module scaler_h_tb #(
                              //etc...
     parameter H_SCALE = 2.00,//2.666666666666666;
     parameter PIXEL_WIDTH = 8,
-    parameter PIXEL_STEP = 128,
-    parameter COE_WIDTH = 8
+    parameter PIXEL_STEP = 4096,
+    parameter COE_WIDTH = 10
 );
 
 reg clk = 1;

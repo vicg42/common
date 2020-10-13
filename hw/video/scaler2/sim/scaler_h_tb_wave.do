@@ -13,7 +13,7 @@ add wave -noupdate /scaler_h_tb/scaler_h_m/de_i
 add wave -noupdate /scaler_h_tb/scaler_h_m/hs_i
 add wave -noupdate /scaler_h_tb/scaler_h_m/vs_i
 add wave -noupdate -divider {New Divider}
-add wave -noupdate /scaler_h_tb/scaler_h_m/h_scale_step
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h_m/h_scale_step
 add wave -noupdate /scaler_h_tb/scaler_h_m/dx
 add wave -noupdate -expand /scaler_h_tb/scaler_h_m/coe
 add wave -noupdate -expand /scaler_h_tb/scaler_h_m/m
@@ -47,4 +47,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {488469026 ps} {489216894 ps}
+WaveRestoreZoom {0 ps} {3150 ns}

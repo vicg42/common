@@ -2,7 +2,7 @@ module scaler_v #(
     parameter LINE_STEP = 4096,
     parameter PIXEL_WIDTH = 12,
     parameter SPARSE_OUTPUT = 2, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
-    parameter TABLE_INPUT_WIDTH = 10
+    parameter COE_WIDTH = 10
 )(
     input clk,
 
@@ -124,17 +124,17 @@ end
 
 
 // Cubic interpolation coeffs calculation
-localparam COEFF_WIDTH = 10;
-wire [COEFF_WIDTH-1:0] coe [3:0];
-
-// localparam [9:0] TABLE_INPUT_WIDTH_MASK = (10'h3FF << (10 - TABLE_INPUT_WIDTH)) & 10'h3FF;
-cubic_table cubic_table(
+wire [COE_WIDTH-1:0] coe [3:0];
+cubic_table #(
+    .STEP(LINE_STEP),
+    .COE_WIDTH(COE_WIDTH)
+) cubic_table_m (
     .f0(coe[0]),
     .f1(coe[1]),
     .f2(coe[2]),
     .f3(coe[3]),
 
-    .dx(dy),// & TABLE_INPUT_WIDTH_MASK),
+    .dx(dy),
     .clk(clk)
 );
 
@@ -154,10 +154,10 @@ always @(posedge clk) begin
 end
 
 
-localparam MULT_WIDTH = COEFF_WIDTH + PIXEL_WIDTH;
-localparam OVERFLOW_BIT = COEFF_WIDTH + PIXEL_WIDTH - 1;
-localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COEFF_WIDTH)) - 1;
-localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COEFF_WIDTH - 2));
+localparam MULT_WIDTH = COE_WIDTH + PIXEL_WIDTH;
+localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
+localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
+localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 
 reg [PIXEL_WIDTH-1:0] m [3:0];
 
@@ -205,7 +205,7 @@ always @(posedge clk) begin
 
     sum <= mult[1] + mult[2] - mult[0] - mult[3] + ROUND_ADDER;
 
-    do_o <= sum[COEFF_WIDTH-1 +: PIXEL_WIDTH];
+    do_o <= sum[COE_WIDTH-1 +: PIXEL_WIDTH];
     if (sum[OVERFLOW_BIT]) do_o <= MAX_OUTPUT;
     if (sum < 0) do_o <= 0;
 end

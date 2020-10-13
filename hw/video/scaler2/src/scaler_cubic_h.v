@@ -84,7 +84,7 @@ end
 wire [$clog2(PIXEL_STEP/4)-1:0] dx;
 assign dx = cnt_o[2 +: (PIXEL_STEP/4)];
 cubic_table #(
-    .PIXEL_STEP(PIXEL_STEP),
+    .STEP(PIXEL_STEP),
     .COE_WIDTH(COE_WIDTH)
 ) coe_table_m (
     .coe0(coe[0]),
