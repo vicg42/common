@@ -1,4 +1,4 @@
-module scaler_vertical #(
+module scaler_v #(
     parameter WIDTH = 12,
     parameter SPARSE_OUTPUT = 2, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter TABLE_INPUT_WIDTH = 10
@@ -13,7 +13,7 @@ module scaler_vertical #(
     input dv_in,
     input hs_in,
     input vs_in,
-    
+
     output reg [WIDTH-1:0] d_out = 0,
     output reg dv_out = 0,
     output reg hs_out = 0,

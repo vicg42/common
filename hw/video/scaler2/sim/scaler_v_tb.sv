@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-module scaler_vertical_tb;
+module scaler_v_tb;
 
 reg clk = 1;
 always #0.5 clk = ~clk;
@@ -26,20 +26,20 @@ logic dv_out;
 logic hs_out;
 logic vs_out;
 
-initial begin
-    $dumpfile("icarus/scaler_vertical_tb.v.fst");
-    $dumpvars;
-    $dumpvars(0, scaler_vertical.line_buffer_a[0]);
-    $dumpvars(0, scaler_vertical.line_buffer_b[0]);
-    $dumpvars(0, scaler_vertical.line_buffer_c[0]);
-    $dumpvars(0, scaler_vertical.line_buffer_d[0]);
-    $dumpvars(0, scaler_vertical.line_buffer_e[0]);
-    
-    #3_000_000;
-  
-    $display("\007");
-    $finish;
-end
+// initial begin
+//     $dumpfile("icarus/scaler_v_tb.v.fst");
+//     $dumpvars;
+//     $dumpvars(0, scaler_v.line_buffer_a[0]);
+//     $dumpvars(0, scaler_v.line_buffer_b[0]);
+//     $dumpvars(0, scaler_v.line_buffer_c[0]);
+//     $dumpvars(0, scaler_v.line_buffer_d[0]);
+//     $dumpvars(0, scaler_v.line_buffer_e[0]);
+
+//     #3_000_000;
+
+//     $display("\007");
+//     $finish;
+// end
 
 localparam VIDEO_PIXEL_PERIOD = 6;
 localparam VIDEO_LINE_PERIOD = 756;
@@ -82,8 +82,24 @@ localparam real VERTICAL_SCALE = 0.5;
 logic [15:0] vertical_scale_step = VERTICAL_SCALE*LINE_STEP;
 logic [15:0] vertical_scale_line_size = 1100;
 
-scaler_vertical #(
+scaler_v #(
     .SPARSE_OUTPUT(1)
-) scaler_vertical(.*);
+) scaler_v_m (
+    // (4.12) unsigned fixed point. 4096 is 1.000 scale
+    .vertical_scale_step(vertical_scale_step),
+    .vertical_scale_line_size(vertical_scale_line_size),
+
+    .d_in (d_in ),
+    .dv_in(dv_in),
+    .hs_in(hs_in),
+    .vs_in(vs_in),
+
+    .d_out  (d_out  ),
+    .dv_out (dv_out ),
+    .hs_out (hs_out ),
+    .vs_out (vs_out ),
+
+    .clk(clk)
+);
 
 endmodule
