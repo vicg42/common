@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
 module cubic_table #(
+    parameter PIXEL_STEP = 4096,
     parameter COE_WIDTH = 10
 )(
     output reg [COE_WIDTH-1:0] f0,
@@ -7,20 +8,21 @@ module cubic_table #(
     output reg [COE_WIDTH-1:0] f2,
     output reg [COE_WIDTH-1:0] f3,
 
-    input [COE_WIDTH-1:0] dx,
+    input [$clog2(PIXEL_STEP/4)-1:0] dx,
     input clk
 );
 
-(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] cubic_table_0[(2**COE_WIDTH)-1:0];
-(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] cubic_table_1[(2**COE_WIDTH)-1:0];
-(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] cubic_table_2[(2**COE_WIDTH)-1:0];
-(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] cubic_table_3[(2**COE_WIDTH)-1:0];
+(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] cubic_table_0[(PIXEL_STEP/4)-1:0];
+(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] cubic_table_1[(PIXEL_STEP/4)-1:0];
+(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] cubic_table_2[(PIXEL_STEP/4)-1:0];
+(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] cubic_table_3[(PIXEL_STEP/4)-1:0];
+// (* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] cubic_table_3[(2**COE_WIDTH)-1:0];
 // (* ROM_STYLE="DISTRIBUTED" *) reg [9:0] cubic_table_3[($clog2(COE_WIDTH)-1):0];
 
-initial $readmemb("cubic_table_0.txt", cubic_table_0);
-initial $readmemb("cubic_table_1.txt", cubic_table_1);
-initial $readmemb("cubic_table_2.txt", cubic_table_2);
-initial $readmemb("cubic_table_3.txt", cubic_table_3);
+initial $readmemb("coe_table_0.txt", cubic_table_0);
+initial $readmemb("coe_table_1.txt", cubic_table_1);
+initial $readmemb("coe_table_2.txt", cubic_table_2);
+initial $readmemb("coe_table_3.txt", cubic_table_3);
 
 always @(posedge clk) begin
     f0 <= cubic_table_0[dx];

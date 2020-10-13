@@ -8,7 +8,7 @@ module scaler_h_tb#(
                              //4 - 3 empty cycle per pixel
                              //etc...
     parameter H_SCALE = 2.00,//2.666666666666666;
-    parameter PIXEL_STEP = 1024,
+    parameter PIXEL_STEP = 32,
     parameter TABLE_INPUT_WIDTH = 8,
     parameter PIXEL_WIDTH = 8
 );

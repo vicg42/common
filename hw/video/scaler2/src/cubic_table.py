@@ -1,9 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-x_chank = 4 #coeficient count
-x_resolution = 256 * x_chank
-y_resolution = 128 # is 1.00
+x_chank = 4 #number of coe_table files
+x_resolution = 32 #total number of coeficient
+y_resolution = 128 #accuracy
 
 x = np.linspace(-2.0, 2.0, num=x_resolution, endpoint=False)
 
@@ -33,23 +33,22 @@ for y in range(x_chank):
                                 ) )
 
 # save init file for verilog array
-coe_table0 = open("cubic_table_0.txt", "w")
-coe_table1 = open("cubic_table_1.txt", "w")
-coe_table2 = open("cubic_table_2.txt", "w")
-coe_table3 = open("cubic_table_3.txt", "w")
+coe_table=[]
+coe_table.append(open("coe_table_0.txt", "w"))
+coe_table.append(open("coe_table_1.txt", "w"))
+coe_table.append(open("coe_table_2.txt", "w"))
+coe_table.append(open("coe_table_3.txt", "w"))
 for i in range(int(x_resolution/x_chank)):
-    coe_table0.write(bin(-coe[i + int(x_resolution/x_chank)*0])[2:] + '\n')
-    coe_table1.write(bin( coe[i + int(x_resolution/x_chank)*1])[2:] + '\n')
-    coe_table2.write(bin( coe[i + int(x_resolution/x_chank)*2])[2:] + '\n')
-    coe_table3.write(bin(-coe[i + int(x_resolution/x_chank)*3])[2:] + '\n')
+    coe_table[0].write(bin(-coe[i + int(x_resolution/x_chank)*0])[2:] + '\n')
+    coe_table[1].write(bin( coe[i + int(x_resolution/x_chank)*1])[2:] + '\n')
+    coe_table[2].write(bin( coe[i + int(x_resolution/x_chank)*2])[2:] + '\n')
+    coe_table[3].write(bin(-coe[i + int(x_resolution/x_chank)*3])[2:] + '\n')
     # print(f[i + x_resolution*0])
 
-# print(x[0])
-# print(x[1024])
-# print(x[2048])
-# print(x[3072])
-# print(x)
-print(len(coe))
+print("coe_width: %1.1f" % (np.log2(int(y_resolution))+1))
+print("coe_table column (len): %d" % (x_chank))
+print("coe_table raw (len)   : %d" % (int(x_resolution/x_chank)))
+print("pixel_step (coe count): %d" % (x_resolution))
 
 plt.plot(x, coe)
 plt.grid(True)
