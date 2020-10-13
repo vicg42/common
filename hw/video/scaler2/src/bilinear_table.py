@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 x_chank = 2 #number of coe_table files
-x_resolution = 32 #total number of coeficient
+x_resolution = 128 #total number of coeficient
 y_resolution = 128 #accuracy
 
 x = np.linspace(-1.0, 1.0, num=x_resolution, endpoint=False)
@@ -30,7 +30,7 @@ coe_table=[]
 coe_table.append(open("bilinear_table_0.txt", "w"))
 coe_table.append(open("bilinear_table_1.txt", "w"))
 for i in range(int(x_resolution/x_chank)):
-    coe_table[0].write(bin(-coe[i + int(x_resolution/x_chank)*0])[2:] + '\n')
+    coe_table[0].write(bin( coe[i + int(x_resolution/x_chank)*0])[2:] + '\n')
     coe_table[1].write(bin( coe[i + int(x_resolution/x_chank)*1])[2:] + '\n')
     # print(f[i + x_resolution*0])
 

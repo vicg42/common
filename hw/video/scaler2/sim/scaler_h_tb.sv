@@ -7,9 +7,9 @@ module scaler_h_tb#(
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
-    parameter H_SCALE = 2.00,//2.666666666666666;
+    parameter H_SCALE = 1.33,//2.666666666666666;
     parameter PIXEL_WIDTH = 8,
-    parameter PIXEL_STEP = 32,
+    parameter PIXEL_STEP = 128,
     parameter COE_WIDTH = 8
 );
 
@@ -101,7 +101,7 @@ initial begin : sim_main
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
 //                di_i = image_real.get_pixel(x, y);
-                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x;
+                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
