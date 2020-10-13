@@ -89,15 +89,15 @@ scaler_v #(
     .vertical_scale_step(vertical_scale_step),
     .vertical_scale_line_size(vertical_scale_line_size),
 
-    .d_in (d_in ),
-    .dv_in(dv_in),
-    .hs_in(hs_in),
-    .vs_in(vs_in),
+    .di_i(d_in ),
+    .de_i(dv_in),
+    .hs_i(hs_in),
+    .vs_i(vs_in),
 
-    .d_out  (d_out  ),
-    .dv_out (dv_out ),
-    .hs_out (hs_out ),
-    .vs_out (vs_out ),
+    .do_o(d_out  ),
+    .de_o(dv_out ),
+    .hs_o(hs_out ),
+    .vs_o(vs_out ),
 
     .clk(clk)
 );

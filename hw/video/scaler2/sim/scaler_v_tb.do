@@ -18,7 +18,7 @@ vlog  ./scaler_v_tb.sv -sv
 
 vsim -t 1ps -novopt -lib work scaler_v_tb \
 
-#do scaler_h_tb_wave.do
+do scaler_v_tb_wave.do
 
 #--------------------------
 #View waveform
