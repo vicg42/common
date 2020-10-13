@@ -4,7 +4,7 @@ module scaler_h #(
     parameter COE_WIDTH = 10
 )(
     // unsigned fixed point. PIXEL_STEP is 1.000 scale
-    input [15:0] scale_step_h,
+    input [15:0] h_scale_step,
 
     input [PIXEL_WIDTH-1:0] di_i,
     input de_i,
@@ -74,7 +74,7 @@ always @(posedge clk) begin
         m[0] <= sr_di_i[0];
         m[1] <= sr_di_i[1];
         // m[1] <= (cnt_i <= (PIXEL_STEP)) ? 1'b0 : sr_di_i[1]; // boundary check, needed only for step<1.0 (upsize)
-        cnt_o <= cnt_o + scale_step_h;
+        cnt_o <= cnt_o + h_scale_step;
         if (sol) begin
             sol <= 0;
             new_line <= 1;

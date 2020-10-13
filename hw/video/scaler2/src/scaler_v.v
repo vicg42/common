@@ -7,8 +7,8 @@ module scaler_v #(
     input clk,
 
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
-    input [15:0] scale_step_v,
-    input [15:0] vertical_scale_line_size,
+    input [15:0] v_scale_step,
+    input [15:0] v_scale_line_size,
 
     input [PIXEL_WIDTH-1:0] di_i,
     input de_i,
@@ -109,8 +109,8 @@ always @(posedge clk) begin
                 cnt_sparse <= 0;
                 dv_out_early <= 1;
                 buf_rcnt <= buf_rcnt + 1'b1;
-                if (buf_rcnt == vertical_scale_line_size) begin
-                    cnt_o <= cnt_o + scale_step_v;
+                if (buf_rcnt == v_scale_line_size) begin
+                    cnt_o <= cnt_o + v_scale_step;
                     fsm_cs <= IDLE;
                 end
             end

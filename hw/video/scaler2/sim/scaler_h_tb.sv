@@ -165,13 +165,13 @@ always @(posedge clk) begin
     di_s <= di_i;
 end
 
-logic [15:0] scale_step_h = H_SCALE*PIXEL_STEP;
+logic [15:0] h_scale_step = H_SCALE*PIXEL_STEP;
 scaler_h #(
     .PIXEL_STEP(PIXEL_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .COE_WIDTH(COE_WIDTH)
 ) scaler_h_m (
-    .scale_step_h(scale_step_h),
+    .h_scale_step(h_scale_step),
 
     .di_i(di_s),//(di_i),//
     .de_i(de_s),//(de_i),//

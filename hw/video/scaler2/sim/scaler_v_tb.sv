@@ -26,30 +26,30 @@ initial begin
     end
 end
 
-logic dv_in;
-logic [11:0] d_in;
-logic hs_in;
-logic vs_in;
+logic [PIXEL_WIDTH-1:0] di_i;
+logic de_i;
+logic hs_i;
+logic vs_i;
 
-logic [11:0] d_out;
-logic dv_out;
-logic hs_out;
-logic vs_out;
+logic [PIXEL_WIDTH-1:0] do_o;
+logic de_o;
+logic hs_o;
+logic vs_o;
 
-// initial begin
+initial begin
 //     $dumpfile("icarus/scaler_v_tb.v.fst");
-//     $dumpvars;
-//     $dumpvars(0, scaler_v.line_buffer_a[0]);
-//     $dumpvars(0, scaler_v.line_buffer_b[0]);
-//     $dumpvars(0, scaler_v.line_buffer_c[0]);
-//     $dumpvars(0, scaler_v.line_buffer_d[0]);
-//     $dumpvars(0, scaler_v.line_buffer_e[0]);
+    $dumpvars;
+    $dumpvars(0, scaler_v_m.buf0[0]);
+    $dumpvars(0, scaler_v_m.buf1[0]);
+    $dumpvars(0, scaler_v_m.buf2[0]);
+    $dumpvars(0, scaler_v_m.buf3[0]);
+    $dumpvars(0, scaler_v_m.buf4[0]);
 
-//     #3_000_000;
+    #3_000_000;
 
-//     $display("\007");
-//     $finish;
-// end
+    $display("\007");
+    $finish;
+end
 
 localparam VIDEO_PIXEL_PERIOD = 6;
 localparam VIDEO_LINE_PERIOD = 756;
@@ -59,21 +59,21 @@ logic [10:0] x_cntr = 0;
 logic [10:0] y_cntr = VIDEO_FRAME_PERIOD - 2;
 
 always @(posedge clk) begin
-    dv_in <= 0;
-    hs_in <= 0;
-    vs_in <= 0;
+    de_i <= 0;
+    hs_i <= 0;
+    vs_i <= 0;
     pix_cntr <= pix_cntr + 1'b1;
     if (pix_cntr == (VIDEO_PIXEL_PERIOD - 1)) begin
         pix_cntr <= 0;
-        dv_in <= 1;
+        de_i <= 1;
         x_cntr <= x_cntr + 1'b1;
         if (x_cntr == (VIDEO_LINE_PERIOD - 1)) begin
             x_cntr <= 0;
-            hs_in <= 1;
+            hs_i <= 1;
             y_cntr <= y_cntr + 1'b1;
             if (y_cntr == (VIDEO_FRAME_PERIOD - 1)) begin
                 y_cntr <= 0;
-                vs_in <= 1;
+                vs_i <= 1;
             end
         end
     end
@@ -82,33 +82,31 @@ end
 localparam BLACK = 12'h0;
 localparam WHITE = 12'hFFF;
 
-always @* begin
-    // d_in = y_cntr*100; // vertical gradient
-    d_in = x_cntr;//*10; // horisontal gradient
+always @(posedge clk) begin
+    // di_i = y_cntr*100; // vertical gradient
+    di_i = x_cntr;//*10; // horisontal gradient
 end
 
-// localparam LINE_STEP = 4096;
-// localparam real VERTICAL_SCALE = 0.5;
-logic [15:0] scale_step_v = V_SCALE*LINE_STEP;
-logic [15:0] vertical_scale_line_size = 1100;
 
+logic [15:0] v_scale_line_size = 1100;
+logic [15:0] v_scale_step = V_SCALE*LINE_STEP;
 scaler_v #(
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUTPUT(1)
 ) scaler_v_m (
     // (4.12) unsigned fixed point. 4096 is 1.000 scale
-    .scale_step_v(scale_step_v),
-    .vertical_scale_line_size(vertical_scale_line_size),
+    .v_scale_step(v_scale_step),
+    .v_scale_line_size(v_scale_line_size),
 
-    .di_i(d_in ),
-    .de_i(dv_in),
-    .hs_i(hs_in),
-    .vs_i(vs_in),
+    .di_i(di_i),
+    .de_i(de_i),
+    .hs_i(hs_i),
+    .vs_i(vs_i),
 
-    .do_o(d_out  ),
-    .de_o(dv_out ),
-    .hs_o(hs_out ),
-    .vs_o(vs_out ),
+    .do_o(do_o),
+    .de_o(de_o),
+    .hs_o(hs_o),
+    .vs_o(vs_o),
 
     .clk(clk)
 );
