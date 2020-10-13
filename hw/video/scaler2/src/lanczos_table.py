@@ -32,22 +32,21 @@ for y in range(x_chank):
                                 coe[i + (y*(int(x_resolution/x_chank)))]/y_resolution
                                 ) )
 
-# save init file for verilog array
-# coe_table=[]
-# coe_table.append(open("coe_table_0.txt", "w"))
-# coe_table.append(open("coe_table_1.txt", "w"))
-# coe_table.append(open("coe_table_2.txt", "w"))
-# coe_table.append(open("coe_table_3.txt", "w"))
-# coe_table.append(open("coe_table_4.txt", "w"))
-# coe_table.append(open("coe_table_5.txt", "w"))
-# for i in range(int(x_resolution/x_chank)):
-#     coe_table[0].write(bin( coe[i + int(x_resolution/x_chank)*0])[2:] + '\n')
-#     coe_table[1].write(bin(-coe[i + int(x_resolution/x_chank)*1])[2:] + '\n')
-#     coe_table[2].write(bin( coe[i + int(x_resolution/x_chank)*2])[2:] + '\n')
-#     coe_table[3].write(bin( coe[i + int(x_resolution/x_chank)*3])[2:] + '\n')
-#     coe_table[4].write(bin(-coe[i + int(x_resolution/x_chank)*3])[2:] + '\n')
-#     coe_table[5].write(bin( coe[i + int(x_resolution/x_chank)*3])[2:] + '\n')
-#     # print(f[i + x_resolution*0])
+save init file for verilog array
+coe_table=[]
+coe_table.append(open("lanczos_table_0.txt", "w"))
+coe_table.append(open("lanczos_table_1.txt", "w"))
+coe_table.append(open("lanczos_table_2.txt", "w"))
+coe_table.append(open("lanczos_table_3.txt", "w"))
+coe_table.append(open("lanczos_table_4.txt", "w"))
+coe_table.append(open("lanczos_table_5.txt", "w"))
+for i in range(int(x_resolution/x_chank)):
+    coe_table[0].write(bin( coe[i + int(x_resolution/x_chank)*0])[2:] + '\n')
+    coe_table[1].write(bin(-coe[i + int(x_resolution/x_chank)*1])[2:] + '\n')
+    coe_table[2].write(bin( coe[i + int(x_resolution/x_chank)*2])[2:] + '\n')
+    coe_table[3].write(bin( coe[i + int(x_resolution/x_chank)*3])[2:] + '\n')
+    coe_table[4].write(bin(-coe[i + int(x_resolution/x_chank)*3])[2:] + '\n')
+    coe_table[5].write(bin( coe[i + int(x_resolution/x_chank)*3])[2:] + '\n')
 
 print("coe_width: %1.1f" % (np.log2(int(y_resolution))+1))
 print("coe_table column (len): %d" % (x_chank))

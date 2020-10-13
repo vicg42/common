@@ -21,12 +21,12 @@ module lanczos_table #(
 (* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_4[(PIXEL_STEP/4)-1:0];
 (* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_5[(PIXEL_STEP/4)-1:0];
 
-initial $readmemb("coe_table_0.txt", coe_table_0);
-initial $readmemb("coe_table_1.txt", coe_table_1);
-initial $readmemb("coe_table_2.txt", coe_table_2);
-initial $readmemb("coe_table_3.txt", coe_table_3);
-initial $readmemb("coe_table_4.txt", coe_table_4);
-initial $readmemb("coe_table_5.txt", coe_table_5);
+initial $readmemb("lanczos_table_0.txt", coe_table_0);
+initial $readmemb("lanczos_table_1.txt", coe_table_1);
+initial $readmemb("lanczos_table_2.txt", coe_table_2);
+initial $readmemb("lanczos_table_3.txt", coe_table_3);
+initial $readmemb("lanczos_table_4.txt", coe_table_4);
+initial $readmemb("lanczos_table_5.txt", coe_table_5);
 
 always @(posedge clk) begin
     coe0 <= coe_table_0[dx];

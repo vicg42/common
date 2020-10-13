@@ -13,12 +13,12 @@ module bilinear_table #(
 (* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_0[(PIXEL_STEP/4)-1:0];
 (* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_1[(PIXEL_STEP/4)-1:0];
 
-initial $readmemb("coe_table_0.txt", coe_table_0);
-initial $readmemb("coe_table_1.txt", coe_table_1);
+initial $readmemb("bilinear_table_0.txt", coe_table_0);
+initial $readmemb("bilinear_table_1.txt", coe_table_1);
 
 always @(posedge clk) begin
-    f0 <= coe_table_0[dx];
-    f1 <= coe_table_1[dx];
+    coe0 <= coe_table_0[dx];
+    coe1 <= coe_table_1[dx];
 end
 
 endmodule

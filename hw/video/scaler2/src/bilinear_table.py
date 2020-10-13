@@ -27,8 +27,8 @@ for y in range(x_chank):
 
 # save init file for verilog array
 coe_table=[]
-coe_table.append(open("coe_table_0.txt", "w"))
-coe_table.append(open("coe_table_1.txt", "w"))
+coe_table.append(open("bilinear_table_0.txt", "w"))
+coe_table.append(open("bilinear_table_1.txt", "w"))
 for i in range(int(x_resolution/x_chank)):
     coe_table[0].write(bin(-coe[i + int(x_resolution/x_chank)*0])[2:] + '\n')
     coe_table[1].write(bin( coe[i + int(x_resolution/x_chank)*1])[2:] + '\n')
