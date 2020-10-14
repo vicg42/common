@@ -1,6 +1,7 @@
 #-----------------------------------------------------------------------
 # author : Viktor Golovachenko
 #-----------------------------------------------------------------------
+#https://teaching.csse.uwa.edu.au/units/CITS4241/Handouts/Lecture04.html
 import numpy as np
 from matplotlib import pyplot as plt
 

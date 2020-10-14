@@ -180,8 +180,10 @@ logic [15:0] line_in_size = READ_IMG_WIDTH-1;
 logic [15:0] v_scale_step = SCALE_COE*LINE_STEP;
 scaler_v #(
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
+    .LINE_STEP(LINE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
-    .SPARSE_OUT(SPARSE_OUT)
+    .SPARSE_OUT(SPARSE_OUT),
+    .COE_WIDTH(COE_WIDTH)
 ) scaler_v_m (
     .line_in_size(line_in_size),
     .scale_step(v_scale_step),
