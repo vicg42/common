@@ -178,7 +178,7 @@ wire [COE_WIDTH-1:0] coe [3:0];
 cubic_table #(
     .STEP(LINE_STEP),
     .COE_WIDTH(COE_WIDTH)
-) cubic_table_m (
+) coe_table_m (
     .coe0(coe[0]),
     .coe1(coe[1]),
     .coe2(coe[2]),

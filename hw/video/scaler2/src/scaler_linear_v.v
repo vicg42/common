@@ -25,8 +25,6 @@ module scaler_v #(
 localparam BUF0_NUM = 0;
 localparam BUF1_NUM = 1;
 localparam BUF2_NUM = 2;
-localparam BUF3_NUM = 3;
-localparam BUF4_NUM = 4;
 
 reg [23:0] cnt_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_o = 0; // output pixels coordinate counter
@@ -40,7 +38,7 @@ always @(posedge clk) begin
         if (hs_i) begin
             cnt_i <= cnt_i + LINE_STEP;
             buf_wcnt <= 0;
-            if (buf_wsel == BUF4_NUM) begin
+            if (buf_wsel == BUF2_NUM) begin
                 buf_wsel <= 0;
             end else begin
                 buf_wsel <= buf_wsel + 1'b1;
@@ -58,16 +56,12 @@ reg [PIXEL_WIDTH-1:0] sr_di_i = 0;
 (* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf0[LINE_IN_SIZE_MAX-1:0];
 (* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf1[LINE_IN_SIZE_MAX-1:0];
 (* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf2[LINE_IN_SIZE_MAX-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf3[LINE_IN_SIZE_MAX-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf4[LINE_IN_SIZE_MAX-1:0];
 always @(posedge clk) begin
     if (de_i) begin
         sr_di_i <= di_i;
         if (buf_wsel == BUF0_NUM) buf0[buf_wcnt] <= sr_di_i;
         if (buf_wsel == BUF1_NUM) buf1[buf_wcnt] <= sr_di_i;
         if (buf_wsel == BUF2_NUM) buf2[buf_wcnt] <= sr_di_i;
-        if (buf_wsel == BUF3_NUM) buf3[buf_wcnt] <= sr_di_i;
-        if (buf_wsel == BUF4_NUM) buf4[buf_wcnt] <= sr_di_i;
     end
 end
 
@@ -174,29 +168,25 @@ localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
 localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
 localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 
-wire [COE_WIDTH-1:0] coe [3:0];
-cubic_table #(
+wire [COE_WIDTH-1:0] coe [1:0];
+bilinear_table #(
     .STEP(LINE_STEP),
     .COE_WIDTH(COE_WIDTH)
-) cubic_table_m (
+) coe_table_m (
     .coe0(coe[0]),
     .coe1(coe[1]),
-    .coe2(coe[2]),
-    .coe3(coe[3]),
 
     .dx(dy),
     .clk(clk)
 );
 
-(* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [3:0];
+(* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [1:0];
 reg signed [MULT_WIDTH+2-1:0] sum;
 always @(posedge clk) begin
     mult[0] <= coe[0] * line[0];
     mult[1] <= coe[1] * line[1];
-    mult[2] <= coe[2] * line[2];
-    mult[3] <= coe[3] * line[3];
 
-    sum <= mult[1] + mult[2] - mult[0] - mult[3] + ROUND_ADDER;
+    sum <= mult[0] + mult[1]+ ROUND_ADDER;
 
     do_o <= sum[COE_WIDTH-1 +: PIXEL_WIDTH];
     if (sum[OVERFLOW_BIT]) do_o <= MAX_OUTPUT;
