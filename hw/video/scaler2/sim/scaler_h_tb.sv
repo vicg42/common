@@ -196,7 +196,6 @@ scaler_h #(
     .clk(clk)
 );
 
-
 reg [15:0] dbg_cntx_i = 0;
 reg [15:0] dbg_cntx_tmp = 0;
 reg [15:0] dbg_cnty_i = 0;
