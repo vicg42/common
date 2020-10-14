@@ -1,3 +1,6 @@
+//-----------------------------------------------------------------------
+// author : Viktor Golovachenko
+//-----------------------------------------------------------------------
 `timescale 1ns / 1ps
 `include "bmp_io.sv"
 
@@ -230,55 +233,3 @@ always @(posedge clk) begin
 end
 
 endmodule
-
-
-// initial begin
-// //     $dumpfile("icarus/scaler_v_tb.v.fst");
-//     $dumpvars;
-//     $dumpvars(0, scaler_v_m.buf0[0]);
-//     $dumpvars(0, scaler_v_m.buf1[0]);
-//     $dumpvars(0, scaler_v_m.buf2[0]);
-//     $dumpvars(0, scaler_v_m.buf3[0]);
-//     $dumpvars(0, scaler_v_m.buf4[0]);
-
-//     #3_000_000;
-
-//     $display("\007");
-//     $finish;
-// end
-
-// localparam VIDEO_PIXEL_PERIOD = 6;
-// localparam VIDEO_LINE_PERIOD = 756;
-// localparam VIDEO_FRAME_PERIOD = 288;
-// logic [7:0] pix_cntr = 0;
-// logic [10:0] x_cntr = 0;
-// logic [10:0] y_cntr = VIDEO_FRAME_PERIOD - 2;
-
-// always @(posedge clk) begin
-//     de_i <= 0;
-//     hs_i <= 0;
-//     vs_i <= 0;
-//     pix_cntr <= pix_cntr + 1'b1;
-//     if (pix_cntr == (VIDEO_PIXEL_PERIOD - 1)) begin
-//         pix_cntr <= 0;
-//         de_i <= 1;
-//         x_cntr <= x_cntr + 1'b1;
-//         if (x_cntr == (VIDEO_LINE_PERIOD - 1)) begin
-//             x_cntr <= 0;
-//             hs_i <= 1;
-//             y_cntr <= y_cntr + 1'b1;
-//             if (y_cntr == (VIDEO_FRAME_PERIOD - 1)) begin
-//                 y_cntr <= 0;
-//                 vs_i <= 1;
-//             end
-//         end
-//     end
-// end
-
-// localparam BLACK = 12'h0;
-// localparam WHITE = 12'hFFF;
-
-// always @(posedge clk) begin
-//     // di_i = y_cntr*100; // vertical gradient
-//     di_i = x_cntr;//*10; // horisontal gradient
-// end

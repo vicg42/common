@@ -1,5 +1,7 @@
+#-----------------------------------------------------------------------
+# author : Viktor Golovachenko
+#-----------------------------------------------------------------------
 #https://en.wikipedia.org/wiki/Lanczos_resampling
-
 import numpy as np
 from matplotlib import pyplot as plt
 
