@@ -16,8 +16,8 @@ module bilinear_table #(
 (* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_0[(STEP/2)-1:0];
 (* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_1[(STEP/2)-1:0];
 
-initial $readmemb("bilinear_table_0.txt", coe_table_0);
-initial $readmemb("bilinear_table_1.txt", coe_table_1);
+initial $readmemb("linear_table_0.txt", coe_table_0);
+initial $readmemb("linear_table_1.txt", coe_table_1);
 
 always @(posedge clk) begin
     coe0 <= coe_table_0[dx];
