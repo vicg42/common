@@ -112,7 +112,7 @@ always @(posedge clk) begin
     endcase
 
     if (de_i && vs_i) begin
-        cnt_o <= LINE_STEP*2;
+        cnt_o <= LINE_STEP;
     end
 end
 
@@ -127,18 +127,18 @@ end
 reg [PIXEL_WIDTH-1:0] line [1:0];
 always @(posedge clk) begin
     if (buf_wsel == BUF0_NUM) begin
+        line[1] <= buf_do[0];
+        line[0] <= buf_do[2];
+    end
+    if (buf_wsel == BUF1_NUM) begin
         line[1] <= buf_do[1];
         line[0] <= buf_do[0];
     end
-    if (buf_wsel == BUF1_NUM) begin
+    if (buf_wsel == BUF2_NUM) begin
         line[1] <= buf_do[2];
         line[0] <= buf_do[1];
     end
-    if (buf_wsel == BUF2_NUM) begin
-        line[1] <= buf_do[0];
-        line[0] <= buf_do[1];
-    end
-    if (cnt_i < (4*LINE_STEP)) begin
+    if (cnt_i < (2*LINE_STEP)) begin
         line[1] <= 0; // boundary effect elimination
     end
 end
@@ -191,7 +191,7 @@ always @(posedge clk) begin
     sr_hs_o_early[2] <= sr_hs_o_early[1];
     hs_o <= sr_hs_o_early[2] & sr_de_o_early[2];
 
-    vs_o_early <= (cnt_o == LINE_STEP*2) && (buf_rcnt == 0);
+    vs_o_early <= (cnt_o == LINE_STEP) && (buf_rcnt == 0);
     sr_vs_o_early[0] <= vs_o_early;
     sr_vs_o_early[1] <= sr_vs_o_early[0];
     sr_vs_o_early[2] <= sr_vs_o_early[1];

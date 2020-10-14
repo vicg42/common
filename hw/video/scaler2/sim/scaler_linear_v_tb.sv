@@ -16,7 +16,7 @@ module scaler_linear_v_tb #(
     parameter READ_IMG_WIDTH = 256,
     parameter LINE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 2.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 
@@ -108,7 +108,9 @@ initial begin : sim_main
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
 //                di_i = image_real.get_pixel(x, y);
-                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;//y+
+                // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+y+1;//
+                di_i[0 +: 4] = x+1;//y+
+                di_i[4 +: 4] = y;//
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -154,7 +156,7 @@ initial begin : sim_main
 //        if (y == h) begin
 //            vs_i = 1'b0;
 //        end
-        #110;
+        #2110;
     end
 
     $stop;
