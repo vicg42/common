@@ -5,10 +5,10 @@ file delete -force -- work
 
 vlib work
 vlog ./bmp_io.sv -sv
-vlog ../src/cubic_table.v
-vlog ../src/scaler_cubic_v.v -sv +define+SIM_FSM
-#vlog ../src/bilinear_table.v
-#vlog ../src/scaler_linear_v.v -sv +define+SIM_FSM
+#vlog ../src/cubic_table.v
+#vlog ../src/scaler_cubic_v.v -sv +define+SIM_FSM
+vlog ../src/linear_table.v
+vlog ../src/scaler_linear_v.v -sv +define+SIM_FSM
 
 vlog  ./monitor.sv -sv
 vlog  ./scaler_v_tb.sv -sv

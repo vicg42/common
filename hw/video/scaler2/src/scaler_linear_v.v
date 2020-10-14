@@ -29,7 +29,7 @@ localparam BUF2_NUM = 2;
 reg [23:0] cnt_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_o = 0; // output pixels coordinate counter
 
-reg [2:0] buf_wsel = 0;
+reg [1:0] buf_wsel = 0;
 reg [15:0] buf_wcnt = 0;
 reg [15:0] buf_rcnt = 0;
 always @(posedge clk) begin
@@ -79,7 +79,7 @@ end
     reg [1:0] fsm_cs = IDLE;
 `endif
 
-reg [9:0] dy = 0;
+reg [$clog2(LINE_STEP/2)-1:0] dy = 0;
 reg [3:0] cnt_sparse = 0;
 reg de_o_early = 0;
 always @(posedge clk) begin
@@ -87,7 +87,7 @@ always @(posedge clk) begin
     case (fsm_cs)
         IDLE: begin
             if (cnt_i > cnt_o) begin
-                dy <= cnt_o[2 +: 10];
+                dy <= cnt_o[1 +: (LINE_STEP/2)];
                 fsm_cs <= PRM_CYCLE;
             end
         end
@@ -117,49 +117,29 @@ always @(posedge clk) begin
 end
 
 // Memory read
-reg [PIXEL_WIDTH-1:0] buf_do [4:0];
+reg [PIXEL_WIDTH-1:0] buf_do [2:0];
 always @(posedge clk) begin
     buf_do[0] <= buf0[buf_rcnt];
     buf_do[1] <= buf1[buf_rcnt];
     buf_do[2] <= buf2[buf_rcnt];
-    buf_do[3] <= buf3[buf_rcnt];
-    buf_do[4] <= buf4[buf_rcnt];
 end
 
-reg [PIXEL_WIDTH-1:0] line [3:0];
+reg [PIXEL_WIDTH-1:0] line [1:0];
 always @(posedge clk) begin
     if (buf_wsel == BUF0_NUM) begin
-        line[3] <= buf_do[1];
-        line[2] <= buf_do[2];
-        line[1] <= buf_do[3];
-        line[0] <= buf_do[4];
-    end
-    if (buf_wsel == BUF1_NUM) begin
-        line[3] <= buf_do[2];
-        line[2] <= buf_do[3];
-        line[1] <= buf_do[4];
+        line[1] <= buf_do[1];
         line[0] <= buf_do[0];
     end
+    if (buf_wsel == BUF1_NUM) begin
+        line[1] <= buf_do[2];
+        line[0] <= buf_do[1];
+    end
     if (buf_wsel == BUF2_NUM) begin
-        line[3] <= buf_do[3];
-        line[2] <= buf_do[4];
         line[1] <= buf_do[0];
         line[0] <= buf_do[1];
     end
-    if (buf_wsel == BUF3_NUM) begin
-        line[3] <= buf_do[4];
-        line[2] <= buf_do[0];
-        line[1] <= buf_do[1];
-        line[0] <= buf_do[2];
-    end
-    if (buf_wsel == BUF4_NUM) begin
-        line[3] <= buf_do[0];
-        line[2] <= buf_do[1];
-        line[1] <= buf_do[2];
-        line[0] <= buf_do[3];
-    end
     if (cnt_i < (4*LINE_STEP)) begin
-        line[3] <= 0; // boundary effect elimination
+        line[1] <= 0; // boundary effect elimination
     end
 end
 
@@ -186,7 +166,7 @@ always @(posedge clk) begin
     mult[0] <= coe[0] * line[0];
     mult[1] <= coe[1] * line[1];
 
-    sum <= mult[0] + mult[1]+ ROUND_ADDER;
+    sum <= mult[0] + mult[1] + ROUND_ADDER;
 
     do_o <= sum[COE_WIDTH-1 +: PIXEL_WIDTH];
     if (sum[OVERFLOW_BIT]) do_o <= MAX_OUTPUT;
