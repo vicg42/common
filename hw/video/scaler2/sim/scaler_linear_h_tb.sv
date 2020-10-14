@@ -6,7 +6,7 @@
 
 module scaler_cubic_h_tb #(
     parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
-    parameter WRITE_IMG_FILE = "scaler_cubic_h_result.bmp",
+    parameter WRITE_IMG_FILE = "scaler_linear_h_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
@@ -183,7 +183,7 @@ scaler_h #(
     .PIXEL_STEP(PIXEL_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .COE_WIDTH(COE_WIDTH)
-) scaler_cubic_h_m (
+) scaler_linear_h_m (
     .scale_step(h_scale_step),
 
     .di_i(di_s),//(di_i),//

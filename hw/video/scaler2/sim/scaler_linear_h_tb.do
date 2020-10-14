@@ -5,15 +5,15 @@ file delete -force -- work
 
 vlib work
 vlog ./bmp_io.sv -sv
-vlog ../src/cubic_table.v
-vlog ../src/scaler_cubic_h.v
+vlog ../src/bilinear_table.v
+vlog ../src/scaler_linear_h.v
 
 vlog  ./monitor.sv -sv
-vlog  ./scaler_cubic_h_tb.sv -sv
+vlog  ./scaler_linear_h_tb.sv -sv
 
-vsim -t 1ps -novopt -lib work scaler_cubic_h_tb \
+vsim -t 1ps -novopt -lib work scaler_linear_h_tb \
 
-do scaler_cubic_h_tb_wave.do
+do scaler_linear_h_tb_wave.do
 
 #--------------------------
 #View waveform
