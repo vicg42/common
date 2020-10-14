@@ -3,8 +3,8 @@ module scaler_h #(
     parameter PIXEL_WIDTH = 12,
     parameter COE_WIDTH = 10
 )(
-    // unsigned fixed point. PIXEL_STEP is 1.000 scale
-    input [15:0] h_scale_step,
+    //unsigned fixed point. PIXEL_STEP is 1.000 scale
+    input [15:0] scale_step,
 
     input [PIXEL_WIDTH-1:0] di_i,
     input de_i,
@@ -21,7 +21,7 @@ module scaler_h #(
 
 wire [COE_WIDTH-1:0] coe [1:0];
 reg [PIXEL_WIDTH-1:0] sr_di_i[1:0];
-reg [PIXEL_WIDTH-1:0] m [1:0];
+reg [PIXEL_WIDTH-1:0] pix [1:0];
 
 reg [23:0] cnt_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_o = 0; // output pixels coordinate counter
@@ -71,10 +71,10 @@ always @(posedge clk) begin
 
     if (cnt_i >= cnt_o) begin
         new_pix <= 1;
-        m[0] <= sr_di_i[0];
-        m[1] <= sr_di_i[1];
-        // m[1] <= (cnt_i <= (PIXEL_STEP)) ? 1'b0 : sr_di_i[1]; // boundary check, needed only for step<1.0 (upsize)
-        cnt_o <= cnt_o + h_scale_step;
+        pix[0] <= sr_di_i[0];
+        pix[1] <= sr_di_i[1];
+        // pix[1] <= (cnt_i <= (PIXEL_STEP)) ? 1'b0 : sr_di_i[1]; // boundary check, needed only for step<1.0 (upsize)
+        cnt_o <= cnt_o + scale_step;
         if (sol) begin
             sol <= 0;
             new_line <= 1;
@@ -111,8 +111,8 @@ bilinear_table #(
 (* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [1:0];
 reg signed [MULT_WIDTH+2-1:0] sum;
 always @(posedge clk) begin
-    mult[0] <= coe[0] * m[0];
-    mult[1] <= coe[1] * m[1];
+    mult[0] <= coe[0] * pix[0];
+    mult[1] <= coe[1] * pix[1];
 
     sum <= mult[0] + mult[1] + ROUND_ADDER;
     if (sr_new_pix[1]) begin
