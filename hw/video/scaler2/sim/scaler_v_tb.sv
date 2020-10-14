@@ -195,14 +195,16 @@ scaler_v #(
     .clk(clk)
 );
 
+reg [15:0] dbg_cntx_i_tmp = 0;
 reg [15:0] dbg_cntx_i = 0;
 reg [15:0] dbg_cnty_i = 0;
 always @(posedge clk) begin
     if (hs_i) begin
-        dbg_cntx_i <= 0;
+        dbg_cntx_i_tmp <= 0;
     end else if (de_i) begin
-        dbg_cntx_i <= dbg_cntx_i + 1;
+        dbg_cntx_i_tmp <= dbg_cntx_i_tmp + 1;
     end
+    dbg_cntx_i <= dbg_cntx_i_tmp;
 
     if (hs_s && vs_s) begin
         dbg_cnty_i <= 0;
