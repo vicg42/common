@@ -6,12 +6,12 @@ module bilinear_table #(
     output reg [COE_WIDTH-1:0] coe0,
     output reg [COE_WIDTH-1:0] coe1,
 
-    input [$clog2(STEP/4)-1:0] dx,
+    input [$clog2(STEP/2)-1:0] dx,
     input clk
 );
 
-(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_0[(STEP/4)-1:0];
-(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_1[(STEP/4)-1:0];
+(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_0[(STEP/2)-1:0];
+(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_1[(STEP/2)-1:0];
 
 initial $readmemb("bilinear_table_0.txt", coe_table_0);
 initial $readmemb("bilinear_table_1.txt", coe_table_1);

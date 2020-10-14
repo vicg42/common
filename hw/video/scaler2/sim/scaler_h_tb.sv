@@ -7,10 +7,10 @@ module scaler_h_tb #(
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
-    parameter PIXEL_STEP = 4096,
+    parameter PIXEL_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 2.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
-    parameter COE_WIDTH = 10
+    parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter COE_WIDTH = 8
 );
 
 reg clk = 1;
@@ -37,6 +37,11 @@ logic [PIXEL_WIDTH-1:0] do_o;
 logic de_o;
 logic hs_o;
 logic vs_o;
+
+wire [PIXEL_WIDTH-1:0] do_o_tmp;
+wire de_o_tmp;
+wire hs_o_tmp;
+wire vs_o_tmp;
 
 BMP_IO image_real;
 BMP_IO image_new;
@@ -182,23 +187,25 @@ scaler_h #(
     .hs_i(hs_s),//(hs_i),//
     .vs_i(vs_s),//(vs_i),//
 
-    .do_o(do_o),
-    .de_o(de_o),
-    .hs_o(hs_o),
-    .vs_o(vs_o),
+    .do_o(do_o_tmp),
+    .de_o(de_o_tmp),
+    .hs_o(hs_o_tmp),
+    .vs_o(vs_o_tmp),
 
     .clk(clk)
 );
 
 
 reg [15:0] dbg_cntx_i = 0;
+reg [15:0] dbg_cntx_tmp = 0;
 reg [15:0] dbg_cnty_i = 0;
 always @(posedge clk) begin
     if (hs_i) begin
-        dbg_cntx_i <= 0;
+        dbg_cntx_tmp <= 0;
     end else if (de_i) begin
-        dbg_cntx_i <= dbg_cntx_i + 1;
+        dbg_cntx_tmp <= dbg_cntx_tmp + 1;
     end
+    dbg_cntx_i <= dbg_cntx_tmp;
 
     if (hs_s && vs_s) begin
         dbg_cnty_i <= 0;
@@ -210,17 +217,32 @@ end
 reg [15:0] dbg_cntx_o = 0;
 reg [15:0] dbg_cnty_o = 0;
 always @(posedge clk) begin
-    if (hs_o && de_o) begin
+    do_o <= do_o_tmp;
+    de_o <= de_o_tmp;
+    hs_o <= hs_o_tmp;
+    vs_o <= vs_o_tmp;
+    if (hs_o_tmp) begin
         dbg_cntx_o <= 0;
     end else if (de_o) begin
         dbg_cntx_o <= dbg_cntx_o + 1;
     end
 
-    if (hs_o && vs_o) begin
+    if (hs_o_tmp && vs_o_tmp) begin
         dbg_cnty_o <= 0;
-    end else if (hs_o) begin
+    end else if (hs_o_tmp) begin
         dbg_cnty_o <= dbg_cnty_o + 1;
     end
 end
+
+monitor # (
+    .DATA_WIDTH(8),
+    .WRITE_IMG_FILE("scaler_h_file")
+) monitor_m (
+    .di_i(do_o_tmp),
+    .de_i(de_o_tmp),
+    .hs_i(hs_o_tmp),
+    .vs_i(vs_o_tmp),
+    .clk(clk)
+);
 
 endmodule

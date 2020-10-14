@@ -8,12 +8,12 @@ file delete -force -- work
 
 vlib work
 vlog ./bmp_io.sv -sv
-vlog ../src/cubic_table.v
-#vlog ../src/bilinear_table.v
-#vlog ../src/lanczos_table.v
-vlog ../src/scaler_cubic_h.v
-#vlog ../src/scaler_linear_h.v
+#vlog ../src/cubic_table.v
+#vlog ../src/scaler_cubic_h.v
+vlog ../src/bilinear_table.v
+vlog ../src/scaler_linear_h.v
 
+vlog  ./monitor.sv -sv
 vlog  ./scaler_h_tb.sv -sv
 
 vsim -t 1ps -novopt -lib work scaler_h_tb \

@@ -32,8 +32,8 @@ add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h_m/do_o[
 add wave -noupdate /scaler_h_tb/scaler_h_m/de_o
 add wave -noupdate /scaler_h_tb/scaler_h_m/hs_o
 add wave -noupdate /scaler_h_tb/scaler_h_m/vs_o
-add wave -noupdate /scaler_h_tb/dbg_cntx_o
-add wave -noupdate /scaler_h_tb/dbg_cnty_o
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cntx_o
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cnty_o
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {467062 ps} 0}
 quietly wave cursor active 1
