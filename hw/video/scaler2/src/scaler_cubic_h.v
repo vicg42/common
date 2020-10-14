@@ -21,7 +21,7 @@ module scaler_h #(
 
 wire [COE_WIDTH-1:0] coe [3:0];
 reg [PIXEL_WIDTH-1:0] sr_di_i[3:0];
-reg [PIXEL_WIDTH-1:0] m [3:0];
+reg [PIXEL_WIDTH-1:0] pix [3:0];
 
 reg [23:0] cnt_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_o = 0; // output pixels coordinate counter
@@ -60,10 +60,10 @@ always @(posedge clk) begin
 
     if (cnt_i > cnt_o) begin
         new_pix <= 1;
-        m[0] <= sr_di_i[0];
-        m[1] <= sr_di_i[1];
-        m[2] <= sr_di_i[2];
-        m[3] <= (cnt_i <= (PIXEL_STEP*2)) ? 1'b0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
+        pix[0] <= sr_di_i[0];
+        pix[1] <= sr_di_i[1];
+        pix[2] <= sr_di_i[2];
+        pix[3] <= (cnt_i <= (PIXEL_STEP*2)) ? 1'b0 : sr_di_i[3]; // boundary check, needed only for step<1.0 (upsize)
         cnt_o <= cnt_o + scale_step;
         if (sol) begin
             sol <= 0;
@@ -103,10 +103,10 @@ cubic_table #(
 (* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [3:0];
 reg signed [MULT_WIDTH+2-1:0] sum;
 always @(posedge clk) begin
-    mult[0] <= coe[0] * m[0];
-    mult[1] <= coe[1] * m[1];
-    mult[2] <= coe[2] * m[2];
-    mult[3] <= coe[3] * m[3];
+    mult[0] <= coe[0] * pix[0];
+    mult[1] <= coe[1] * pix[1];
+    mult[2] <= coe[2] * pix[2];
+    mult[3] <= coe[3] * pix[3];
 
     sum <= mult[1] + mult[2] - mult[0] - mult[3] + ROUND_ADDER;
     if (sr_new_pix[1]) begin

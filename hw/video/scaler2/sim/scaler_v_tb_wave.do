@@ -25,7 +25,7 @@ add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/cnt_o
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/buf_rcnt
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/cnt_sparse
 add wave -noupdate -expand /scaler_v_tb/scaler_v_m/buf_do
-add wave -noupdate -expand /scaler_v_tb/scaler_v_m/m
+add wave -noupdate -expand /scaler_v_tb/scaler_v_m/line
 add wave -noupdate -expand /scaler_v_tb/scaler_v_m/coe
 add wave -noupdate -divider {New Divider}
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/do_o

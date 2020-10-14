@@ -132,40 +132,40 @@ always @(posedge clk) begin
     buf_do[4] <= buf4[buf_rcnt];
 end
 
-reg [PIXEL_WIDTH-1:0] m [3:0];
+reg [PIXEL_WIDTH-1:0] line [3:0];
 always @(posedge clk) begin
     if (buf_wsel == BUF0_NUM) begin
-        m[3] <= buf_do[1];
-        m[2] <= buf_do[2];
-        m[1] <= buf_do[3];
-        m[0] <= buf_do[4];
+        line[3] <= buf_do[1];
+        line[2] <= buf_do[2];
+        line[1] <= buf_do[3];
+        line[0] <= buf_do[4];
     end
     if (buf_wsel == BUF1_NUM) begin
-        m[3] <= buf_do[2];
-        m[2] <= buf_do[3];
-        m[1] <= buf_do[4];
-        m[0] <= buf_do[0];
+        line[3] <= buf_do[2];
+        line[2] <= buf_do[3];
+        line[1] <= buf_do[4];
+        line[0] <= buf_do[0];
     end
     if (buf_wsel == BUF2_NUM) begin
-        m[3] <= buf_do[3];
-        m[2] <= buf_do[4];
-        m[1] <= buf_do[0];
-        m[0] <= buf_do[1];
+        line[3] <= buf_do[3];
+        line[2] <= buf_do[4];
+        line[1] <= buf_do[0];
+        line[0] <= buf_do[1];
     end
     if (buf_wsel == BUF3_NUM) begin
-        m[3] <= buf_do[4];
-        m[2] <= buf_do[0];
-        m[1] <= buf_do[1];
-        m[0] <= buf_do[2];
+        line[3] <= buf_do[4];
+        line[2] <= buf_do[0];
+        line[1] <= buf_do[1];
+        line[0] <= buf_do[2];
     end
     if (buf_wsel == BUF4_NUM) begin
-        m[3] <= buf_do[0];
-        m[2] <= buf_do[1];
-        m[1] <= buf_do[2];
-        m[0] <= buf_do[3];
+        line[3] <= buf_do[0];
+        line[2] <= buf_do[1];
+        line[1] <= buf_do[2];
+        line[0] <= buf_do[3];
     end
     if (cnt_i < (4*LINE_STEP)) begin
-        m[3] <= 0; // boundary effect elimination
+        line[3] <= 0; // boundary effect elimination
     end
 end
 
@@ -191,10 +191,10 @@ cubic_table #(
 (* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [3:0];
 reg signed [MULT_WIDTH+2-1:0] sum;
 always @(posedge clk) begin
-    mult[0] <= coe[0] * m[0];
-    mult[1] <= coe[1] * m[1];
-    mult[2] <= coe[2] * m[2];
-    mult[3] <= coe[3] * m[3];
+    mult[0] <= coe[0] * line[0];
+    mult[1] <= coe[1] * line[1];
+    mult[2] <= coe[2] * line[2];
+    mult[3] <= coe[3] * line[3];
 
     sum <= mult[1] + mult[2] - mult[0] - mult[3] + ROUND_ADDER;
 
