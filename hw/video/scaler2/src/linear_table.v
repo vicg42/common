@@ -2,7 +2,7 @@
 // author : Viktor Golovachenko
 //-----------------------------------------------------------------------
 `timescale 1ns / 1ps
-module bilinear_table #(
+module linear_table #(
     parameter STEP = 4096,
     parameter COE_WIDTH = 10
 )(

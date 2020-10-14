@@ -97,7 +97,7 @@ localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
 localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 wire [$clog2(PIXEL_STEP/2)-1:0] dx;
 assign dx = cnt_o[1 +: (PIXEL_STEP/2)];
-bilinear_table #(
+linear_table #(
     .STEP(PIXEL_STEP),
     .COE_WIDTH(COE_WIDTH)
 ) coe_table_m (

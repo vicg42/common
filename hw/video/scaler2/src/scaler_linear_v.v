@@ -169,7 +169,7 @@ localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
 localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 
 wire [COE_WIDTH-1:0] coe [1:0];
-bilinear_table #(
+linear_table #(
     .STEP(LINE_STEP),
     .COE_WIDTH(COE_WIDTH)
 ) coe_table_m (
