@@ -1,1 +1,0 @@
-vsim -do ./scaler_h_tb.do

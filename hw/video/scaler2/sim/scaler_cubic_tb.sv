@@ -4,9 +4,9 @@
 `timescale 1ns / 1ps
 `include "bmp_io.sv"
 
-module scaler_h_tb #(
+module scaler_cubic_h_tb #(
     parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
-    parameter WRITE_IMG_FILE = "scaler_h_result.bmp",
+    parameter WRITE_IMG_FILE = "scaler_cubic_h_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
