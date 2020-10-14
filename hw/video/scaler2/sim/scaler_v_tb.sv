@@ -6,6 +6,7 @@
 
 module scaler_v_tb #(
     parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+    parameter WRITE_IMG_FILE = "scaler_v_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
@@ -231,5 +232,16 @@ always @(posedge clk) begin
         dbg_cnty_o <= dbg_cnty_o + 1;
     end
 end
+
+monitor # (
+    .DATA_WIDTH(8),
+    .WRITE_IMG_FILE(WRITE_IMG_FILE)
+) monitor_m (
+    .di_i(do_o),
+    .de_i(de_o),
+    .hs_i(hs_o),
+    .vs_i(vs_o),
+    .clk(clk)
+);
 
 endmodule

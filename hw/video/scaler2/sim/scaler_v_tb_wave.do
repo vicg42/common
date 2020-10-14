@@ -1,6 +1,7 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate -radix ascii /scaler_v_tb/READ_IMG_FILE
+add wave -noupdate -radix ascii /scaler_v_tb/WRITE_IMG_FILE
 add wave -noupdate -radix unsigned /scaler_v_tb/LINE_IN_SIZE_MAX
 add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/LINE_STEP
 add wave -noupdate -radix unsigned /scaler_v_tb/PIXEL_WIDTH
@@ -34,6 +35,11 @@ add wave -noupdate /scaler_v_tb/scaler_v_m/hs_o
 add wave -noupdate /scaler_v_tb/scaler_v_m/vs_o
 add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_v_tb/dbg_cntx_o
 add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_v_tb/dbg_cnty_o
+add wave -noupdate -divider monitor
+add wave -noupdate -radix unsigned /scaler_v_tb/monitor_m/wen
+add wave -noupdate -radix unsigned /scaler_v_tb/monitor_m/xcnt
+add wave -noupdate -radix unsigned /scaler_v_tb/monitor_m/ycnt
+add wave -noupdate -radix unsigned /scaler_v_tb/monitor_m/frcnt
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
@@ -51,4 +57,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {12600 ns}
+WaveRestoreZoom {0 ps} {305550 ns}
