@@ -5,7 +5,7 @@ file delete -force -- work
 
 vlib work
 vlog ./bmp_io.sv -sv
-vlog ../src/bilinear_table.v
+vlog ../src/linear_table.v
 vlog ../src/scaler_linear_h.v
 
 vlog  ./monitor.sv -sv
