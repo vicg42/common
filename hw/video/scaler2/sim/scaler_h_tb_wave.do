@@ -28,21 +28,17 @@ add wave -noupdate /scaler_h_tb/scaler_h_m/new_fr
 add wave -noupdate /scaler_h_tb/scaler_h_m/sol
 add wave -noupdate /scaler_h_tb/scaler_h_m/new_line
 add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h_m/cnt_o[23]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[22]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[21]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[20]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[19]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[18]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[17]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[16]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[15]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[14]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[13]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[12]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[11]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[10]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[9]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[8]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[7]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[6]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[5]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[4]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[3]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[2]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[1]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/cnt_o[0]} -radix unsigned}} -subitemconfig {{/scaler_h_tb/scaler_h_m/cnt_o[23]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[22]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[21]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[20]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[19]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[18]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[17]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[16]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[15]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[14]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[13]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[12]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[11]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[10]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[9]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[8]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[7]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[6]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[5]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[4]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[3]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[2]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[1]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/cnt_o[0]} {-height 15 -radix unsigned}} /scaler_h_tb/scaler_h_m/cnt_o
-add wave -noupdate -divider {New Divider}
-add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h_m/do_o[7]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/do_o[6]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/do_o[5]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/do_o[4]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/do_o[3]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/do_o[2]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/do_o[1]} -radix unsigned} {{/scaler_h_tb/scaler_h_m/do_o[0]} -radix unsigned}} -subitemconfig {{/scaler_h_tb/scaler_h_m/do_o[7]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/do_o[6]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/do_o[5]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/do_o[4]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/do_o[3]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/do_o[2]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/do_o[1]} {-height 15 -radix unsigned} {/scaler_h_tb/scaler_h_m/do_o[0]} {-height 15 -radix unsigned}} /scaler_h_tb/scaler_h_m/do_o
-add wave -noupdate /scaler_h_tb/scaler_h_m/de_o
-add wave -noupdate /scaler_h_tb/scaler_h_m/hs_o
-add wave -noupdate /scaler_h_tb/scaler_h_m/vs_o
-add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cntx_o
-add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cnty_o
-add wave -noupdate -divider monitor
+add wave -noupdate -divider {output monitor}
 add wave -noupdate /scaler_h_tb/monitor_m/wen
-add wave -noupdate -radix unsigned /scaler_h_tb/monitor_m/xcnt
-add wave -noupdate -radix unsigned /scaler_h_tb/monitor_m/ycnt
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/monitor_m/xcnt
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/monitor_m/ycnt
 add wave -noupdate -radix unsigned /scaler_h_tb/monitor_m/frcnt
-add wave -noupdate -radix unsigned /scaler_h_tb/monitor_m/data_size
+add wave -noupdate /scaler_h_tb/monitor_m/di
+add wave -noupdate /scaler_h_tb/monitor_m/de
+add wave -noupdate /scaler_h_tb/monitor_m/hs
+add wave -noupdate /scaler_h_tb/monitor_m/vs
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors
+WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
 configure wave -namecolwidth 138
 configure wave -valuecolwidth 117
@@ -58,4 +54,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {28384512 ps} {30085026 ps}
+WaveRestoreZoom {0 ps} {3150 ns}

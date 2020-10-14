@@ -18,7 +18,7 @@ module monitor # (
 BMP_IO img;
 
 int data [2048*2048];
-int data_size = 0;
+int bytecnt = 0;
 int xcnt = 0;
 int ycnt = 0;
 int frcnt = 0;
@@ -26,9 +26,7 @@ string filename;
 string strtmp;
 
 initial begin
-
     img = new();
-
 end
 
 logic [$size(di_i)-1:0] di = 0;
@@ -56,19 +54,20 @@ always @ (posedge clk) begin
             filename = WRITE_IMG_FILE;
 
             //allocated memary for video data
-            img.set_pixel_array(data_size);
+            img.set_pixel_array(bytecnt);
 
             //copy video data
-            for (i = 0; i < data_size; i++) begin
+            for (i = 0; i < bytecnt; i++) begin
                 img.set_pixel(i, data[i]);
             end
 
             //write to file
             img.fwrite_bmp(filename, 8, xcnt, ycnt); //BMP file
 
-            data_size <= 0;
+            bytecnt <= 0;
             ycnt <= 0;
             frcnt++;
+
         end else if (hs) begin
             ycnt++;
         end
@@ -76,12 +75,11 @@ always @ (posedge clk) begin
         if (hs_i) begin
             xcnt <= 0;
         end else if (de) begin
-            data[data_size++] = di[0  +: 8];
+            data[bytecnt++] = di[0 +: 8];
             xcnt++;
         end
     end
 
 end
-
 
 endmodule : monitor

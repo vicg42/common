@@ -28,18 +28,15 @@ add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/cnt_sparse
 add wave -noupdate -expand /scaler_v_tb/scaler_v_m/buf_do
 add wave -noupdate -expand /scaler_v_tb/scaler_v_m/line
 add wave -noupdate -expand /scaler_v_tb/scaler_v_m/coe
-add wave -noupdate -divider {New Divider}
-add wave -noupdate -radix unsigned /scaler_v_tb/scaler_v_m/do_o
-add wave -noupdate /scaler_v_tb/scaler_v_m/de_o
-add wave -noupdate /scaler_v_tb/scaler_v_m/hs_o
-add wave -noupdate /scaler_v_tb/scaler_v_m/vs_o
-add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_v_tb/dbg_cntx_o
-add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_v_tb/dbg_cnty_o
-add wave -noupdate -divider monitor
-add wave -noupdate -radix unsigned /scaler_v_tb/monitor_m/wen
-add wave -noupdate -radix unsigned /scaler_v_tb/monitor_m/xcnt
-add wave -noupdate -radix unsigned /scaler_v_tb/monitor_m/ycnt
+add wave -noupdate -divider {output monitor}
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_v_tb/monitor_m/xcnt
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_v_tb/monitor_m/ycnt
 add wave -noupdate -radix unsigned /scaler_v_tb/monitor_m/frcnt
+add wave -noupdate -radix unsigned /scaler_v_tb/monitor_m/wen
+add wave -noupdate /scaler_v_tb/monitor_m/di
+add wave -noupdate /scaler_v_tb/monitor_m/de
+add wave -noupdate /scaler_v_tb/monitor_m/hs
+add wave -noupdate /scaler_v_tb/monitor_m/vs
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
@@ -57,4 +54,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {305550 ns}
+WaveRestoreZoom {0 ps} {31500 ns}
