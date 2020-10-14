@@ -3,6 +3,7 @@
 
 module scaler_h_tb #(
     parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+    parameter WRITE_IMG_FILE = "scaler_h_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
@@ -105,8 +106,8 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-//                di_i = image_real.get_pixel(x, y);
-                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
+                di_i = image_real.get_pixel(x, y);
+                // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -236,7 +237,7 @@ end
 
 monitor # (
     .DATA_WIDTH(8),
-    .WRITE_IMG_FILE("scaler_h_file")
+    .WRITE_IMG_FILE(WRITE_IMG_FILE)
 ) monitor_m (
     .di_i(do_o_tmp),
     .de_i(de_o_tmp),

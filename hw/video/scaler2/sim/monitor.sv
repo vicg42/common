@@ -35,7 +35,6 @@ logic [$size(di_i)-1:0] di = 0;
 logic de = 0;
 logic hs = 0;
 logic vs = 0;
-logic frcnt = 0;
 logic wen = 1'b0;
 int   i;
 
@@ -52,8 +51,9 @@ always @ (posedge clk) begin
     if (wen) begin
         if (vs_i) begin
             //create file name
-            $sformat(strtmp,"_tb_fr%02d", frcnt);
-            filename = {WRITE_IMG_FILE, strtmp, ".bmp"};
+            // $sformat(strtmp,"_tb_fr%2d", frcnt);
+            // filename = {WRITE_IMG_FILE, strtmp, ".bmp"};
+            filename = WRITE_IMG_FILE;
 
             //allocated memary for video data
             img.set_pixel_array(data_size);

@@ -3,6 +3,7 @@ quietly virtual function -install /scaler_h_tb/scaler_h_m -env /scaler_h_tb/scal
 quietly virtual function -install /scaler_h_tb/scaler_h_m -env /scaler_h_tb/scaler_h_m { &{/scaler_h_tb/scaler_h_m/cnt_i[23], /scaler_h_tb/scaler_h_m/cnt_i[22], /scaler_h_tb/scaler_h_m/cnt_i[21], /scaler_h_tb/scaler_h_m/cnt_i[20], /scaler_h_tb/scaler_h_m/cnt_i[19], /scaler_h_tb/scaler_h_m/cnt_i[18], /scaler_h_tb/scaler_h_m/cnt_i[17], /scaler_h_tb/scaler_h_m/cnt_i[16], /scaler_h_tb/scaler_h_m/cnt_i[15], /scaler_h_tb/scaler_h_m/cnt_i[14], /scaler_h_tb/scaler_h_m/cnt_i[13], /scaler_h_tb/scaler_h_m/cnt_i[12] }} cnt_i_23_12
 quietly WaveActivateNextPane {} 0
 add wave -noupdate -radix ascii /scaler_h_tb/READ_IMG_FILE
+add wave -noupdate -radix ascii /scaler_h_tb/WRITE_IMG_FILE
 add wave -noupdate -radix unsigned /scaler_h_tb/PIXEL_STEP
 add wave -noupdate -radix unsigned /scaler_h_tb/PIXEL_WIDTH
 add wave -noupdate -radix unsigned /scaler_h_tb/SCALE_COE
@@ -34,9 +35,15 @@ add wave -noupdate /scaler_h_tb/scaler_h_m/hs_o
 add wave -noupdate /scaler_h_tb/scaler_h_m/vs_o
 add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cntx_o
 add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cnty_o
+add wave -noupdate -divider monitor
+add wave -noupdate /scaler_h_tb/monitor_m/wen
+add wave -noupdate -radix unsigned /scaler_h_tb/monitor_m/xcnt
+add wave -noupdate -radix unsigned /scaler_h_tb/monitor_m/ycnt
+add wave -noupdate -radix unsigned /scaler_h_tb/monitor_m/frcnt
+add wave -noupdate -radix unsigned /scaler_h_tb/monitor_m/data_size
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {467062 ps} 0}
-quietly wave cursor active 1
+WaveRestoreCursors
+quietly wave cursor active 0
 configure wave -namecolwidth 138
 configure wave -valuecolwidth 117
 configure wave -justifyvalue left
@@ -51,4 +58,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {3318483 ps}
+WaveRestoreZoom {28384512 ps} {30085026 ps}
