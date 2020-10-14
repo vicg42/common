@@ -3,6 +3,8 @@
 #-----------------------------------------------------------------------
 import numpy as np
 from matplotlib import pyplot as plt
+import sys
+import os
 
 x_chank = 2 #number of coe_table files
 x_resolution = 128 #total number of coeficient
@@ -10,7 +12,7 @@ y_resolution = 128 #accuracy
 
 x = np.linspace(-1.0, 1.0, num=x_resolution, endpoint=False)
 
-def Bilinear(x, a):
+def Linear(x, a):
     x = abs(x)
     if 0 :
         return 0
@@ -23,15 +25,22 @@ def Discrete(x):
     return int(round(y_resolution*x))
 
 interp_param = -1.0
-coe = [Discrete(Bilinear(point, a=interp_param)) for point in x]
+coe = [Discrete(Linear(point, a=interp_param)) for point in x] #discret values
+coe_f = [Linear(point, a=interp_param) for point in x] #folat values
 
-# LogFile = open("log.txt", "w")
-for y in range(x_chank):
-    for i in range(int(x_resolution/x_chank)):
-        print("%d:%5d %+02.3f" % (y,
-                                i,
-                                coe[i + (y*(int(x_resolution/x_chank)))]/y_resolution
-                                ) )
+original_stdout = sys.stdout # Save the original standard output
+LogFile = open("log.txt", "w")
+sys.stdout = LogFile # Change the standard output to the file we created.
+print(os.path.basename(__file__))
+x_chank_len=int(x_resolution/x_chank)
+for i in range(x_chank_len):
+    for y in range(x_chank):
+        f0 = coe_f[(x_chank_len*y) + i]
+        v0 = coe[(x_chank_len*y) + i]
+        print("[%5d:%d] %+02.3f %05d(dec)   " % ( ((x_chank_len*y) + i),y,f0,v0), end="")
+    print()
+LogFile.close
+sys.stdout = original_stdout # restore original value
 
 # save init file for verilog array
 coe_table=[]
