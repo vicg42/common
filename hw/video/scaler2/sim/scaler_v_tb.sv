@@ -4,9 +4,9 @@
 `timescale 1ns / 1ps
 `include "bmp_io.sv"
 
-module scaler_v_tb #(
+module scaler_cubic_v_tb #(
     parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
-    parameter WRITE_IMG_FILE = "scaler_v_result.bmp",
+    parameter WRITE_IMG_FILE = "scaler_cubic_v_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
@@ -184,7 +184,7 @@ scaler_v #(
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUT(SPARSE_OUT),
     .COE_WIDTH(COE_WIDTH)
-) scaler_v_m (
+) scaler_cubic_v_m (
     .line_in_size(line_in_size),
     .scale_step(v_scale_step),
 
@@ -246,4 +246,4 @@ monitor # (
     .clk(clk)
 );
 
-endmodule
+endmodule : scaler_cubic_v_tb
