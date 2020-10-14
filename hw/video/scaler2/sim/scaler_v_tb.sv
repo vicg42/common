@@ -2,16 +2,17 @@
 `include "bmp_io.sv"
 
 module scaler_v_tb #(
-    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
+    parameter SPARSE_OUT = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_IN_SIZE_MAX = 1024,
-    parameter LINE_OUT_SIZE = 600,
+    parameter READ_IMG_WIDTH = 255,
     parameter LINE_STEP = 4096,
     parameter PIXEL_WIDTH = 8,
-    parameter V_SCALE = 1.00,
+    parameter SCALE_COE = 2.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 10
 );
 
@@ -103,7 +104,7 @@ initial begin : sim_main
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
 //                di_i = image_real.get_pixel(x, y);
-                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+y+1;
+                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;//y+
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -171,16 +172,15 @@ always @(posedge clk) begin
     di_s <= di_i;
 end
 
-logic [15:0] v_scale_line_size = LINE_OUT_SIZE;
-logic [15:0] v_scale_step = V_SCALE*LINE_STEP;
+logic [15:0] line_in_size = READ_IMG_WIDTH;
+logic [15:0] v_scale_step = SCALE_COE*LINE_STEP;
 scaler_v #(
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
     .PIXEL_WIDTH(PIXEL_WIDTH),
-    .SPARSE_OUTPUT(1)
+    .SPARSE_OUT(SPARSE_OUT)
 ) scaler_v_m (
-    // (4.12) unsigned fixed point. 4096 is 1.000 scale
-    .v_scale_step(v_scale_step),
-    .v_scale_line_size(v_scale_line_size),
+    .line_in_size(line_in_size),
+    .scale_step(v_scale_step),
 
     .di_i(di_s),
     .de_i(de_s),
@@ -195,12 +195,35 @@ scaler_v #(
     .clk(clk)
 );
 
-reg [15:0] dbg_cnt_i = 0;
+reg [15:0] dbg_cntx_i = 0;
+reg [15:0] dbg_cnty_i = 0;
 always @(posedge clk) begin
     if (hs_i) begin
-        dbg_cnt_i <= 0;
+        dbg_cntx_i <= 0;
     end else if (de_i) begin
-        dbg_cnt_i <= dbg_cnt_i + 1;
+        dbg_cntx_i <= dbg_cntx_i + 1;
+    end
+
+    if (hs_s && vs_s) begin
+        dbg_cnty_i <= 0;
+    end else if (hs_s) begin
+        dbg_cnty_i <= dbg_cnty_i + 1;
+    end
+end
+
+reg [15:0] dbg_cntx_o = 0;
+reg [15:0] dbg_cnty_o = 0;
+always @(posedge clk) begin
+    if (hs_o && de_o) begin
+        dbg_cntx_o <= 0;
+    end else if (de_o) begin
+        dbg_cntx_o <= dbg_cntx_o + 1;
+    end
+
+    if (hs_o && vs_o) begin
+        dbg_cnty_o <= 0;
+    end else if (hs_o) begin
+        dbg_cnty_o <= dbg_cnty_o + 1;
     end
 end
 

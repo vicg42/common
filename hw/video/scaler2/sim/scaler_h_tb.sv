@@ -2,14 +2,14 @@
 `include "bmp_io.sv"
 
 module scaler_h_tb #(
-    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
-    parameter H_SCALE = 2.00,//2.666666666666666;
-    parameter PIXEL_WIDTH = 8,
     parameter PIXEL_STEP = 4096,
+    parameter PIXEL_WIDTH = 8,
+    parameter SCALE_COE = 2.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 10
 );
 
@@ -155,28 +155,32 @@ initial begin : sim_main
 end : sim_main
 
 reg sr_hs_i = 0;
+reg sr_vs_i = 0;
 reg hs_s = 1'b0;
+reg vs_s = 1'b0;
 reg de_s = 1'b0;
 reg [PIXEL_WIDTH-1:0] di_s = 0;
 always @(posedge clk) begin
     sr_hs_i <= hs_i;
+    sr_vs_i <= vs_i;
     hs_s <= sr_hs_i & !hs_i;
+    vs_s <= !sr_vs_i & vs_i;
     de_s <= de_i;
     di_s <= di_i;
 end
 
-logic [15:0] h_scale_step = H_SCALE*PIXEL_STEP;
+logic [15:0] h_scale_step = SCALE_COE*PIXEL_STEP;
 scaler_h #(
     .PIXEL_STEP(PIXEL_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .COE_WIDTH(COE_WIDTH)
 ) scaler_h_m (
-    .h_scale_step(h_scale_step),
+    .scale_step(h_scale_step),
 
     .di_i(di_s),//(di_i),//
     .de_i(de_s),//(de_i),//
     .hs_i(hs_s),//(hs_i),//
-    .vs_i(~vs_i),
+    .vs_i(vs_s),//(vs_i),//
 
     .do_o(do_o),
     .de_o(de_o),
@@ -187,23 +191,36 @@ scaler_h #(
 );
 
 
-reg [15:0] dbg_cnt_i = 0;
+reg [15:0] dbg_cntx_i = 0;
+reg [15:0] dbg_cnty_i = 0;
 always @(posedge clk) begin
-    if (hs_i && de_i) begin
-        dbg_cnt_i <= 0;
+    if (hs_i) begin
+        dbg_cntx_i <= 0;
     end else if (de_i) begin
-        dbg_cnt_i <= dbg_cnt_i + 1;
+        dbg_cntx_i <= dbg_cntx_i + 1;
+    end
+
+    if (hs_s && vs_s) begin
+        dbg_cnty_i <= 0;
+    end else if (hs_s) begin
+        dbg_cnty_i <= dbg_cnty_i + 1;
     end
 end
 
-reg [15:0] dbg_cnt_o = 0;
+reg [15:0] dbg_cntx_o = 0;
+reg [15:0] dbg_cnty_o = 0;
 always @(posedge clk) begin
     if (hs_o && de_o) begin
-        dbg_cnt_o <= 0;
+        dbg_cntx_o <= 0;
     end else if (de_o) begin
-        dbg_cnt_o <= dbg_cnt_o + 1;
+        dbg_cntx_o <= dbg_cntx_o + 1;
+    end
+
+    if (hs_o && vs_o) begin
+        dbg_cnty_o <= 0;
+    end else if (hs_o) begin
+        dbg_cnty_o <= dbg_cnty_o + 1;
     end
 end
-
 
 endmodule

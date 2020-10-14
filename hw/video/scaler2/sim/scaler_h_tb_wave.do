@@ -2,18 +2,21 @@ onerror {resume}
 quietly virtual function -install /scaler_h_tb/scaler_h_m -env /scaler_h_tb/scaler_h_m { &{/scaler_h_tb/scaler_h_m/cnt_o[23], /scaler_h_tb/scaler_h_m/cnt_o[22], /scaler_h_tb/scaler_h_m/cnt_o[21], /scaler_h_tb/scaler_h_m/cnt_o[20], /scaler_h_tb/scaler_h_m/cnt_o[19], /scaler_h_tb/scaler_h_m/cnt_o[18], /scaler_h_tb/scaler_h_m/cnt_o[17], /scaler_h_tb/scaler_h_m/cnt_o[16], /scaler_h_tb/scaler_h_m/cnt_o[15], /scaler_h_tb/scaler_h_m/cnt_o[14], /scaler_h_tb/scaler_h_m/cnt_o[13], /scaler_h_tb/scaler_h_m/cnt_o[12] }} cnt_o_23_12
 quietly virtual function -install /scaler_h_tb/scaler_h_m -env /scaler_h_tb/scaler_h_m { &{/scaler_h_tb/scaler_h_m/cnt_i[23], /scaler_h_tb/scaler_h_m/cnt_i[22], /scaler_h_tb/scaler_h_m/cnt_i[21], /scaler_h_tb/scaler_h_m/cnt_i[20], /scaler_h_tb/scaler_h_m/cnt_i[19], /scaler_h_tb/scaler_h_m/cnt_i[18], /scaler_h_tb/scaler_h_m/cnt_i[17], /scaler_h_tb/scaler_h_m/cnt_i[16], /scaler_h_tb/scaler_h_m/cnt_i[15], /scaler_h_tb/scaler_h_m/cnt_i[14], /scaler_h_tb/scaler_h_m/cnt_i[13], /scaler_h_tb/scaler_h_m/cnt_i[12] }} cnt_i_23_12
 quietly WaveActivateNextPane {} 0
+add wave -noupdate -radix ascii /scaler_h_tb/READ_IMG_FILE
 add wave -noupdate -radix unsigned /scaler_h_tb/PIXEL_STEP
 add wave -noupdate -radix unsigned /scaler_h_tb/PIXEL_WIDTH
-add wave -noupdate /scaler_h_tb/H_SCALE
+add wave -noupdate -radix unsigned /scaler_h_tb/SCALE_COE
+add wave -noupdate -radix unsigned /scaler_h_tb/COE_WIDTH
 add wave -noupdate -divider {New Divider}
-add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cnt_i
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cntx_i
+add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cnty_i
 add wave -noupdate /scaler_h_tb/clk
 add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h_m/di_i
 add wave -noupdate /scaler_h_tb/scaler_h_m/de_i
 add wave -noupdate /scaler_h_tb/scaler_h_m/hs_i
 add wave -noupdate /scaler_h_tb/scaler_h_m/vs_i
 add wave -noupdate -divider {New Divider}
-add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h_m/h_scale_step
+add wave -noupdate -radix unsigned /scaler_h_tb/scaler_h_m/scale_step
 add wave -noupdate /scaler_h_tb/scaler_h_m/dx
 add wave -noupdate -expand /scaler_h_tb/scaler_h_m/coe
 add wave -noupdate -expand /scaler_h_tb/scaler_h_m/m
@@ -29,12 +32,13 @@ add wave -noupdate -radix unsigned -childformat {{{/scaler_h_tb/scaler_h_m/do_o[
 add wave -noupdate /scaler_h_tb/scaler_h_m/de_o
 add wave -noupdate /scaler_h_tb/scaler_h_m/hs_o
 add wave -noupdate /scaler_h_tb/scaler_h_m/vs_o
-add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_h_tb/dbg_cnt_o
+add wave -noupdate /scaler_h_tb/dbg_cntx_o
+add wave -noupdate /scaler_h_tb/dbg_cnty_o
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
-quietly wave cursor active 0
-configure wave -namecolwidth 234
-configure wave -valuecolwidth 100
+WaveRestoreCursors {{Cursor 1} {467062 ps} 0}
+quietly wave cursor active 1
+configure wave -namecolwidth 138
+configure wave -valuecolwidth 117
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
 configure wave -snapdistance 10
@@ -47,4 +51,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {3150 ns}
+WaveRestoreZoom {0 ps} {3318483 ps}
