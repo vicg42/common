@@ -20,12 +20,19 @@ def Cubic(x, a):
     else:
         return 0.0
 
+def B_spline(x, a):
+    x = abs(x)
+    if x < 1.0:
+        return 1/2*(x**3) - (x**2) + 2/3
+    elif x < 2.0:
+        return (-1/6)*(x**3) + (x**2) - 2*x + 4/3
+    else:
+        return 0.0
+
 def Discrete(x):
     return int(round(y_resolution*x))
 
-#interp_param = -0.5
 interp_param = -1.0
-#interp_param = -2.0
 coe = [Discrete(Cubic(point, a=interp_param)) for point in x]
 
 LogFile = open("log.txt", "w")
@@ -54,9 +61,11 @@ print("coe_table column (len): %d" % (x_chank))
 print("coe_table raw (len)   : %d" % (int(x_resolution/x_chank)))
 print("pixel_step (coe count): %d" % (x_resolution))
 
-plt.plot(x, coe)
 plt.grid(True)
-# plt.plot(x, [Discrete(Cubic(point, a=-0.5)) for point in x])
-# plt.plot(x, [Discrete(Cubic(point, a=-1.0)) for point in x])
-# plt.plot(x, [Discrete(Cubic(point, a=-2.0)) for point in x])
+plt.plot(x, [Discrete(Cubic(point, a=-0.5)) for point in x], color='green', linestyle='dashed', label='cubic a=-0.5')
+plt.plot(x, [Discrete(Cubic(point, a=-1.0)) for point in x], color='blue', linestyle='solid', label='cubic a=-1.0')
+plt.plot(x, [Discrete(Cubic(point, a=-2.0)) for point in x], color='black', linestyle='dotted', label='cubic a=-2.0')
+plt.plot(x, [Discrete(B_spline(point, a=-2.0)) for point in x], color='red', linestyle='dashdot', label='b_spline')
+plt.plot(x, coe, color='blue', linestyle='solid', label='my')
+plt.legend(loc='best')
 plt.show()
