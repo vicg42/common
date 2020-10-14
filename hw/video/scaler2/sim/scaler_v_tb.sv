@@ -13,7 +13,7 @@ module scaler_v_tb #(
                              //etc...
     parameter SPARSE_OUT = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_IN_SIZE_MAX = 1024,
-    parameter READ_IMG_WIDTH = 255,
+    parameter READ_IMG_WIDTH = 256,
     parameter LINE_STEP = 4096,
     parameter PIXEL_WIDTH = 8,
     parameter SCALE_COE = 2.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
@@ -176,7 +176,7 @@ always @(posedge clk) begin
     di_s <= di_i;
 end
 
-logic [15:0] line_in_size = READ_IMG_WIDTH;
+logic [15:0] line_in_size = READ_IMG_WIDTH-1;
 logic [15:0] v_scale_step = SCALE_COE*LINE_STEP;
 scaler_v #(
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),

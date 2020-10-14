@@ -85,7 +85,7 @@ end
     reg [1:0] fsm_cs = IDLE;
 `endif
 
-reg [9:0] dy = 0;
+reg [$clog2(LINE_STEP/4)-1:0] dy = 0;
 reg [3:0] cnt_sparse = 0;
 reg de_o_early = 0;
 always @(posedge clk) begin
@@ -93,7 +93,7 @@ always @(posedge clk) begin
     case (fsm_cs)
         IDLE: begin
             if (cnt_i > cnt_o) begin
-                dy <= cnt_o[2 +: 10];
+                dy <= cnt_o[2 +: (LINE_STEP/4)];
                 fsm_cs <= PRM_CYCLE;
             end
         end
