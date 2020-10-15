@@ -101,8 +101,8 @@ linear_table #(
     .STEP(PIXEL_STEP),
     .COE_WIDTH(COE_WIDTH)
 ) coe_table_m (
-    .coe0(coe[1]),
-    .coe1(coe[0]),
+    .coe0(coe[0]),
+    .coe1(coe[1]),
 
     .dx(dx),
     .clk(clk)

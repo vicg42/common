@@ -5,7 +5,7 @@
 `include "bmp_io.sv"
 
 module scaler_linear_h_tb #(
-    parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "_bayer_2688x36_vlines.bmp",//"_24x24_8bit_1pix.bmp",//"_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp",
     parameter WRITE_IMG_FILE = "scaler_linear_h_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
@@ -13,7 +13,7 @@ module scaler_linear_h_tb #(
                              //etc...
     parameter PIXEL_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.33, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 
@@ -86,12 +86,17 @@ initial begin : sim_main
     hs_i = 1'b1;
     vs_i = 0;
 
-    image_real = new();
-    image_real.fread_bmp(READ_IMG_FILE);
-    w = image_real.get_x();
-    h = image_real.get_y();
-    bc = image_real.get_ColortBitCount();
+    // image_real = new();
+    // image_real.fread_bmp(READ_IMG_FILE);
+    // w = image_real.get_x();
+    // h = image_real.get_y();
+    // bc = image_real.get_ColortBitCount();
+    // w = 2686;
+    w = 2550;
+    h = 34;
+    bc = 8;
     $display("read frame: %d x %d; BItCount %d", w, h, bc);
+    $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*PIXEL_STEP);
 
     @(posedge clk);
     fr = 0;
@@ -109,8 +114,10 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                di_i = image_real.get_pixel(x, y);
+                // di_i = image_real.get_pixel(x, y);
                 // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
+                di_i[0 +: 4] = x+1;//y+
+                di_i[4 +: 4] = y;//
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -178,6 +185,24 @@ always @(posedge clk) begin
     di_s <= di_i;
 end
 
+reg [15:0] dbg_cntx_i = 0;
+reg [15:0] dbg_cntx_tmp = 0;
+reg [15:0] dbg_cnty_i = 0;
+always @(posedge clk) begin
+    if (hs_i) begin
+        dbg_cntx_tmp <= 0;
+    end else if (de_i) begin
+        dbg_cntx_tmp <= dbg_cntx_tmp + 1;
+    end
+    dbg_cntx_i <= dbg_cntx_tmp;
+
+    if (hs_s && vs_s) begin
+        dbg_cnty_i <= 0;
+    end else if (hs_s) begin
+        dbg_cnty_i <= dbg_cnty_i + 1;
+    end
+end
+
 logic [15:0] h_scale_step = SCALE_COE*PIXEL_STEP;
 scaler_h #(
     .PIXEL_STEP(PIXEL_STEP),
@@ -198,24 +223,6 @@ scaler_h #(
 
     .clk(clk)
 );
-
-reg [15:0] dbg_cntx_i = 0;
-reg [15:0] dbg_cntx_tmp = 0;
-reg [15:0] dbg_cnty_i = 0;
-always @(posedge clk) begin
-    if (hs_i) begin
-        dbg_cntx_tmp <= 0;
-    end else if (de_i) begin
-        dbg_cntx_tmp <= dbg_cntx_tmp + 1;
-    end
-    dbg_cntx_i <= dbg_cntx_tmp;
-
-    if (hs_s && vs_s) begin
-        dbg_cnty_i <= 0;
-    end else if (hs_s) begin
-        dbg_cnty_i <= dbg_cnty_i + 1;
-    end
-end
 
 reg [15:0] dbg_cntx_o = 0;
 reg [15:0] dbg_cnty_o = 0;
