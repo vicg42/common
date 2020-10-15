@@ -15,7 +15,7 @@ vlog  ./scaler_bilinear_tb.sv -sv
 
 vsim -t 1ps -novopt -lib work scaler_bilinear_tb \
 
-#do scaler_bilinear_tb_wave.do
+do scaler_bilinear_tb_wave.do
 
 #--------------------------
 #View waveform

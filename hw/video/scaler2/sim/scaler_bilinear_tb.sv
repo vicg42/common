@@ -112,8 +112,10 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                di_i = image_real.get_pixel(x, y);
+                // di_i = image_real.get_pixel(x, y);
                 // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
+                di_i[0 +: 4] = x+1;//y+
+                di_i[4 +: 4] = y;//
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G

@@ -14,6 +14,10 @@ add wave -noupdate /scaler_bilinear_tb/di_i
 add wave -noupdate /scaler_bilinear_tb/de_i
 add wave -noupdate /scaler_bilinear_tb/hs_i
 add wave -noupdate /scaler_bilinear_tb/vs_i
+add wave -noupdate /scaler_bilinear_tb/scaler_belinear_m/di_s
+add wave -noupdate /scaler_bilinear_tb/scaler_belinear_m/de_s
+add wave -noupdate /scaler_bilinear_tb/scaler_belinear_m/hs_s
+add wave -noupdate /scaler_bilinear_tb/scaler_belinear_m/vs_s
 add wave -noupdate -divider SCALER_H
 add wave -noupdate -radix unsigned /scaler_bilinear_tb/scaler_belinear_m/scaler_linear_h_m/scale_step
 add wave -noupdate /scaler_bilinear_tb/scaler_belinear_m/scaler_linear_h_m/dx
@@ -63,7 +67,7 @@ add wave -noupdate /scaler_bilinear_tb/monitor_m/vs
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
-configure wave -namecolwidth 443
+configure wave -namecolwidth 378
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 0
@@ -77,4 +81,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {635962 ps} {2742587 ps}
+WaveRestoreZoom {0 ps} {26491798 ps}
