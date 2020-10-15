@@ -13,7 +13,7 @@ module scaler_linear_h_tb #(
                              //etc...
     parameter PIXEL_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.33, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.4, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 
@@ -92,7 +92,7 @@ initial begin : sim_main
     // h = image_real.get_y();
     // bc = image_real.get_ColortBitCount();
     // w = 2686;
-    w = 2550;
+    w = 2688;
     h = 34;
     bc = 8;
     $display("read frame: %d x %d; BItCount %d", w, h, bc);
