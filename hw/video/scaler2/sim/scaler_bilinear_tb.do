@@ -8,13 +8,14 @@ vlog ./bmp_io.sv -sv
 vlog ../src/linear_table.v
 vlog ../src/scaler_linear_h.v
 vlog ../src/scaler_linear_v.v -sv +define+SIM_FSM
+vlog ../src/scaler_bilinear.v
 
 vlog  ./monitor.sv -sv
-vlog  ./scaler_bilinear_v_tb.sv -sv
+vlog  ./scaler_bilinear_tb.sv -sv
 
-vsim -t 1ps -novopt -lib work scaler_bilinear_v_tb \
+vsim -t 1ps -novopt -lib work scaler_bilinear_tb \
 
-#do scaler_bilinear_v_tb_wave.do
+#do scaler_bilinear_tb_wave.do
 
 #--------------------------
 #View waveform

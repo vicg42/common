@@ -17,10 +17,10 @@ module scaler #(
     input hs_i,
     input vs_i,
 
-    output reg [PIXEL_WIDTH-1:0] do_o = 0,
-    output reg de_o = 0,
-    output reg hs_o = 0,
-    output reg vs_o = 0,
+    output [PIXEL_WIDTH-1:0] do_o,
+    output de_o,
+    output hs_o,
+    output vs_o,
 
     input clk
 );

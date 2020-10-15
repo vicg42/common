@@ -11,6 +11,9 @@ module scaler_bilinear_tb #(
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
+    parameter SPARSE_OUT = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
+    parameter LINE_IN_SIZE_MAX = 1024,
+    parameter READ_IMG_WIDTH = 256,
     parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
     parameter SCALE_COE = 1.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
@@ -181,7 +184,7 @@ end
 logic [15:0] h_scale_step = SCALE_COE*SCALE_STEP;
 logic [15:0] v_scale_step = SCALE_COE*SCALE_STEP;
 logic [15:0] v_scale_inline_size = READ_IMG_WIDTH-1;
-scaler_h #(
+scaler #(
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
     .SCALE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
