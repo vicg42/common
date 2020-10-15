@@ -5,7 +5,7 @@
 `include "bmp_io.sv"
 
 module scaler_linear_h_tb #(
-    parameter READ_IMG_FILE = "_bayer_2688x36_vlines.bmp",//"_24x24_8bit_1pix.bmp",//"_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp",
+    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",//"_bayer_2688x36_vlines.bmp",//"_24x24_8bit_1pix.bmp",//"_bayer_lighthouse.bmp",//
     parameter WRITE_IMG_FILE = "scaler_linear_h_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
@@ -86,18 +86,18 @@ initial begin : sim_main
     hs_i = 1'b1;
     vs_i = 0;
 
-    // image_real = new();
-    // image_real.fread_bmp(READ_IMG_FILE);
-    // w = image_real.get_x();
-    // h = image_real.get_y();
-    // bc = image_real.get_ColortBitCount();
+    image_real = new();
+    image_real.fread_bmp(READ_IMG_FILE);
+    w = image_real.get_x();
+    h = image_real.get_y();
+    bc = image_real.get_ColortBitCount();
     // w = 2686;
-    w = 2688;
-    h = 34;
-    bc = 8;
-    $display("read frame: %d x %d; BItCount %d", w, h, bc);
-    $display("SCALE_COE=%f", SCALE_COE);
-    $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*PIXEL_STEP);
+    // w = 2688;
+    // h = 34;
+    // bc = 8;
+    // $display("read frame: %d x %d; BItCount %d", w, h, bc);
+    // $display("SCALE_COE=%f", SCALE_COE);
+    // $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*PIXEL_STEP);
 
     @(posedge clk);
     fr = 0;

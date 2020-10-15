@@ -5,7 +5,7 @@
 `include "bmp_io.sv"
 
 module scaler_bilinear_tb #(
-    parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
     parameter WRITE_IMG_FILE = "scaler_belinear_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
@@ -13,11 +13,11 @@ module scaler_bilinear_tb #(
                              //etc...
     parameter SPARSE_OUT = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_IN_SIZE_MAX = 1024,
-    parameter READ_IMG_WIDTH = 256,
+    parameter V_SCALE_INLINE_WIDTH = 428,
     parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
-    parameter COE_WIDTH = 8
+    parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter COE_WIDTH = 10
 );
 
 reg clk = 1;
@@ -112,10 +112,10 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                // di_i = image_real.get_pixel(x, y);
+                di_i = image_real.get_pixel(x, y);
                 // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
-                di_i[0 +: 4] = x+1;//y+
-                di_i[4 +: 4] = y;//
+                // di_i[0 +: 4] = x+1;//y+
+                // di_i[4 +: 4] = y;//
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -155,7 +155,7 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #350; //delay between line
+            #50; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin
@@ -185,7 +185,7 @@ end
 
 logic [15:0] h_scale_step = SCALE_COE*SCALE_STEP;
 logic [15:0] v_scale_step = SCALE_COE*SCALE_STEP;
-logic [15:0] v_scale_inline_size = READ_IMG_WIDTH-1;
+logic [15:0] v_scale_inline_size = V_SCALE_INLINE_WIDTH-1;
 scaler #(
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
     .SCALE_STEP(SCALE_STEP),
