@@ -1,0 +1,1 @@
+vsim -do ./scaler_bicubic_tb.do
