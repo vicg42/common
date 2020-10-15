@@ -51,10 +51,10 @@ always @(posedge clk) begin
     end
 end
 
-wire [PIXEL_WIDTH-1: 0] sacler_h_do_o;
-wire sacler_h_de_o;
-wire sacler_h_hs_o;
-wire sacler_h_vs_o;
+wire [PIXEL_WIDTH-1: 0] scaler_h_do_o;
+wire scaler_h_de_o;
+wire scaler_h_hs_o;
+wire scaler_h_vs_o;
 scaler_h #(
     .PIXEL_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
@@ -67,10 +67,10 @@ scaler_h #(
     .hs_i(hs_s),//(hs_i),//
     .vs_i(vs_s),//(vs_i),//
 
-    .do_o(sacler_h_do_o),
-    .de_o(sacler_h_de_o),
-    .hs_o(sacler_h_hs_o),
-    .vs_o(sacler_h_vs_o),
+    .do_o(scaler_h_do_o),
+    .de_o(scaler_h_de_o),
+    .hs_o(scaler_h_hs_o),
+    .vs_o(scaler_h_vs_o),
 
     .clk(clk)
 );
@@ -85,10 +85,10 @@ scaler_v #(
     .line_in_size(inline_size),
     .scale_step(v_scale_step),
 
-    .di_i(sacler_h_do_o),
-    .de_i(sacler_h_de_o),
-    .hs_i(sacler_h_hs_o),
-    .vs_i(sacler_h_vs_o),
+    .di_i(scaler_h_do_o),
+    .de_i(scaler_h_de_o),
+    .hs_i(scaler_h_hs_o),
+    .vs_i(scaler_h_vs_o),
 
     .do_o(do_o),
     .de_o(de_o),
@@ -97,5 +97,12 @@ scaler_v #(
 
     .clk(clk)
 );
+
+reg [15:0] dbg_cntx_o = 0;
+always @(posedge clk) begin
+    if (scaler_h_de_o) begin
+        dbg_cntx_o <= dbg_cntx_o + 1;
+    end
+end
 
 endmodule
