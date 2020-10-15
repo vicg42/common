@@ -8,7 +8,6 @@ module scaler #(
     parameter SPARSE_OUT = 2, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter COE_WIDTH = 10
 )(
-    // control interface
     input [15:0] reg_h_scale_step,
     input [15:0] reg_v_scale_step,
     input [15:0] reg_v_scale_inline_size,
