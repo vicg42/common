@@ -16,7 +16,7 @@ module scaler_linear_v_tb #(
     parameter READ_IMG_WIDTH = 256,
     parameter LINE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.33, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 

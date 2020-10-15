@@ -22,14 +22,13 @@ module scaler_v #(
     input clk
 );
 
-localparam BUF0_NUM = 0;
-localparam BUF1_NUM = 1;
-localparam BUF2_NUM = 2;
+localparam BUF0_NUM = 1'b0;
+localparam BUF1_NUM = 1'b1;
 
 reg [23:0] cnt_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_o = 0; // output pixels coordinate counter
 
-reg [1:0] buf_wsel = 0;
+reg buf_wsel = 1'b0;
 reg [15:0] buf_wcnt = 0;
 reg [15:0] buf_rcnt = 0;
 always @(posedge clk) begin
@@ -38,10 +37,10 @@ always @(posedge clk) begin
         if (hs_i) begin
             cnt_i <= cnt_i + LINE_STEP;
             buf_wcnt <= 0;
-            if (buf_wsel == BUF2_NUM) begin
+            if (buf_wsel == BUF1_NUM) begin
                 buf_wsel <= 0;
             end else begin
-                buf_wsel <= buf_wsel + 1'b1;
+                buf_wsel <= ~buf_wsel;
             end
         end
         if (vs_i) begin
@@ -55,13 +54,11 @@ end
 reg [PIXEL_WIDTH-1:0] sr_di_i = 0;
 (* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf0[LINE_IN_SIZE_MAX-1:0];
 (* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf1[LINE_IN_SIZE_MAX-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf2[LINE_IN_SIZE_MAX-1:0];
 always @(posedge clk) begin
     if (de_i) begin
         sr_di_i <= di_i;
         if (buf_wsel == BUF0_NUM) buf0[buf_wcnt] <= sr_di_i;
         if (buf_wsel == BUF1_NUM) buf1[buf_wcnt] <= sr_di_i;
-        if (buf_wsel == BUF2_NUM) buf2[buf_wcnt] <= sr_di_i;
     end
 end
 
@@ -117,28 +114,23 @@ always @(posedge clk) begin
 end
 
 // Memory read
-reg [PIXEL_WIDTH-1:0] buf_do [2:0];
+reg [PIXEL_WIDTH-1:0] buf_do [1:0];
 always @(posedge clk) begin
     buf_do[0] <= buf0[buf_rcnt];
     buf_do[1] <= buf1[buf_rcnt];
-    buf_do[2] <= buf2[buf_rcnt];
 end
 
 reg [PIXEL_WIDTH-1:0] line [1:0];
 always @(posedge clk) begin
     if (buf_wsel == BUF0_NUM) begin
-        line[1] <= buf_do[0];
-        line[0] <= buf_do[2];
-    end
-    if (buf_wsel == BUF1_NUM) begin
         line[1] <= buf_do[1];
         line[0] <= buf_do[0];
     end
-    if (buf_wsel == BUF2_NUM) begin
-        line[1] <= buf_do[2];
+    if (buf_wsel == BUF1_NUM) begin
+        line[1] <= buf_do[0];
         line[0] <= buf_do[1];
     end
-    if (cnt_i < (2*LINE_STEP)) begin
+    if (cnt_i < (1*LINE_STEP)) begin
         line[1] <= 0; // boundary effect elimination
     end
 end
