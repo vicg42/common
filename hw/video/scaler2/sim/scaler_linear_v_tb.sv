@@ -13,10 +13,10 @@ module scaler_linear_v_tb #(
                              //etc...
     parameter SPARSE_OUT = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_IN_SIZE_MAX = 1024,
-    parameter READ_IMG_WIDTH = 256,
+    parameter READ_IMG_WIDTH = 68,
     parameter LINE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.33, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.407, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 
@@ -84,12 +84,17 @@ initial begin : sim_main
     hs_i = 1'b1;
     vs_i = 0;
 
-    image_real = new();
-    image_real.fread_bmp(READ_IMG_FILE);
-    w = image_real.get_x();
-    h = image_real.get_y();
-    bc = image_real.get_ColortBitCount();
+    // image_real = new();
+    // image_real.fread_bmp(READ_IMG_FILE);
+    // w = image_real.get_x();
+    // h = image_real.get_y();
+    // bc = image_real.get_ColortBitCount();
+    // $display("read frame: %d x %d; BItCount %d", w, h, bc);
+    w = READ_IMG_WIDTH;
+    h = 1520;
+    bc = 8;
     $display("read frame: %d x %d; BItCount %d", w, h, bc);
+    $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*LINE_STEP);
 
     @(posedge clk);
     fr = 0;
@@ -150,7 +155,8 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #350; //delay between line
+            // #350; //delay between line
+            #25; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin

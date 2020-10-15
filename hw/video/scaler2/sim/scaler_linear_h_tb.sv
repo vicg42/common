@@ -13,7 +13,7 @@ module scaler_linear_h_tb #(
                              //etc...
     parameter PIXEL_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.4, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.400, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 
@@ -96,6 +96,7 @@ initial begin : sim_main
     h = 34;
     bc = 8;
     $display("read frame: %d x %d; BItCount %d", w, h, bc);
+    $display("SCALE_COE=%f", SCALE_COE);
     $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*PIXEL_STEP);
 
     @(posedge clk);
