@@ -17,7 +17,7 @@ module scaler_bicubic_tb #(
     parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
     parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
-    parameter COE_WIDTH = 10
+    parameter COE_WIDTH = 8
 );
 
 reg clk = 1;
