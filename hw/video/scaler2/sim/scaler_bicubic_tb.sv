@@ -4,9 +4,9 @@
 `timescale 1ns / 1ps
 `include "bmp_io.sv"
 
-module scaler_becubic_tb #(
+module scaler_bicubic_tb #(
     parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
-    parameter WRITE_IMG_FILE = "scaler_becubic_result.bmp",
+    parameter WRITE_IMG_FILE = "scaler_bicubic_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
@@ -192,7 +192,7 @@ scaler #(
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUT(SPARSE_OUT),
     .COE_WIDTH(COE_WIDTH)
-) scaler_becubic_m (
+) scaler_bicubic_m (
     .reg_h_scale_step(h_scale_step),
     .reg_v_scale_step(v_scale_step),
     .reg_v_scale_inline_size(v_scale_inline_size),
@@ -259,4 +259,4 @@ monitor # (
     .clk(clk)
 );
 
-endmodule : scaler_becubic_tb
+endmodule : scaler_bicubic_tb
