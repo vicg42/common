@@ -5,7 +5,7 @@
 `include "bmp_io.sv"
 
 module scaler_cubic_h_tb #(
-    parameter READ_IMG_FILE = "_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
     parameter WRITE_IMG_FILE = "scaler_cubic_h_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
@@ -150,7 +150,7 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #350; //delay between line
+            #10; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin
