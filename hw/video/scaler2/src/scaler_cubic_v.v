@@ -1,4 +1,7 @@
 module scaler_v #(
+//For Altera: (* ramstyle = "MLAB" *)
+//For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
+    parameter VENDOR_RAM_STYLE="MLAB",
     parameter LINE_IN_SIZE_MAX = 1024,
     parameter LINE_STEP = 4096,
     parameter PIXEL_WIDTH = 12,
@@ -55,11 +58,11 @@ end
 
 // Store input line
 reg [PIXEL_WIDTH-1:0] sr_di_i = 0;
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf0[LINE_IN_SIZE_MAX-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf1[LINE_IN_SIZE_MAX-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf2[LINE_IN_SIZE_MAX-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf3[LINE_IN_SIZE_MAX-1:0];
-(* RAM_STYLE="BLOCK" *) reg [PIXEL_WIDTH-1:0] buf4[LINE_IN_SIZE_MAX-1:0];
+(* RAM_STYLE=VENDOR_RAM_STYLE *) reg [PIXEL_WIDTH-1:0] buf0[LINE_IN_SIZE_MAX-1:0];
+(* RAM_STYLE=VENDOR_RAM_STYLE *) reg [PIXEL_WIDTH-1:0] buf1[LINE_IN_SIZE_MAX-1:0];
+(* RAM_STYLE=VENDOR_RAM_STYLE *) reg [PIXEL_WIDTH-1:0] buf2[LINE_IN_SIZE_MAX-1:0];
+(* RAM_STYLE=VENDOR_RAM_STYLE *) reg [PIXEL_WIDTH-1:0] buf3[LINE_IN_SIZE_MAX-1:0];
+(* RAM_STYLE=VENDOR_RAM_STYLE *) reg [PIXEL_WIDTH-1:0] buf4[LINE_IN_SIZE_MAX-1:0];
 always @(posedge clk) begin
     if (de_i) begin
         sr_di_i <= di_i;
@@ -176,6 +179,7 @@ localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 
 wire [COE_WIDTH-1:0] coe [3:0];
 cubic_table #(
+    .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
     .STEP(LINE_STEP),
     .COE_WIDTH(COE_WIDTH)
 ) coe_table_m (

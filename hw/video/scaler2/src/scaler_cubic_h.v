@@ -1,4 +1,7 @@
 module scaler_h #(
+//For Altera: (* ramstyle = "MLAB" *)
+//For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
+    parameter VENDOR_RAM_STYLE="MLAB",
     parameter PIXEL_STEP = 4096,
     parameter PIXEL_WIDTH = 12,
     parameter COE_WIDTH = 10
@@ -88,6 +91,7 @@ localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 wire [$clog2(PIXEL_STEP/4)-1:0] dx;
 assign dx = cnt_o[2 +: $clog2(PIXEL_STEP/4)];
 cubic_table #(
+    .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
     .STEP(PIXEL_STEP),
     .COE_WIDTH(COE_WIDTH)
 ) coe_table_m (

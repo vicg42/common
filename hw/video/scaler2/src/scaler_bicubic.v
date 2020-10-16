@@ -2,6 +2,9 @@
 // author : Viktor Golovachenko
 //-----------------------------------------------------------------------
 module scaler #(
+//For Altera: (* ramstyle = "MLAB" *)
+//For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
+    parameter VENDOR_RAM_STYLE="MLAB",
     parameter LINE_IN_SIZE_MAX = 1024,
     parameter SCALE_STEP = 4096,
     parameter PIXEL_WIDTH = 12,
@@ -56,6 +59,7 @@ wire scaler_h_de_o;
 wire scaler_h_hs_o;
 wire scaler_h_vs_o;
 scaler_h #(
+    .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
     .PIXEL_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .COE_WIDTH(COE_WIDTH)
@@ -76,6 +80,7 @@ scaler_h #(
 );
 
 scaler_v #(
+    .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
     .LINE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),

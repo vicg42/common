@@ -3,6 +3,9 @@
 //-----------------------------------------------------------------------
 `timescale 1ns / 1ps
 module linear_table #(
+//For Altera: (* ramstyle = "MLAB" *)
+//For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
+    parameter VENDOR_RAM_STYLE="MLAB",
     parameter STEP = 4096,
     parameter COE_WIDTH = 10
 )(
@@ -13,8 +16,8 @@ module linear_table #(
     input clk
 );
 
-(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_0[(STEP/2)-1:0];
-(* ROM_STYLE="DISTRIBUTED" *) reg [COE_WIDTH-1:0] coe_table_1[(STEP/2)-1:0];
+(* ROM_STYLE=VENDOR_RAM_STYLE *) reg [COE_WIDTH-1:0] coe_table_0[(STEP/2)-1:0];
+(* ROM_STYLE=VENDOR_RAM_STYLE *) reg [COE_WIDTH-1:0] coe_table_1[(STEP/2)-1:0];
 
 initial $readmemb("linear_table_0.txt", coe_table_0);
 initial $readmemb("linear_table_1.txt", coe_table_1);
