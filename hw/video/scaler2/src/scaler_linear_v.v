@@ -114,15 +114,15 @@ always @(posedge clk) begin
     //stage 1
     sr0_buf_do[0] <= buf_do[0];
     sr0_buf_do[1] <= buf_do[1];
-    sr_de_i[1] <= sr_de_i[0] & dx_en;
-    sr_hs_i[1] <= !(~sr_hs_i[0] & dx_en);
+    sr_de_i[1] <= sr_de_i[0];
+    sr_hs_i[1] <= sr_hs_i[0];
     sr_vs_i[1] <= sr_vs_i[0];
 
     //stage 2
     line[0] <= sr0_buf_do[0];
     line[1] <= sr0_buf_do[1];
-    sr_de_i[2] <= sr_de_i[1];
-    sr_hs_i[2] <= sr_hs_i[1];
+    sr_de_i[2] <= sr_de_i[1] & dx_en;    //sr_de_i[1];//
+    sr_hs_i[2] <= !(~sr_hs_i[1] & dx_en);//sr_hs_i[1];//
     sr_vs_i[2] <= sr_vs_i[1];
 end
 
