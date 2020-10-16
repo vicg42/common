@@ -84,7 +84,7 @@ always @(posedge clk) begin
     case (fsm_cs)
         IDLE: begin
             if (cnt_i > cnt_o) begin
-                dy <= cnt_o[1 +: (LINE_STEP/2)];
+                dy <= cnt_o[1 +: $clog2(LINE_STEP/2)];
                 fsm_cs <= PRM_CYCLE;
             end
         end
