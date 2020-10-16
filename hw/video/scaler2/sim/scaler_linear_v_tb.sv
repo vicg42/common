@@ -5,7 +5,7 @@
 `include "bmp_io.sv"
 
 module scaler_linear_v_tb #(
-    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
     parameter READ_IMG_WIDTH = 600,
     parameter WRITE_IMG_FILE = "scaler_linear_v_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
@@ -16,7 +16,7 @@ module scaler_linear_v_tb #(
     parameter LINE_IN_SIZE_MAX = 1024,
     parameter LINE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.407, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 2.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 

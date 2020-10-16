@@ -41,6 +41,13 @@ reg [4:0] sr_de_i = 0;
 reg [4:0] sr_hs_i = 0;
 reg [4:0] sr_vs_i = 0;
 
+wire hs_falling_edge;
+wire hs_rising_edge;
+reg [23:0] cnt_i = 0; // input pixels coordinate counter
+reg [23:0] cnt_o = 0; // output pixels coordinate counter
+reg [$clog2(LINE_STEP/2)-1:0] dy = 0;
+reg dx_en = 1'b0;
+
 //Input line buf
 reg [15:0] buf_wcnt = 0;
 (* RAM_STYLE=VENDOR_RAM_STYLE *) reg [PIXEL_WIDTH-1:0] buf0[LINE_IN_SIZE_MAX-1:0];
@@ -60,11 +67,6 @@ always @(posedge clk) begin
 end
 
 //Read scale coef
-wire hs_falling_edge;
-wire hs_rising_edge;
-reg [23:0] cnt_i = 0; // input pixels coordinate counter
-reg [23:0] cnt_o = 0; // output pixels coordinate counter
-reg [$clog2(LINE_STEP/2)-1:0] dy = 0;
 assign hs_falling_edge = !hs_i & sr_hs_i[0];
 assign hs_rising_edge = hs_i & !sr_hs_i[0];
 always @(posedge clk) begin
@@ -75,13 +77,15 @@ always @(posedge clk) begin
             cnt_i <= cnt_i + LINE_STEP;
         end
 
-        if (hs_rising_edge) begin
+        if (dx_en & hs_rising_edge) begin
             cnt_o <= cnt_o + scale_step;
         end
     end
 
+    dx_en <= 1'b0;
     if (cnt_i > cnt_o) begin
         dy <= cnt_o[1 +: $clog2(LINE_STEP/2)];
+        dx_en <= 1'b1;
     end
 end
 
@@ -110,8 +114,8 @@ always @(posedge clk) begin
     //stage 1
     sr0_buf_do[0] <= buf_do[0];
     sr0_buf_do[1] <= buf_do[1];
-    sr_de_i[1] <= sr_de_i[0];
-    sr_hs_i[1] <= sr_hs_i[0];
+    sr_de_i[1] <= sr_de_i[0] & dx_en;
+    sr_hs_i[1] <= !(~sr_hs_i[0] & dx_en);
     sr_vs_i[1] <= sr_vs_i[0];
 
     //stage 2
@@ -128,7 +132,7 @@ always @(posedge clk) begin
     mult[0] <= coe[0] * line[0];
     mult[1] <= coe[1] * line[1];
     sr_de_i[3] <= sr_de_i[2];
-    sr_hs_i[3] <= sr_hs_i[2];
+    sr_hs_i[3] <= sr_hs_i[2];// | dx_en;
     sr_vs_i[3] <= sr_vs_i[2];
 
     //stage 4
