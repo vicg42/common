@@ -12,6 +12,7 @@ module linear_table #(
     output reg [COE_WIDTH-1:0] coe0,
     output reg [COE_WIDTH-1:0] coe1,
 
+    input dx_en,
     input [$clog2(STEP/2)-1:0] dx,
     input clk
 );
@@ -23,8 +24,15 @@ initial $readmemb("linear_table_0.txt", coe_table_0);
 initial $readmemb("linear_table_1.txt", coe_table_1);
 
 always @(posedge clk) begin
-    coe0 <= coe_table_0[dx];
-    coe1 <= coe_table_1[dx];
+    if (dx_en) begin
+        coe0 <= coe_table_0[dx];
+    end
+end
+
+always @(posedge clk) begin
+    if (dx_en) begin
+        coe1 <= coe_table_1[dx];
+    end
 end
 
 endmodule

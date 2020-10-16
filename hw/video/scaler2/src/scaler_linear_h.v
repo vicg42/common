@@ -108,11 +108,12 @@ linear_table #(
     .coe0(coe[0]),
     .coe1(coe[1]),
 
+    .dx_en(1'b1),
     .dx(dx),
     .clk(clk)
 );
 
-(* mult_style = "block" *) reg [MULT_WIDTH-1:0] mult [1:0];
+reg [MULT_WIDTH-1:0] mult [1:0];
 reg signed [MULT_WIDTH+2-1:0] sum;
 always @(posedge clk) begin
     mult[0] <= coe[0] * pix[0];
