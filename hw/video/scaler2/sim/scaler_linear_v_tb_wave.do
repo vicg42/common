@@ -16,33 +16,28 @@ add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/de_i
 add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/hs_i
 add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/vs_i
 add wave -noupdate -divider {New Divider}
-add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/scale_step
-add wave -noupdate -radix unsigned -childformat {{{/scaler_linear_v_tb/scaler_linear_v_m/dy[5]} -radix unsigned} {{/scaler_linear_v_tb/scaler_linear_v_m/dy[4]} -radix unsigned} {{/scaler_linear_v_tb/scaler_linear_v_m/dy[3]} -radix unsigned} {{/scaler_linear_v_tb/scaler_linear_v_m/dy[2]} -radix unsigned} {{/scaler_linear_v_tb/scaler_linear_v_m/dy[1]} -radix unsigned} {{/scaler_linear_v_tb/scaler_linear_v_m/dy[0]} -radix unsigned}} -subitemconfig {{/scaler_linear_v_tb/scaler_linear_v_m/dy[5]} {-height 15 -radix unsigned} {/scaler_linear_v_tb/scaler_linear_v_m/dy[4]} {-height 15 -radix unsigned} {/scaler_linear_v_tb/scaler_linear_v_m/dy[3]} {-height 15 -radix unsigned} {/scaler_linear_v_tb/scaler_linear_v_m/dy[2]} {-height 15 -radix unsigned} {/scaler_linear_v_tb/scaler_linear_v_m/dy[1]} {-height 15 -radix unsigned} {/scaler_linear_v_tb/scaler_linear_v_m/dy[0]} {-height 15 -radix unsigned}} /scaler_linear_v_tb/scaler_linear_v_m/dy
-add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/cnt_i
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/de_i
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/hs_i
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/vs_i
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/di_i
 add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/buf_wcnt
-add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/buf_wsel
-add wave -noupdate -color {Slate Blue} -itemcolor Gold /scaler_linear_v_tb/scaler_linear_v_m/fsm_cs
-add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/cnt_o
-add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/buf_rcnt
-add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/cnt_sparse
 add wave -noupdate -expand /scaler_linear_v_tb/scaler_linear_v_m/buf_do
+add wave -noupdate -expand /scaler_linear_v_tb/scaler_linear_v_m/sr0_buf_do
+add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/cnt_i
+add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/cnt_o
+add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/dy
+add wave -noupdate {/scaler_linear_v_tb/scaler_linear_v_m/sr_de_i[2]}
 add wave -noupdate -expand /scaler_linear_v_tb/scaler_linear_v_m/line
 add wave -noupdate -expand /scaler_linear_v_tb/scaler_linear_v_m/coe
+add wave -noupdate -expand /scaler_linear_v_tb/scaler_linear_v_m/mult
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/sum
 add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/do_o
-add wave -noupdate -expand /scaler_linear_v_tb/scaler_linear_v_m/sr_de_o_early
-add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/sr_hs_o_early
-add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/sr_vs_o_early
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/de_o
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/hs_o
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/vs_o
 add wave -noupdate -divider {output monitor}
-add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_linear_v_tb/monitor_m/xcnt
-add wave -noupdate -color {Slate Blue} -itemcolor Gold -radix unsigned /scaler_linear_v_tb/monitor_m/ycnt
-add wave -noupdate -radix unsigned /scaler_linear_v_tb/monitor_m/frcnt
-add wave -noupdate -radix unsigned /scaler_linear_v_tb/monitor_m/wen
-add wave -noupdate /scaler_linear_v_tb/monitor_m/di
-add wave -noupdate /scaler_linear_v_tb/monitor_m/de
-add wave -noupdate /scaler_linear_v_tb/monitor_m/hs
-add wave -noupdate /scaler_linear_v_tb/monitor_m/vs
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors
+WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 quietly wave cursor active 0
 configure wave -namecolwidth 215
 configure wave -valuecolwidth 100
@@ -58,4 +53,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {10500 ns}
+WaveRestoreZoom {0 ps} {3150 ns}

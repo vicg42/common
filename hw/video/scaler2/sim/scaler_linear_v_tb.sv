@@ -196,10 +196,10 @@ scaler_v #(
     .line_in_size(line_in_size),
     .scale_step(v_scale_step),
 
-    .di_i(di_s),
-    .de_i(de_s),
-    .hs_i(hs_s),
-    .vs_i(vs_s),
+    .di_i(di_i),//(di_s),
+    .de_i(de_i),//(de_s),
+    .hs_i(hs_i),//(hs_s),
+    .vs_i(vs_i),//(vs_s),
 
     .do_o(do_o),
     .de_o(de_o),
@@ -243,15 +243,15 @@ always @(posedge clk) begin
     end
 end
 
-monitor # (
-    .DATA_WIDTH(8),
-    .WRITE_IMG_FILE(WRITE_IMG_FILE)
-) monitor_m (
-    .di_i(do_o),
-    .de_i(de_o),
-    .hs_i(hs_o),
-    .vs_i(vs_o),
-    .clk(clk)
-);
+// monitor # (
+//     .DATA_WIDTH(8),
+//     .WRITE_IMG_FILE(WRITE_IMG_FILE)
+// ) monitor_m (
+//     .di_i(do_o),
+//     .de_i(de_o),
+//     .hs_i(hs_o),
+//     .vs_i(vs_o),
+//     .clk(clk)
+// );
 
 endmodule : scaler_linear_v_tb
