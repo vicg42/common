@@ -16,7 +16,7 @@ module scaler_linear_v_tb #(
     parameter LINE_IN_SIZE_MAX = 1024,
     parameter LINE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 2.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 
@@ -162,7 +162,7 @@ initial begin : sim_main
 //        if (y == h) begin
 //            vs_i = 1'b0;
 //        end
-        #2110;
+        #110;
     end
 
     $stop;
@@ -243,15 +243,30 @@ always @(posedge clk) begin
     end
 end
 
-// monitor # (
-//     .DATA_WIDTH(8),
-//     .WRITE_IMG_FILE(WRITE_IMG_FILE)
-// ) monitor_m (
-//     .di_i(do_o),
-//     .de_i(de_o),
-//     .hs_i(hs_o),
-//     .vs_i(vs_o),
-//     .clk(clk)
-// );
+reg sr_hs_o = 0;
+reg sr_vs_o = 0;
+reg hs_ms = 1'b0;
+reg vs_ms = 1'b0;
+reg de_ms = 1'b0;
+reg [PIXEL_WIDTH-1:0] do_ms = 0;
+always @(posedge clk) begin
+    sr_hs_o <= hs_o;
+    sr_vs_o <= vs_o;
+    hs_ms <= sr_hs_o & !hs_o;
+    vs_ms <= !sr_vs_o & vs_o;
+    de_ms <= de_o;
+    do_ms <= do_o;
+end
+
+monitor # (
+    .DATA_WIDTH(8),
+    .WRITE_IMG_FILE(WRITE_IMG_FILE)
+) monitor_m (
+    .di_i(do_ms),
+    .de_i(de_ms),
+    .hs_i(hs_ms),
+    .vs_i(vs_ms),
+    .clk(clk)
+);
 
 endmodule : scaler_linear_v_tb

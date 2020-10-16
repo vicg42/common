@@ -5,13 +5,13 @@
 `include "bmp_io.sv"
 
 module scaler_linear_h_tb #(
-    parameter READ_IMG_FILE = "img_600x600_8bit.bmp",//"_bayer_2688x36_vlines.bmp",//"_24x24_8bit_1pix.bmp",//"_bayer_lighthouse.bmp",//
+    parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"img_600x600_8bit.bmp",//"_bayer_2688x36_vlines.bmp",//"_24x24_8bit_1pix.bmp",//"_bayer_lighthouse.bmp",//
     parameter WRITE_IMG_FILE = "scaler_linear_h_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
-    parameter PIXEL_STEP = 128,
+    parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
     parameter SCALE_COE = 1.400, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
@@ -97,7 +97,7 @@ initial begin : sim_main
     // bc = 8;
     // $display("read frame: %d x %d; BItCount %d", w, h, bc);
     // $display("SCALE_COE=%f", SCALE_COE);
-    // $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*PIXEL_STEP);
+    // $display("SCALE_COE*SCALE_STEP=%d", SCALE_COE*SCALE_STEP);
 
     @(posedge clk);
     fr = 0;
@@ -158,7 +158,7 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #350; //delay between line
+            #10; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin
@@ -204,18 +204,18 @@ always @(posedge clk) begin
     end
 end
 
-logic [15:0] h_scale_step = SCALE_COE*PIXEL_STEP;
+logic [15:0] h_scale_step = SCALE_COE*SCALE_STEP;
 scaler_h #(
-    .PIXEL_STEP(PIXEL_STEP),
+    .SCALE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .COE_WIDTH(COE_WIDTH)
 ) scaler_linear_h_m (
     .scale_step(h_scale_step),
 
-    .di_i(di_s),//(di_i),//
-    .de_i(de_s),//(de_i),//
-    .hs_i(hs_s),//(hs_i),//
-    .vs_i(vs_s),//(vs_i),//
+    .di_i(di_i),//(di_s),//
+    .de_i(de_i),//(de_s),//
+    .hs_i(hs_i),//(hs_s),//
+    .vs_i(vs_i),//(vs_s),//
 
     .do_o(do_o_tmp),
     .de_o(de_o_tmp),
@@ -245,15 +245,15 @@ always @(posedge clk) begin
     end
 end
 
-monitor # (
-    .DATA_WIDTH(8),
-    .WRITE_IMG_FILE(WRITE_IMG_FILE)
-) monitor_m (
-    .di_i(do_o_tmp),
-    .de_i(de_o_tmp),
-    .hs_i(hs_o_tmp),
-    .vs_i(vs_o_tmp),
-    .clk(clk)
-);
+// monitor # (
+//     .DATA_WIDTH(8),
+//     .WRITE_IMG_FILE(WRITE_IMG_FILE)
+// ) monitor_m (
+//     .di_i(do_o_tmp),
+//     .de_i(de_o_tmp),
+//     .hs_i(hs_o_tmp),
+//     .vs_i(vs_o_tmp),
+//     .clk(clk)
+// );
 
 endmodule : scaler_linear_h_tb

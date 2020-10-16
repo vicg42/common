@@ -41,6 +41,10 @@ add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/de_o
 add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/hs_o
 add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/vs_o
 add wave -noupdate -divider {output monitor}
+add wave -noupdate /scaler_linear_v_tb/monitor_m/wen
+add wave -noupdate -radix unsigned /scaler_linear_v_tb/monitor_m/xcnt
+add wave -noupdate -radix unsigned /scaler_linear_v_tb/monitor_m/ycnt
+add wave -noupdate /scaler_linear_v_tb/monitor_m/frcnt
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {1101000 ps} 0}
 quietly wave cursor active 1
@@ -58,4 +62,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {1093252 ps} {1114176 ps}
+WaveRestoreZoom {964372 ps} {1901370 ps}
