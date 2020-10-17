@@ -14,6 +14,7 @@ module cubic_table #(
     output reg [COE_WIDTH-1:0] coe2,
     output reg [COE_WIDTH-1:0] coe3,
 
+    input dx_en,
     input [$clog2(STEP/4)-1:0] dx,
     input clk
 );
@@ -29,10 +30,28 @@ initial $readmemb("cubic_table_2.txt", coe_table_2);
 initial $readmemb("cubic_table_3.txt", coe_table_3);
 
 always @(posedge clk) begin
-    coe0 <= coe_table_0[dx];
-    coe1 <= coe_table_1[dx];
-    coe2 <= coe_table_2[dx];
-    coe3 <= coe_table_3[dx];
+    if (dx_en) begin
+        coe0 <= coe_table_0[dx];
+    end
 end
+
+always @(posedge clk) begin
+    if (dx_en) begin
+        coe1 <= coe_table_1[dx];
+    end
+end
+
+always @(posedge clk) begin
+    if (dx_en) begin
+        coe2 <= coe_table_2[dx];
+    end
+end
+
+always @(posedge clk) begin
+    if (dx_en) begin
+        coe3 <= coe_table_3[dx];
+    end
+end
+
 
 endmodule

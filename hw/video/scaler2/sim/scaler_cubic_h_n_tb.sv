@@ -4,16 +4,16 @@
 `timescale 1ns / 1ps
 `include "bmp_io.sv"
 
-module scaler_cubic_h_tb #(
-    parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+module scaler_cubic_h_n_tb #(
+    parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"img_600x600_8bit.bmp",//"_bayer_2688x36_vlines.bmp",//"_24x24_8bit_1pix.bmp",//"_bayer_lighthouse.bmp",//
     parameter WRITE_IMG_FILE = "scaler_cubic_h_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
-    parameter PIXEL_STEP = 128,
+    parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.90, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.400, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 
@@ -91,7 +91,13 @@ initial begin : sim_main
     w = image_real.get_x();
     h = image_real.get_y();
     bc = image_real.get_ColortBitCount();
-    $display("read frame: %d x %d; BItCount %d", w, h, bc);
+    // w = 2686;
+    // w = 2688;
+    // h = 34;
+    // bc = 8;
+    // $display("read frame: %d x %d; BItCount %d", w, h, bc);
+    // $display("SCALE_COE=%f", SCALE_COE);
+    // $display("SCALE_COE*SCALE_STEP=%d", SCALE_COE*SCALE_STEP);
 
     @(posedge clk);
     fr = 0;
@@ -109,8 +115,10 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                //di_i = image_real.get_pixel(x, y);
-                di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
+                di_i = image_real.get_pixel(x, y);
+                // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
+                // di_i[0 +: 4] = x+1;//y+
+                // di_i[4 +: 4] = y;//
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -178,27 +186,6 @@ always @(posedge clk) begin
     di_s <= di_i;
 end
 
-logic [15:0] h_scale_step = SCALE_COE*PIXEL_STEP;
-scaler_h #(
-    .PIXEL_STEP(PIXEL_STEP),
-    .PIXEL_WIDTH(PIXEL_WIDTH),
-    .COE_WIDTH(COE_WIDTH)
-) scaler_cubic_h_m (
-    .scale_step(h_scale_step),
-
-    .di_i(di_s),//(di_i),//
-    .de_i(de_s),//(de_i),//
-    .hs_i(hs_s),//(hs_i),//
-    .vs_i(vs_s),//(vs_i),//
-
-    .do_o(do_o_tmp),
-    .de_o(de_o_tmp),
-    .hs_o(hs_o_tmp),
-    .vs_o(vs_o_tmp),
-
-    .clk(clk)
-);
-
 reg [15:0] dbg_cntx_i = 0;
 reg [15:0] dbg_cntx_tmp = 0;
 reg [15:0] dbg_cnty_i = 0;
@@ -217,35 +204,71 @@ always @(posedge clk) begin
     end
 end
 
-reg [15:0] dbg_cntx_o = 0;
-reg [15:0] dbg_cnty_o = 0;
-always @(posedge clk) begin
-    do_o <= do_o_tmp;
-    de_o <= de_o_tmp;
-    hs_o <= hs_o_tmp;
-    vs_o <= vs_o_tmp;
-    if (hs_o_tmp) begin
-        dbg_cntx_o <= 0;
-    end else if (de_o) begin
-        dbg_cntx_o <= dbg_cntx_o + 1;
-    end
+logic [15:0] h_scale_step = SCALE_COE*SCALE_STEP;
+scaler_h #(
+    .SCALE_STEP(SCALE_STEP),
+    .PIXEL_WIDTH(PIXEL_WIDTH),
+    .COE_WIDTH(COE_WIDTH)
+) scaler_cubic_h_m (
+    .scale_step(h_scale_step),
 
-    if (hs_o_tmp && vs_o_tmp) begin
-        dbg_cnty_o <= 0;
-    end else if (hs_o_tmp) begin
-        dbg_cnty_o <= dbg_cnty_o + 1;
-    end
+    .di_i(di_i),//(di_s),//
+    .de_i(de_i),//(de_s),//
+    .hs_i(hs_i),//(hs_s),//
+    .vs_i(vs_i),//(vs_s),//
+
+    .do_o(do_o),
+    .de_o(de_o),
+    .hs_o(hs_o),
+    .vs_o(vs_o),
+
+    .clk(clk)
+);
+
+// reg [15:0] dbg_cntx_o = 0;
+// reg [15:0] dbg_cnty_o = 0;
+// always @(posedge clk) begin
+//     do_o <= do_o_tmp;
+//     de_o <= de_o_tmp;
+//     hs_o <= hs_o_tmp;
+//     vs_o <= vs_o_tmp;
+//     if (hs_o_tmp) begin
+//         dbg_cntx_o <= 0;
+//     end else if (de_o) begin
+//         dbg_cntx_o <= dbg_cntx_o + 1;
+//     end
+
+//     if (hs_o_tmp && vs_o_tmp) begin
+//         dbg_cnty_o <= 0;
+//     end else if (hs_o_tmp) begin
+//         dbg_cnty_o <= dbg_cnty_o + 1;
+//     end
+// end
+
+reg sr_hs_o = 0;
+reg sr_vs_o = 0;
+reg hs_ms = 1'b0;
+reg vs_ms = 1'b0;
+reg de_ms = 1'b0;
+reg [PIXEL_WIDTH-1:0] do_ms = 0;
+always @(posedge clk) begin
+    sr_hs_o <= hs_o;
+    sr_vs_o <= vs_o;
+    hs_ms <= sr_hs_o & !hs_o;
+    vs_ms <= !sr_vs_o & vs_o;
+    de_ms <= de_o;
+    do_ms <= do_o;
 end
 
 monitor # (
     .DATA_WIDTH(8),
     .WRITE_IMG_FILE(WRITE_IMG_FILE)
 ) monitor_m (
-    .di_i(do_o_tmp),
-    .de_i(de_o_tmp),
-    .hs_i(hs_o_tmp),
-    .vs_i(vs_o_tmp),
+    .di_i(do_ms),
+    .de_i(de_ms),
+    .hs_i(hs_ms),
+    .vs_i(vs_ms),
     .clk(clk)
 );
 
-endmodule
+endmodule : scaler_cubic_h_n_tb

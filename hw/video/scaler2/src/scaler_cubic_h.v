@@ -100,6 +100,7 @@ cubic_table #(
     .coe2(coe[2]),
     .coe3(coe[3]),
 
+    .dx_en(1'b1),
     .dx(dx),
     .clk(clk)
 );
