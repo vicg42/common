@@ -47,11 +47,11 @@ reg [15:0] h_scale_step = 0;
 reg [15:0] v_scale_step = 0;
 reg [15:0] inline_size = 0;
 always @(posedge clk) begin
-    if (vs_s) begin
+    // if (vs_s) begin
         h_scale_step <= reg_h_scale_step;
         v_scale_step <= reg_v_scale_step;
         inline_size  <= reg_v_scale_inline_size;
-    end
+    // end
 end
 
 wire [PIXEL_WIDTH-1: 0] sacler_h_do_o;
