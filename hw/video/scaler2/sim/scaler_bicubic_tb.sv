@@ -6,7 +6,7 @@
 
 module scaler_bicubic_tb #(
     parameter READ_IMG_FILE =  "_24x24_8bit_diagonal1.bmp",//"img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
-    parameter V_SCALE_INLINE_WIDTH = 16,
+    parameter V_SCALE_INLINE_WIDTH = 15,
     parameter WRITE_IMG_FILE = "scaler_bicubic_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
@@ -16,7 +16,7 @@ module scaler_bicubic_tb #(
     parameter LINE_IN_SIZE_MAX = 1024,
     parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.50, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 
