@@ -32,7 +32,6 @@ reg [23:0] cnt_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_o = 0; // output pixels coordinate counter
 
 reg [PIXEL_WIDTH-1:0] sr_di_i [2:0];
-reg [PIXEL_WIDTH-1:0] pix_tmp [3:0];
 reg [PIXEL_WIDTH-1:0] pix [3:0];
 wire [COE_WIDTH-1:0] coe [3:0];
 reg [MULT_WIDTH-1:0] mult [3:0];

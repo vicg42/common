@@ -4,19 +4,19 @@
 `timescale 1ns / 1ps
 `include "bmp_io.sv"
 
-module scaler_cubic_v_n_tb #(
+module scaler_bicubic_n_tb #(
     parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
-    parameter READ_IMG_WIDTH = 24,
-    parameter WRITE_IMG_FILE = "scaler_cubic_v_result.bmp",
+    parameter WRITE_IMG_FILE = "scaler_bicubic_n_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
                              //4 - 3 empty cycle per pixel
                              //etc...
     parameter SPARSE_OUT = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_IN_SIZE_MAX = 1024,
+    parameter V_SCALE_INLINE_WIDTH = 16,
     parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter SCALE_COE = 1.50, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
 );
 
@@ -44,6 +44,11 @@ logic [PIXEL_WIDTH-1:0] do_o;
 logic de_o;
 logic hs_o;
 logic vs_o;
+
+wire [PIXEL_WIDTH-1:0] do_o_tmp;
+wire de_o_tmp;
+wire hs_o_tmp;
+wire vs_o_tmp;
 
 BMP_IO image_real;
 BMP_IO image_new;
@@ -90,11 +95,6 @@ initial begin : sim_main
     h = image_real.get_y();
     bc = image_real.get_ColortBitCount();
     $display("read frame: %d x %d; BItCount %d", w, h, bc);
-    // w = READ_IMG_WIDTH;
-    // h = 1520;
-    // bc = 8;
-    // $display("read frame: %d x %d; BItCount %d", w, h, bc);
-    // $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*SCALE_STEP);
 
     @(posedge clk);
     fr = 0;
@@ -113,9 +113,9 @@ initial begin : sim_main
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
                 di_i = image_real.get_pixel(x, y);
-                // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;//y+
+                // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
                 // di_i[0 +: 4] = x+1;//y+
-                // di_i[4 +: 4] = y;
+                // di_i[4 +: 4] = y;//
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -155,8 +155,7 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            // #350; //delay between line
-            #25; //delay between line
+            #10; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin
@@ -184,41 +183,16 @@ always @(posedge clk) begin
     di_s <= di_i;
 end
 
-logic [15:0] line_in_size = READ_IMG_WIDTH-1;
-logic [15:0] v_scale_step = SCALE_COE*SCALE_STEP;
-scaler_v #(
-    .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
-    .SCALE_STEP(SCALE_STEP),
-    .PIXEL_WIDTH(PIXEL_WIDTH),
-    .SPARSE_OUT(SPARSE_OUT),
-    .COE_WIDTH(COE_WIDTH)
-) scaler_cubic_v_m (
-    .line_in_size(line_in_size),
-    .scale_step(v_scale_step),
-
-    .di_i(di_i),//(di_s),
-    .de_i(de_i),//(de_s),
-    .hs_i(hs_i),//(hs_s),
-    .vs_i(vs_i),//(vs_s),
-
-    .do_o(do_o),
-    .de_o(de_o),
-    .hs_o(hs_o),
-    .vs_o(vs_o),
-
-    .clk(clk)
-);
-
-reg [15:0] dbg_cntx_i_tmp = 0;
 reg [15:0] dbg_cntx_i = 0;
+reg [15:0] dbg_cntx_tmp = 0;
 reg [15:0] dbg_cnty_i = 0;
 always @(posedge clk) begin
     if (hs_i) begin
-        dbg_cntx_i_tmp <= 0;
+        dbg_cntx_tmp <= 0;
     end else if (de_i) begin
-        dbg_cntx_i_tmp <= dbg_cntx_i_tmp + 1;
+        dbg_cntx_tmp <= dbg_cntx_tmp + 1;
     end
-    dbg_cntx_i <= dbg_cntx_i_tmp;
+    dbg_cntx_i <= dbg_cntx_tmp;
 
     if (hs_s && vs_s) begin
         dbg_cnty_i <= 0;
@@ -227,21 +201,32 @@ always @(posedge clk) begin
     end
 end
 
-reg [15:0] dbg_cntx_o = 0;
-reg [15:0] dbg_cnty_o = 0;
-always @(posedge clk) begin
-    if (hs_o && de_o) begin
-        dbg_cntx_o <= 0;
-    end else if (de_o) begin
-        dbg_cntx_o <= dbg_cntx_o + 1;
-    end
+logic [15:0] h_scale_step = SCALE_COE*SCALE_STEP;
+logic [15:0] v_scale_step = SCALE_COE*SCALE_STEP;
+logic [15:0] v_scale_inline_size = V_SCALE_INLINE_WIDTH-1;
+scaler #(
+    .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
+    .SCALE_STEP(SCALE_STEP),
+    .PIXEL_WIDTH(PIXEL_WIDTH),
+    .SPARSE_OUT(SPARSE_OUT),
+    .COE_WIDTH(COE_WIDTH)
+) scaler_bicubic_m (
+    .reg_h_scale_step(h_scale_step),
+    .reg_v_scale_step(v_scale_step),
+    .reg_v_scale_inline_size(v_scale_inline_size),
 
-    if (hs_o && vs_o) begin
-        dbg_cnty_o <= 0;
-    end else if (hs_o) begin
-        dbg_cnty_o <= dbg_cnty_o + 1;
-    end
-end
+    .di_i(di_i),//
+    .de_i(de_i),//
+    .hs_i(hs_i),//
+    .vs_i(vs_i),//
+
+    .do_o(do_o),
+    .de_o(de_o),
+    .hs_o(hs_o),
+    .vs_o(vs_o),
+
+    .clk(clk)
+);
 
 reg sr_hs_o = 0;
 reg sr_vs_o = 0;
@@ -269,4 +254,4 @@ monitor # (
     .clk(clk)
 );
 
-endmodule : scaler_cubic_v_n_tb
+endmodule : scaler_bicubic_n_tb

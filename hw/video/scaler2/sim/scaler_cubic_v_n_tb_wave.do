@@ -17,7 +17,7 @@ add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/de_i
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/hs_i
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/vs_i
 add wave -noupdate -divider {New Divider}
-add wave -noupdate -expand /scaler_cubic_v_n_tb/scaler_cubic_v_m/sr_de_i
+add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/sr_de_i
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/di_i
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/de_i
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/hs_i
@@ -33,12 +33,15 @@ add wave -noupdate -expand /scaler_cubic_v_n_tb/scaler_cubic_v_m/coe
 add wave -noupdate {/scaler_cubic_v_n_tb/scaler_cubic_v_m/sr_de_i[4]}
 add wave -noupdate -expand /scaler_cubic_v_n_tb/scaler_cubic_v_m/mult
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/sum
-add wave -noupdate {/scaler_cubic_v_n_tb/scaler_cubic_v_m/sr_de_i[4]}
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/do_o
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/de_o
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/hs_o
 add wave -noupdate /scaler_cubic_v_n_tb/scaler_cubic_v_m/vs_o
 add wave -noupdate -divider {output monitor}
+add wave -noupdate /scaler_cubic_v_n_tb/monitor_m/di_i
+add wave -noupdate /scaler_cubic_v_n_tb/monitor_m/de_i
+add wave -noupdate /scaler_cubic_v_n_tb/monitor_m/hs_i
+add wave -noupdate /scaler_cubic_v_n_tb/monitor_m/vs_i
 add wave -noupdate /scaler_cubic_v_n_tb/monitor_m/wen
 add wave -noupdate -radix unsigned /scaler_cubic_v_n_tb/monitor_m/xcnt
 add wave -noupdate -radix unsigned /scaler_cubic_v_n_tb/monitor_m/ycnt
@@ -60,4 +63,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {1147943 ps} {1162054 ps}
+WaveRestoreZoom {0 ps} {2690432 ps}
