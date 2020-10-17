@@ -4,8 +4,8 @@
 `timescale 1ns / 1ps
 `include "bmp_io.sv"
 
-module scaler_cubic_v_tb #(
-    parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"_bayer_lighthouse.bmp",//"img_600x600_8bit.bmp", //"24x24_8bit_test1.bmp",
+module scaler_cubic_v_n_tb #(
+    parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
     parameter READ_IMG_WIDTH = 24,
     parameter WRITE_IMG_FILE = "scaler_cubic_v_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
@@ -14,7 +14,7 @@ module scaler_cubic_v_tb #(
                              //etc...
     parameter SPARSE_OUT = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_IN_SIZE_MAX = 1024,
-    parameter LINE_STEP = 128,
+    parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
     parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
@@ -90,6 +90,11 @@ initial begin : sim_main
     h = image_real.get_y();
     bc = image_real.get_ColortBitCount();
     $display("read frame: %d x %d; BItCount %d", w, h, bc);
+    // w = READ_IMG_WIDTH;
+    // h = 1520;
+    // bc = 8;
+    // $display("read frame: %d x %d; BItCount %d", w, h, bc);
+    // $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*SCALE_STEP);
 
     @(posedge clk);
     fr = 0;
@@ -150,7 +155,8 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #10; //delay between line
+            // #350; //delay between line
+            #25; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin
@@ -179,10 +185,10 @@ always @(posedge clk) begin
 end
 
 logic [15:0] line_in_size = READ_IMG_WIDTH-1;
-logic [15:0] v_scale_step = SCALE_COE*LINE_STEP;
+logic [15:0] v_scale_step = SCALE_COE*SCALE_STEP;
 scaler_v #(
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
-    .LINE_STEP(LINE_STEP),
+    .SCALE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUT(SPARSE_OUT),
     .COE_WIDTH(COE_WIDTH)
@@ -190,10 +196,10 @@ scaler_v #(
     .line_in_size(line_in_size),
     .scale_step(v_scale_step),
 
-    .di_i(di_s),
-    .de_i(de_s),
-    .hs_i(hs_s),
-    .vs_i(vs_s),
+    .di_i(di_i),//(di_s),
+    .de_i(de_i),//(de_s),
+    .hs_i(hs_i),//(hs_s),
+    .vs_i(vs_i),//(vs_s),
 
     .do_o(do_o),
     .de_o(de_o),
@@ -237,15 +243,30 @@ always @(posedge clk) begin
     end
 end
 
+reg sr_hs_o = 0;
+reg sr_vs_o = 0;
+reg hs_ms = 1'b0;
+reg vs_ms = 1'b0;
+reg de_ms = 1'b0;
+reg [PIXEL_WIDTH-1:0] do_ms = 0;
+always @(posedge clk) begin
+    sr_hs_o <= hs_o;
+    sr_vs_o <= vs_o;
+    hs_ms <= sr_hs_o & !hs_o;
+    vs_ms <= !sr_vs_o & vs_o;
+    de_ms <= de_o;
+    do_ms <= do_o;
+end
+
 monitor # (
     .DATA_WIDTH(8),
     .WRITE_IMG_FILE(WRITE_IMG_FILE)
 ) monitor_m (
-    .di_i(do_o),
-    .de_i(de_o),
-    .hs_i(hs_o),
-    .vs_i(vs_o),
+    .di_i(do_ms),
+    .de_i(de_ms),
+    .hs_i(hs_ms),
+    .vs_i(vs_ms),
     .clk(clk)
 );
 
-endmodule : scaler_cubic_v_tb
+endmodule : scaler_cubic_v_n_tb
