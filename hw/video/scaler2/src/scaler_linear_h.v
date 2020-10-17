@@ -28,6 +28,9 @@ localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
 localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
 localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 
+reg [23:0] cnt_i = 0; // input pixels coordinate counter
+reg [23:0] cnt_o = 0; // output pixels coordinate counter
+
 reg [PIXEL_WIDTH-1:0] sr_di_i [1:0];
 reg [PIXEL_WIDTH-1:0] pix_tmp [1:0];
 reg [PIXEL_WIDTH-1:0] pix [1:0];
@@ -41,23 +44,21 @@ reg [4:0] sr_vs_i = 0;
 
 wire hs_falling_edge;
 wire hs_rising_edge;
-reg [23:0] cnt_i = 0; // input pixels coordinate counter
-reg [23:0] cnt_o = 0; // output pixels coordinate counter
-wire [$clog2(SCALE_STEP/2)-1:0] dx;
-reg new_pix = 1'b0;
+wire [$clog2(SCALE_STEP/2)-1:0] coe_adr;
+reg de_new = 1'b0;
 
 //Input pix buf
 reg [15:0] buf_wcnt = 0;
 always @(posedge clk) begin
     if (de_i) begin
         sr_di_i[0] <= di_i;
-        sr_di_i[1] <= (cnt_i > 0) ? sr_di_i[0] : 0;
+        sr_di_i[1] <= (cnt_i > 0) ? sr_di_i[0] : 0; //boundary effect
     end
 end
 
 //Read scale coef
 always @(posedge clk) begin
-    new_pix <= 1'b0;
+    de_new <= 1'b0;
 
     if (hs_i & sr_hs_i[0]) begin
         cnt_i <= 0;
@@ -69,13 +70,13 @@ always @(posedge clk) begin
 
         if (cnt_i >= cnt_o) begin
             cnt_o <= cnt_o + scale_step;
-            new_pix <= 1'b1;
+            de_new <= 1'b1;
             pix_tmp[0] <= sr_di_i[1];
             pix_tmp[1] <= sr_di_i[0];
         end
     end
 end
-assign dx = cnt_o[1 +: $clog2(SCALE_STEP/2)];
+assign coe_adr = cnt_o[1 +: $clog2(SCALE_STEP/2)];
 
 linear_table #(
     .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
@@ -86,11 +87,11 @@ linear_table #(
     .coe1(coe[1]),
 
     .dx_en(1'b1),
-    .dx(dx),
+    .dx(coe_adr),
     .clk(clk)
 );
 
-// Align
+// pipeline
 always @(posedge clk) begin
     //stage 0
     sr_de_i[0] <= de_i;
@@ -105,18 +106,15 @@ always @(posedge clk) begin
     //stage 2
     pix[0] <= pix_tmp[0];
     pix[1] <= pix_tmp[1];
-    sr_de_i[2] <= sr_de_i[1] & new_pix;    //sr_de_i[1];//
+    sr_de_i[2] <= sr_de_i[1] & de_new;
     sr_hs_i[2] <= sr_hs_i[1];
     sr_vs_i[2] <= sr_vs_i[1];
-end
 
-//calc
-always @(posedge clk) begin
     //stage 3
     mult[0] <= coe[0] * pix[0];
     mult[1] <= coe[1] * pix[1];
     sr_de_i[3] <= sr_de_i[2];
-    sr_hs_i[3] <= sr_hs_i[2];// | dx_en;
+    sr_hs_i[3] <= sr_hs_i[2];
     sr_vs_i[3] <= sr_vs_i[2];
 
     //stage 4

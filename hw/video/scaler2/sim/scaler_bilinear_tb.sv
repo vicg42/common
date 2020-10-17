@@ -5,7 +5,7 @@
 `include "bmp_io.sv"
 
 module scaler_bilinear_tb #(
-    parameter READ_IMG_FILE = "img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
+    parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
     parameter WRITE_IMG_FILE = "scaler_belinear_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
@@ -13,11 +13,11 @@ module scaler_bilinear_tb #(
                              //etc...
     parameter SPARSE_OUT = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_IN_SIZE_MAX = 1024,
-    parameter V_SCALE_INLINE_WIDTH = 428,
+    parameter V_SCALE_INLINE_WIDTH = 24,
     parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
-    parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
-    parameter COE_WIDTH = 10
+    parameter SCALE_COE = 1.00, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
+    parameter COE_WIDTH = 8
 );
 
 reg clk = 1;
@@ -155,7 +155,7 @@ initial begin : sim_main
             if (y == (h-1)) begin
                 vs_i = 1'b0;
             end
-            #50; //delay between line
+            #10; //delay between line
         end
         @(posedge clk);
 //        if (y == h) begin
@@ -183,6 +183,24 @@ always @(posedge clk) begin
     di_s <= di_i;
 end
 
+reg [15:0] dbg_cntx_i = 0;
+reg [15:0] dbg_cntx_tmp = 0;
+reg [15:0] dbg_cnty_i = 0;
+always @(posedge clk) begin
+    if (hs_i) begin
+        dbg_cntx_tmp <= 0;
+    end else if (de_i) begin
+        dbg_cntx_tmp <= dbg_cntx_tmp + 1;
+    end
+    dbg_cntx_i <= dbg_cntx_tmp;
+
+    if (hs_s && vs_s) begin
+        dbg_cnty_i <= 0;
+    end else if (hs_s) begin
+        dbg_cnty_i <= dbg_cnty_i + 1;
+    end
+end
+
 logic [15:0] h_scale_step = SCALE_COE*SCALE_STEP;
 logic [15:0] v_scale_step = SCALE_COE*SCALE_STEP;
 logic [15:0] v_scale_inline_size = V_SCALE_INLINE_WIDTH-1;
@@ -202,60 +220,37 @@ scaler #(
     .hs_i(hs_i),//
     .vs_i(vs_i),//
 
-    .do_o(do_o_tmp),
-    .de_o(de_o_tmp),
-    .hs_o(hs_o_tmp),
-    .vs_o(vs_o_tmp),
+    .do_o(do_o),
+    .de_o(de_o),
+    .hs_o(hs_o),
+    .vs_o(vs_o),
 
     .clk(clk)
 );
 
-reg [15:0] dbg_cntx_i = 0;
-reg [15:0] dbg_cntx_tmp = 0;
-reg [15:0] dbg_cnty_i = 0;
+reg sr_hs_o = 0;
+reg sr_vs_o = 0;
+reg hs_ms = 1'b0;
+reg vs_ms = 1'b0;
+reg de_ms = 1'b0;
+reg [PIXEL_WIDTH-1:0] do_ms = 0;
 always @(posedge clk) begin
-    if (hs_i) begin
-        dbg_cntx_tmp <= 0;
-    end else if (de_i) begin
-        dbg_cntx_tmp <= dbg_cntx_tmp + 1;
-    end
-    dbg_cntx_i <= dbg_cntx_tmp;
-
-    if (hs_s && vs_s) begin
-        dbg_cnty_i <= 0;
-    end else if (hs_s) begin
-        dbg_cnty_i <= dbg_cnty_i + 1;
-    end
-end
-
-reg [15:0] dbg_cntx_o = 0;
-reg [15:0] dbg_cnty_o = 0;
-always @(posedge clk) begin
-    do_o <= do_o_tmp;
-    de_o <= de_o_tmp;
-    hs_o <= hs_o_tmp;
-    vs_o <= vs_o_tmp;
-    if (hs_o_tmp) begin
-        dbg_cntx_o <= 0;
-    end else if (de_o) begin
-        dbg_cntx_o <= dbg_cntx_o + 1;
-    end
-
-    if (hs_o_tmp && vs_o_tmp) begin
-        dbg_cnty_o <= 0;
-    end else if (hs_o_tmp) begin
-        dbg_cnty_o <= dbg_cnty_o + 1;
-    end
+    sr_hs_o <= hs_o;
+    sr_vs_o <= vs_o;
+    hs_ms <= sr_hs_o & !hs_o;
+    vs_ms <= !sr_vs_o & vs_o;
+    de_ms <= de_o;
+    do_ms <= do_o;
 end
 
 monitor # (
     .DATA_WIDTH(8),
     .WRITE_IMG_FILE(WRITE_IMG_FILE)
 ) monitor_m (
-    .di_i(do_o_tmp),
-    .de_i(de_o_tmp),
-    .hs_i(hs_o_tmp),
-    .vs_i(vs_o_tmp),
+    .di_i(do_ms),
+    .de_i(de_ms),
+    .hs_i(hs_ms),
+    .vs_i(vs_ms),
     .clk(clk)
 );
 

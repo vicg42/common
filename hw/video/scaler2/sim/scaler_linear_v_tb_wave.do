@@ -1,10 +1,11 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate -radix ascii /scaler_linear_v_tb/READ_IMG_FILE
+add wave -noupdate -radix unsigned /scaler_linear_v_tb/READ_IMG_WIDTH
 add wave -noupdate -radix ascii /scaler_linear_v_tb/WRITE_IMG_FILE
 add wave -noupdate -radix unsigned /scaler_linear_v_tb/LINE_IN_SIZE_MAX
-add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/LINE_STEP
 add wave -noupdate -radix unsigned /scaler_linear_v_tb/PIXEL_WIDTH
+add wave -noupdate -radix unsigned /scaler_linear_v_tb/SCALE_STEP
 add wave -noupdate /scaler_linear_v_tb/SCALE_COE
 add wave -noupdate -radix unsigned /scaler_linear_v_tb/COE_WIDTH
 add wave -noupdate -radix unsigned /scaler_linear_v_tb/SPARSE_OUT
@@ -27,9 +28,9 @@ add wave -noupdate -expand /scaler_linear_v_tb/scaler_linear_v_m/sr0_buf_do
 add wave -noupdate {/scaler_linear_v_tb/scaler_linear_v_m/sr_de_i[1]}
 add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/cnt_i
 add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/cnt_o
-add wave -noupdate -radix unsigned /scaler_linear_v_tb/scaler_linear_v_m/dy
-add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/dx_en
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/coe_adr
 add wave -noupdate {/scaler_linear_v_tb/scaler_linear_v_m/sr_de_i[2]}
+add wave -noupdate /scaler_linear_v_tb/scaler_linear_v_m/de_new
 add wave -noupdate -expand /scaler_linear_v_tb/scaler_linear_v_m/line
 add wave -noupdate -expand /scaler_linear_v_tb/scaler_linear_v_m/coe
 add wave -noupdate {/scaler_linear_v_tb/scaler_linear_v_m/sr_de_i[3]}
@@ -62,4 +63,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {964372 ps} {1901370 ps}
+WaveRestoreZoom {0 ps} {3150 ns}

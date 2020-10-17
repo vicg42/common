@@ -60,16 +60,16 @@ wire sacler_h_hs_o;
 wire sacler_h_vs_o;
 scaler_h #(
     .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
-    .PIXEL_STEP(SCALE_STEP),
+    .SCALE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .COE_WIDTH(COE_WIDTH)
 ) scaler_linear_h_m (
     .scale_step(h_scale_step),
 
-    .di_i(di_s),//(di_i),//
-    .de_i(de_s),//(de_i),//
-    .hs_i(hs_s),//(hs_i),//
-    .vs_i(vs_s),//(vs_i),//
+    .di_i(di_i),//(di_s),//
+    .de_i(de_i),//(de_s),//
+    .hs_i(hs_i),//(hs_s),//
+    .vs_i(vs_i),//(vs_s),//
 
     .do_o(sacler_h_do_o),
     .de_o(sacler_h_de_o),
@@ -82,7 +82,7 @@ scaler_h #(
 scaler_v #(
     .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
-    .LINE_STEP(SCALE_STEP),
+    .SCALE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUT(SPARSE_OUT),
     .COE_WIDTH(COE_WIDTH)

@@ -6,7 +6,7 @@
 
 module scaler_linear_v_tb #(
     parameter READ_IMG_FILE = "_24x24_8bit_diagonal1.bmp",//"img_600x600_8bit.bmp", //"_bayer_lighthouse.bmp",//"24x24_8bit_test1.bmp",
-    parameter READ_IMG_WIDTH = 600,
+    parameter READ_IMG_WIDTH = 24,
     parameter WRITE_IMG_FILE = "scaler_linear_v_result.bmp",
     parameter DE_I_PERIOD = 0, //0 - no empty cycles
                              //2 - 1 empty cycle per pixel
@@ -14,7 +14,7 @@ module scaler_linear_v_tb #(
                              //etc...
     parameter SPARSE_OUT = 0, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter LINE_IN_SIZE_MAX = 1024,
-    parameter LINE_STEP = 128,
+    parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
     parameter SCALE_COE = 1.40, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
     parameter COE_WIDTH = 8
@@ -94,7 +94,7 @@ initial begin : sim_main
     // h = 1520;
     // bc = 8;
     // $display("read frame: %d x %d; BItCount %d", w, h, bc);
-    // $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*LINE_STEP);
+    // $display("SCALE_COE*PIXEL_STEP=%d", SCALE_COE*SCALE_STEP);
 
     @(posedge clk);
     fr = 0;
@@ -185,10 +185,10 @@ always @(posedge clk) begin
 end
 
 logic [15:0] line_in_size = READ_IMG_WIDTH-1;
-logic [15:0] v_scale_step = SCALE_COE*LINE_STEP;
+logic [15:0] v_scale_step = SCALE_COE*SCALE_STEP;
 scaler_v #(
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
-    .LINE_STEP(LINE_STEP),
+    .SCALE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUT(SPARSE_OUT),
     .COE_WIDTH(COE_WIDTH)

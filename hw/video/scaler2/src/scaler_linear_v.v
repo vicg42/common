@@ -3,12 +3,12 @@ module scaler_v #(
 //For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
     parameter VENDOR_RAM_STYLE="MLAB",
     parameter LINE_IN_SIZE_MAX = 1024,
-    parameter LINE_STEP = 4096,
+    parameter SCALE_STEP = 4096,
     parameter PIXEL_WIDTH = 12,
     parameter SPARSE_OUT = 2, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
     parameter COE_WIDTH = 10
 )(
-    //unsigned fixed point. LINE_STEP is 1.000 scale
+    //unsigned fixed point. SCALE_STEP is 1.000 scale
     input [15:0] scale_step,
     input [15:0] line_in_size,
 
@@ -30,6 +30,9 @@ localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
 localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
 localparam [MULT_WIDTH:0] ROUND_ADDER = (1 << (COE_WIDTH - 2));
 
+reg [23:0] cnt_i = 0; // input pixels coordinate counter
+reg [23:0] cnt_o = 0; // output pixels coordinate counter
+
 reg [PIXEL_WIDTH-1:0] buf_do [1:0];
 reg [PIXEL_WIDTH-1:0] sr0_buf_do [1:0];
 reg [PIXEL_WIDTH-1:0] line [1:0];
@@ -43,10 +46,8 @@ reg [4:0] sr_vs_i = 0;
 
 wire hs_falling_edge;
 wire hs_rising_edge;
-reg [23:0] cnt_i = 0; // input pixels coordinate counter
-reg [23:0] cnt_o = 0; // output pixels coordinate counter
-reg [$clog2(LINE_STEP/2)-1:0] dy = 0;
-reg dx_en = 1'b0;
+reg [$clog2(SCALE_STEP/2)-1:0] coe_adr = 0;
+reg de_new = 1'b0;
 
 //Input line buf
 reg [15:0] buf_wcnt = 0;
@@ -72,40 +73,41 @@ assign hs_rising_edge = hs_i & !sr_hs_i[0];
 always @(posedge clk) begin
     if (!vs_i) begin
         cnt_i <= 0;
+        cnt_o <= 0;
     end else begin
         if (hs_falling_edge) begin
-            cnt_i <= cnt_i + LINE_STEP;
+            cnt_i <= cnt_i + SCALE_STEP;
         end
 
-        if (dx_en & hs_rising_edge) begin
+        if (de_new & hs_rising_edge) begin
             cnt_o <= cnt_o + scale_step;
         end
     end
 
-    dx_en <= 1'b0;
+    de_new <= 1'b0;
     if (cnt_i > cnt_o) begin
-        dy <= cnt_o[1 +: $clog2(LINE_STEP/2)];
-        dx_en <= 1'b1;
+        coe_adr <= cnt_o[1 +: $clog2(SCALE_STEP/2)];
+        de_new <= 1'b1;
     end
 end
 
 linear_table #(
     .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
-    .STEP(LINE_STEP),
+    .STEP(SCALE_STEP),
     .COE_WIDTH(COE_WIDTH)
 ) coe_table_m (
     .coe0(coe[0]),
     .coe1(coe[1]),
 
     .dx_en(1'b1),
-    .dx(dy),
+    .dx(coe_adr),
     .clk(clk)
 );
 
-// Align
+// pipeline
 always @(posedge clk) begin
     //stage 0
-    buf_do[0] <= (cnt_o > 0) ? buf0[buf_wcnt] : 0;
+    buf_do[0] <= (cnt_o > 0) ? buf0[buf_wcnt] : 0; //boundary effect
     buf_do[1] <= di_i;
     sr_de_i[0] <= de_i;
     sr_hs_i[0] <= hs_i;
@@ -121,18 +123,15 @@ always @(posedge clk) begin
     //stage 2
     line[0] <= sr0_buf_do[0];
     line[1] <= sr0_buf_do[1];
-    sr_de_i[2] <= sr_de_i[1] & dx_en;    //sr_de_i[1];//
-    sr_hs_i[2] <= !(~sr_hs_i[1] & dx_en);//sr_hs_i[1];//
+    sr_de_i[2] <= sr_de_i[1] & de_new;    //sr_de_i[1];//
+    sr_hs_i[2] <= !(~sr_hs_i[1] & de_new);//sr_hs_i[1];//
     sr_vs_i[2] <= sr_vs_i[1];
-end
 
-//calc
-always @(posedge clk) begin
     //stage 3
     mult[0] <= coe[0] * line[0];
     mult[1] <= coe[1] * line[1];
     sr_de_i[3] <= sr_de_i[2];
-    sr_hs_i[3] <= sr_hs_i[2];// | dx_en;
+    sr_hs_i[3] <= sr_hs_i[2];
     sr_vs_i[3] <= sr_vs_i[2];
 
     //stage 4

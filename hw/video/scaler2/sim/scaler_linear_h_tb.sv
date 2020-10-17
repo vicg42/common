@@ -115,10 +115,10 @@ initial begin : sim_main
         for (y = 0; y < h; y++) begin
             for (x = 0; x < w; x++) begin
                 @(posedge clk);
-                // di_i = image_real.get_pixel(x, y);
+                di_i = image_real.get_pixel(x, y);
                 // di_i[PIXEL_WIDTH*0 +: PIXEL_WIDTH] = x+1;
-                di_i[0 +: 4] = x+1;//y+
-                di_i[4 +: 4] = y;//
+                // di_i[0 +: 4] = x+1;//y+
+                // di_i[4 +: 4] = y;//
                 //for color image:
                 //di_i[0  +: 8] - B
                 //di_i[8  +: 8] - G
@@ -217,43 +217,58 @@ scaler_h #(
     .hs_i(hs_i),//(hs_s),//
     .vs_i(vs_i),//(vs_s),//
 
-    .do_o(do_o_tmp),
-    .de_o(de_o_tmp),
-    .hs_o(hs_o_tmp),
-    .vs_o(vs_o_tmp),
+    .do_o(do_o),
+    .de_o(de_o),
+    .hs_o(hs_o),
+    .vs_o(vs_o),
 
     .clk(clk)
 );
 
-reg [15:0] dbg_cntx_o = 0;
-reg [15:0] dbg_cnty_o = 0;
-always @(posedge clk) begin
-    do_o <= do_o_tmp;
-    de_o <= de_o_tmp;
-    hs_o <= hs_o_tmp;
-    vs_o <= vs_o_tmp;
-    if (hs_o_tmp) begin
-        dbg_cntx_o <= 0;
-    end else if (de_o) begin
-        dbg_cntx_o <= dbg_cntx_o + 1;
-    end
+// reg [15:0] dbg_cntx_o = 0;
+// reg [15:0] dbg_cnty_o = 0;
+// always @(posedge clk) begin
+//     do_o <= do_o_tmp;
+//     de_o <= de_o_tmp;
+//     hs_o <= hs_o_tmp;
+//     vs_o <= vs_o_tmp;
+//     if (hs_o_tmp) begin
+//         dbg_cntx_o <= 0;
+//     end else if (de_o) begin
+//         dbg_cntx_o <= dbg_cntx_o + 1;
+//     end
 
-    if (hs_o_tmp && vs_o_tmp) begin
-        dbg_cnty_o <= 0;
-    end else if (hs_o_tmp) begin
-        dbg_cnty_o <= dbg_cnty_o + 1;
-    end
+//     if (hs_o_tmp && vs_o_tmp) begin
+//         dbg_cnty_o <= 0;
+//     end else if (hs_o_tmp) begin
+//         dbg_cnty_o <= dbg_cnty_o + 1;
+//     end
+// end
+
+reg sr_hs_o = 0;
+reg sr_vs_o = 0;
+reg hs_ms = 1'b0;
+reg vs_ms = 1'b0;
+reg de_ms = 1'b0;
+reg [PIXEL_WIDTH-1:0] do_ms = 0;
+always @(posedge clk) begin
+    sr_hs_o <= hs_o;
+    sr_vs_o <= vs_o;
+    hs_ms <= sr_hs_o & !hs_o;
+    vs_ms <= !sr_vs_o & vs_o;
+    de_ms <= de_o;
+    do_ms <= do_o;
 end
 
-// monitor # (
-//     .DATA_WIDTH(8),
-//     .WRITE_IMG_FILE(WRITE_IMG_FILE)
-// ) monitor_m (
-//     .di_i(do_o_tmp),
-//     .de_i(de_o_tmp),
-//     .hs_i(hs_o_tmp),
-//     .vs_i(vs_o_tmp),
-//     .clk(clk)
-// );
+monitor # (
+    .DATA_WIDTH(8),
+    .WRITE_IMG_FILE(WRITE_IMG_FILE)
+) monitor_m (
+    .di_i(do_ms),
+    .de_i(de_ms),
+    .hs_i(hs_ms),
+    .vs_i(vs_ms),
+    .clk(clk)
+);
 
 endmodule : scaler_linear_h_tb
