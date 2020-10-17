@@ -1,6 +1,7 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate -radix ascii /scaler_cubic_v_tb/READ_IMG_FILE
+add wave -noupdate -radix unsigned /scaler_cubic_v_tb/READ_IMG_WIDTH
 add wave -noupdate -radix ascii /scaler_cubic_v_tb/WRITE_IMG_FILE
 add wave -noupdate -radix unsigned /scaler_cubic_v_tb/LINE_IN_SIZE_MAX
 add wave -noupdate -radix unsigned /scaler_cubic_v_tb/scaler_cubic_v_m/LINE_STEP
@@ -17,7 +18,7 @@ add wave -noupdate /scaler_cubic_v_tb/scaler_cubic_v_m/hs_i
 add wave -noupdate /scaler_cubic_v_tb/scaler_cubic_v_m/vs_i
 add wave -noupdate -divider {New Divider}
 add wave -noupdate -radix unsigned /scaler_cubic_v_tb/scaler_cubic_v_m/scale_step
-add wave -noupdate -radix unsigned -childformat {{{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[9]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[8]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[7]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[6]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[5]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[4]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[3]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[2]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[1]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[0]} -radix unsigned}} -subitemconfig {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[9]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[8]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[7]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[6]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[5]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[4]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[3]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[2]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[1]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[0]} {-height 15 -radix unsigned}} /scaler_cubic_v_tb/scaler_cubic_v_m/dy
+add wave -noupdate -radix unsigned -childformat {{{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[4]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[3]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[2]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[1]} -radix unsigned} {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[0]} -radix unsigned}} -subitemconfig {{/scaler_cubic_v_tb/scaler_cubic_v_m/dy[4]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[3]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[2]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[1]} {-height 15 -radix unsigned} {/scaler_cubic_v_tb/scaler_cubic_v_m/dy[0]} {-height 15 -radix unsigned}} /scaler_cubic_v_tb/scaler_cubic_v_m/dy
 add wave -noupdate -radix unsigned /scaler_cubic_v_tb/scaler_cubic_v_m/cnt_i
 add wave -noupdate -radix unsigned /scaler_cubic_v_tb/scaler_cubic_v_m/buf_wcnt
 add wave -noupdate /scaler_cubic_v_tb/scaler_cubic_v_m/buf_wsel
@@ -54,4 +55,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits us
 update
-WaveRestoreZoom {0 ps} {31500 ns}
+WaveRestoreZoom {996607 ps} {1072583 ps}
