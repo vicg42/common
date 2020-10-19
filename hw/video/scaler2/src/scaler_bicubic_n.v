@@ -2,18 +2,23 @@
 // author : Viktor Golovachenko
 //-----------------------------------------------------------------------
 module scaler #(
-//For Altera: (* ramstyle = "MLAB" *)
-//For Xilinx: (* RAM_STYLE = "{AUTO | BLOCK |  BLOCK_POWER1 | BLOCK_POWER2}" *)
-    parameter VENDOR_RAM_STYLE="MLAB",
     parameter LINE_IN_SIZE_MAX = 1024,
     parameter SCALE_STEP = 4096,
     parameter PIXEL_WIDTH = 12,
     parameter SPARSE_OUT = 2, // 0 - no empty cycles, 1 - one empty cycle per pixel, etc...
-    parameter COE_WIDTH = 10
+    parameter COE_WIDTH = 10,
+    parameter COE_COUNT = 4
 )(
     input [15:0] reg_h_scale_step,
     input [15:0] reg_v_scale_step,
     input [15:0] reg_v_scale_inline_size,
+
+    output coex_adr_en,
+    output [$clog2(SCALE_STEP/COE_COUNT)-1:0] coex_adr,
+    input [(COE_WIDTH*COE_COUNT)-1:0] coex_i,
+    output coey_adr_en,
+    output [$clog2(SCALE_STEP/COE_COUNT)-1:0] coey_adr,
+    input [(COE_WIDTH*COE_COUNT)-1:0] coey_i,
 
     input [PIXEL_WIDTH-1:0] di_i,
     input de_i,
@@ -45,12 +50,16 @@ wire scaler_h_de_o;
 wire scaler_h_hs_o;
 wire scaler_h_vs_o;
 scaler_h #(
-    .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
     .SCALE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
-    .COE_WIDTH(COE_WIDTH)
+    .COE_WIDTH(COE_WIDTH),
+    .COE_COUNT(COE_COUNT)
 ) scaler_cubic_h_m (
     .scale_step(h_scale_step),
+
+    .coe_adr_en(coex_adr_en),
+    .coe_adr(coex_adr),
+    .coe_i(coex_i),
 
     .di_i(di_i),
     .de_i(de_i),
@@ -66,15 +75,19 @@ scaler_h #(
 );
 
 scaler_v #(
-    .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
     .SCALE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUT(SPARSE_OUT),
-    .COE_WIDTH(COE_WIDTH)
+    .COE_WIDTH(COE_WIDTH),
+    .COE_COUNT(COE_COUNT)
 ) scaler_cubic_v_m (
     .line_in_size(inline_size),
     .scale_step(v_scale_step),
+
+    .coe_adr_en(coey_adr_en),
+    .coe_adr(coey_adr),
+    .coe_i(coey_i),
 
     .di_i(scaler_h_do_o),
     .de_i(scaler_h_de_o),

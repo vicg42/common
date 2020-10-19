@@ -4,10 +4,15 @@ module scaler_h #(
     parameter VENDOR_RAM_STYLE="MLAB",
     parameter SCALE_STEP = 4096,
     parameter PIXEL_WIDTH = 12,
-    parameter COE_WIDTH = 10
+    parameter COE_WIDTH = 10,
+    parameter COE_COUNT = 4
 )(
     //unsigned fixed point. SCALE_STEP is 1.000 scale
     input [15:0] scale_step,
+
+    output coe_adr_en,
+    output [$clog2(SCALE_STEP/COE_COUNT)-1:0] coe_adr,
+    input [(COE_WIDTH*COE_COUNT)-1:0] coe_i,
 
     input [PIXEL_WIDTH-1:0] di_i,
     input de_i,
@@ -22,7 +27,6 @@ module scaler_h #(
     input clk
 );
 
-
 localparam MULT_WIDTH = COE_WIDTH + PIXEL_WIDTH;
 localparam OVERFLOW_BIT = COE_WIDTH + PIXEL_WIDTH - 1;
 localparam [MULT_WIDTH:0] MAX_OUTPUT = (1 << (PIXEL_WIDTH + COE_WIDTH)) - 1;
@@ -32,9 +36,9 @@ reg [23:0] cnt_i = 0; // input pixels coordinate counter
 reg [23:0] cnt_o = 0; // output pixels coordinate counter
 
 reg [PIXEL_WIDTH-1:0] sr_di_i [2:0];
-reg [PIXEL_WIDTH-1:0] pix [3:0];
-wire [COE_WIDTH-1:0] coe [3:0];
-reg [MULT_WIDTH-1:0] mult [3:0];
+reg [PIXEL_WIDTH-1:0] pix [COE_COUNT-1:0];
+wire [COE_WIDTH-1:0] coe [COE_COUNT-1:0];
+reg [MULT_WIDTH-1:0] mult [COE_COUNT-1:0];
 reg signed [MULT_WIDTH+2-1:0] sum;
 
 reg [4:0] sr_de_i = 0;
@@ -43,7 +47,6 @@ reg [4:0] sr_vs_i = 0;
 
 wire hs_falling_edge;
 wire hs_rising_edge;
-wire [$clog2(SCALE_STEP/4)-1:0] coe_adr;
 reg de_new = 1'b0;
 
 //Input pix buf
@@ -78,22 +81,15 @@ always @(posedge clk) begin
         end
     end
 end
-assign coe_adr = cnt_o[2 +: $clog2(SCALE_STEP/4)];
+assign coe_adr = cnt_o[2 +: $clog2(SCALE_STEP/COE_COUNT)];
 
-cubic_table #(
-    .VENDOR_RAM_STYLE(VENDOR_RAM_STYLE),
-    .STEP(SCALE_STEP),
-    .COE_WIDTH(COE_WIDTH)
-) coe_table_m (
-    .coe0(coe[0]),
-    .coe1(coe[1]),
-    .coe2(coe[2]),
-    .coe3(coe[3]),
-
-    .dx_en(1'b1),
-    .dx(coe_adr),
-    .clk(clk)
-);
+assign coe_adr_en = 1'b1;
+genvar i;
+generate
+    for (i=0; i<COE_COUNT; i=i+1) begin
+        assign coe[i] = coe_i[i*COE_WIDTH +: COE_WIDTH];
+    end
+endgenerate
 
 // pipeline
 always @(posedge clk) begin

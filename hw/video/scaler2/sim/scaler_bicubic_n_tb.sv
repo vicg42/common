@@ -17,7 +17,8 @@ module scaler_bicubic_n_tb #(
     parameter SCALE_STEP = 128,
     parameter PIXEL_WIDTH = 8,
     parameter SCALE_COE = 1.90, //scale down: SCALE_COE > 1.0; scale up: SCALE_COE < 1.0
-    parameter COE_WIDTH = 8
+    parameter COE_WIDTH = 8,
+    parameter COE_COUNT = 4
 );
 
 reg clk = 1;
@@ -204,16 +205,32 @@ end
 logic [15:0] h_scale_step = SCALE_COE*SCALE_STEP;
 logic [15:0] v_scale_step = SCALE_COE*SCALE_STEP;
 logic [15:0] v_scale_inline_size = V_SCALE_INLINE_WIDTH-1;
+
+wire coex_adr_en;
+wire [$clog2(SCALE_STEP/COE_COUNT)-1:0] coex_adr;
+wire [(COE_WIDTH*COE_COUNT)-1:0] coex_i;
+wire coey_adr_en;
+wire [$clog2(SCALE_STEP/COE_COUNT)-1:0] coey_adr;
+wire [(COE_WIDTH*COE_COUNT)-1:0] coey_i;
+
 scaler #(
     .LINE_IN_SIZE_MAX(LINE_IN_SIZE_MAX),
     .SCALE_STEP(SCALE_STEP),
     .PIXEL_WIDTH(PIXEL_WIDTH),
     .SPARSE_OUT(SPARSE_OUT),
-    .COE_WIDTH(COE_WIDTH)
+    .COE_WIDTH(COE_WIDTH),
+    .COE_COUNT(COE_COUNT)
 ) scaler_bicubic_m (
     .reg_h_scale_step(h_scale_step),
     .reg_v_scale_step(v_scale_step),
     .reg_v_scale_inline_size(v_scale_inline_size),
+
+    .coex_adr_en(coex_adr_en),
+    .coex_adr(coex_adr),
+    .coex_i(coex_i),
+    .coey_adr_en(coey_adr_en),
+    .coey_adr(coey_adr),
+    .coey_i(coey_i),
 
     .di_i(di_i),//
     .de_i(de_i),//
@@ -225,6 +242,36 @@ scaler #(
     .hs_o(hs_o),
     .vs_o(vs_o),
 
+    .clk(clk)
+);
+
+cubic_table #(
+    .VENDOR_RAM_STYLE("MLAB"),
+    .STEP(SCALE_STEP),
+    .COE_WIDTH(COE_WIDTH)
+) cubic_table_x (
+    .coe0(coex_i[(0*COE_WIDTH) +: COE_WIDTH]),
+    .coe1(coex_i[(1*COE_WIDTH) +: COE_WIDTH]),
+    .coe2(coex_i[(2*COE_WIDTH) +: COE_WIDTH]),
+    .coe3(coex_i[(3*COE_WIDTH) +: COE_WIDTH]),
+
+    .dx_en(1'b1),
+    .dx(coex_adr),
+    .clk(clk)
+);
+
+cubic_table #(
+    .VENDOR_RAM_STYLE("MLAB"),
+    .STEP(SCALE_STEP),
+    .COE_WIDTH(COE_WIDTH)
+) cubic_table_y (
+    .coe0(coey_i[(0*COE_WIDTH) +: COE_WIDTH]),
+    .coe1(coey_i[(1*COE_WIDTH) +: COE_WIDTH]),
+    .coe2(coey_i[(2*COE_WIDTH) +: COE_WIDTH]),
+    .coe3(coey_i[(3*COE_WIDTH) +: COE_WIDTH]),
+
+    .dx_en(1'b1),
+    .dx(coey_adr),
     .clk(clk)
 );
 
